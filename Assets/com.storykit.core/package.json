@@ -1,0 +1,30 @@
+{
+  "name": "com.storykit.core",
+  "version": "0.1.0",
+  "displayName": "StoryKit",
+  "description": "Narrative tooling for Unity: flow graphs for dialogue, quests and cutscenes, state machines for bosses and objects, behaviour trees for enemy decisions. One blackboard, one event bus and one service layer, so the three compose instead of competing.",
+  "unity": "6000.0",
+  "license": "MIT",
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.0"
+  },
+  "keywords": [
+    "dialogue",
+    "quest",
+    "cutscene",
+    "visual-scripting",
+    "state-machine",
+    "behaviour-tree",
+    "narrative"
+  ],
+  "author": {
+    "name": "Songwut Meesema"
+  },
+  "samples": [
+    {
+      "displayName": "Smoke Test",
+      "description": "An NPC to talk to, a quest that completes, and a save and reload.",
+      "path": "Samples~/SmokeTest"
+    }
+  ]
+}
