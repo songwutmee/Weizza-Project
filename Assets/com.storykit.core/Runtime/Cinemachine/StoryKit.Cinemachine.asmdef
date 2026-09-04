@@ -1,0 +1,26 @@
+{
+    "name": "StoryKit.Cinemachine",
+    "rootNamespace": "StoryKit.CinemachineSupport",
+    "references": [
+        "StoryKit.Runtime",
+        "UniTask",
+        "Unity.Cinemachine"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "STORYKIT_CINEMACHINE_3"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.cinemachine",
+            "expression": "3.0.0",
+            "define": "STORYKIT_CINEMACHINE_3"
+        }
+    ],
+    "noEngineReferences": false
+}
