@@ -1,0 +1,31 @@
+{
+    "name": "Weizza.Editor",
+    "rootNamespace": "Weizza.EditorTools",
+    "references": [
+        "Weizza.Gameplay",
+        "StoryKit.Runtime",
+        "UniTask",
+        "Unity.Cinemachine",
+        "Unity.InputSystem",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.2D.Sprite.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Sirenix.OdinInspector.Attributes.dll",
+        "Sirenix.OdinInspector.Editor.dll",
+        "Sirenix.Serialization.dll",
+        "Sirenix.Serialization.Config.dll",
+        "Sirenix.Utilities.dll",
+        "Sirenix.Utilities.Editor.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69ce28d61b9b952418c79ff9c5c01b10, type: 3}
+  m_Name: STANCE_Than
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.StanceDefinition
+  id: 1
+  displayName: Than
+  tint: {r: 0.62, g: 0.66, b: 0.72, a: 1}
+  intent: Heavy and slow. Stands its ground.
+  maxHealth: 120
+  damageTaken: 0.8
+  lifesteal: 0
+  runSpeed: 5.2
+  depthSpeed: 3
+  acceleration: 60
+  deceleration: 70
+  airControl: 0.65
+  canJump: 1
+  jumpHeight: 2.4
+  jumpRiseTime: 0.34
+  fallGravityMultiplier: 1.7
+  jumpCutMultiplier: 0.45
+  coyoteFrames: 6
+  jumpBufferFrames: 7
+  canDash: 0
+  dashDistance: 3.6
+  dashFrames: 10
+  iFrameStart: 1
+  iFrameEnd: 8
+  dashCooldownFrames: 24
+  dashIsBlink: 0
+  canParry: 0
+  parryWindowFrames: 8
+  parryRecoveryFrames: 18
+  parryStunFrames: 26
+  hyperArmor: 1
+  knockbackResistance: 0.7
+  lightCombo: []
+  heavy: {fileID: 0}
