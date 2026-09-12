@@ -444,26 +444,66 @@ namespace Weizza.EditorTools
                 AssetDatabase.CreateAsset(profile, path);
             }
 
-            if (!profile.TryGet<DepthOfField>(out var dof)) dof = profile.Add<DepthOfField>();
+            // Three effects, not one, because the obvious single answer is not
+            // dependable here. Depth of field is the only real blur URP ships,
+            // and it derives every pixel's blur from how far away that pixel is,
+            // which an orthographic camera does not describe the way a
+            // perspective one does. Where it works it is the nicest of the
+            // three; where it does nothing, the other two still take the world
+            // back and leave the panel holding the eye.
+            var dof = Override<DepthOfField>(profile);
+            dof.mode.Override(DepthOfFieldMode.Gaussian);
+            dof.gaussianStart.Override(0.1f);
+            dof.gaussianEnd.Override(2f);
+            dof.gaussianMaxRadius.Override(Mathf.Clamp(blurStrength, 0.5f, 1.5f));
 
-            // Gaussian rather than bokeh: it blurs by distance from the camera
-            // with no aperture to tune, and every sprite in this game sits at
-            // roughly the same distance, so the whole world goes soft together.
-            dof.active = true;
-            dof.mode.overrideState = true;
-            dof.mode.value = DepthOfFieldMode.Gaussian;
-            dof.gaussianStart.overrideState = true;
-            dof.gaussianStart.value = 0.1f;
-            dof.gaussianEnd.overrideState = true;
-            dof.gaussianEnd.value = 2f;
-            dof.gaussianMaxRadius.overrideState = true;
-            dof.gaussianMaxRadius.value = blurStrength;
+            // Needs no depth and no perspective, so this is the part that is
+            // certain to happen: colour drains out of the world and it steps
+            // back a stop.
+            var colour = Override<ColorAdjustments>(profile);
+            colour.saturation.Override(-45f);
+            colour.postExposure.Override(-0.85f);
+
+            // Darkened corners, so the eye is pulled to the middle and down to
+            // the panel rather than wandering the street behind it.
+            var vignette = Override<Vignette>(profile);
+            vignette.intensity.Override(0.32f);
+            vignette.smoothness.Override(0.55f);
 
             EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+
             volume.sharedProfile = profile;
 
             EnablePostProcessing();
             return volume;
+        }
+
+        /// <summary>
+        /// Gets an effect out of a profile, or adds one that will still be there
+        /// tomorrow.
+        ///
+        /// VolumeProfile.Add builds the effect in memory and hands it back, but
+        /// never files it inside the profile asset. Unity then saves a profile
+        /// whose component list points at an object that was never written, and
+        /// the next time the project loads the list is simply empty. Nothing
+        /// warns: the volume is present, its weight animates, and no effect ever
+        /// happens. AddObjectToAsset is what makes the effect part of the file.
+        /// </summary>
+        private static T Override<T>(VolumeProfile profile) where T : VolumeComponent
+        {
+            if (profile.TryGet<T>(out var existing) && existing != null) return existing;
+
+            var added = profile.Add<T>();
+            added.active = true;
+
+            if (!AssetDatabase.Contains(added))
+            {
+                added.hideFlags = HideFlags.HideInHierarchy;
+                AssetDatabase.AddObjectToAsset(added, profile);
+            }
+
+            return added;
         }
 
         /// <summary>
