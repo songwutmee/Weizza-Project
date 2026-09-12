@@ -9,19 +9,19 @@ namespace Weizza
     /// The one number that decides how this game looks, and everything that has
     /// to agree with it.
     ///
-    /// The camera is orthographic and pitched down slightly. Orthographic is not
+    /// The camera is orthographic and, by default, dead on. Orthographic is not
     /// a style choice here: it is what keeps a hand drawn character exactly the
-    /// size it was drawn no matter how far into the room it walks. A perspective
-    /// camera would shrink the same drawing at the back of the band, and a
-    /// character that changes size while walking is a character the art team has
-    /// to draw twice.
+    /// size it was drawn wherever it stands. A perspective camera would shrink
+    /// the same drawing as it moved, and a character that changes size while
+    /// walking is a character the art team has to draw twice.
     ///
-    /// The pitch is what makes depth visible at all. With the camera dead on,
-    /// stepping into the screen moves a character zero pixels, so the whole
-    /// depth axis would be invisible. Pitching down by theta means a step of
-    /// dz into the room lifts the sprite by dz * sin(theta) on screen, while a
-    /// jump of dy lifts it by dy * cos(theta). Those two ratios are the entire
-    /// reason a step and a jump read as different actions.
+    /// The pitch is what makes the lanes visible. Nothing walks into the screen
+    /// any more, but a character can be shifted onto a lane further back, and
+    /// with the camera dead on that character would be drawn in exactly the
+    /// same place as one standing at the front. Pitching down by theta lifts a
+    /// lane that sits dz behind by dz * sin(theta) on screen, while a jump of
+    /// dy lifts by dy * cos(theta). Those two ratios are what keep a shift and
+    /// a jump reading as different actions.
     ///
     /// Put one of these in a scene and it keeps every Cinemachine camera and
     /// every SpriteFacing in the room agreeing about the angle, in edit mode as
@@ -41,29 +41,71 @@ namespace Weizza
         /// <summary>Pitch every sprite in the game leans back by, in degrees.</summary>
         public static float Pitch => _instance != null ? _instance.pitchDegrees : DefaultPitch;
 
-        public const float DefaultPitch = 18f;
+        public const float DefaultPitch = 12f;
 
         [BoxGroup("Angle", centerLabel: true)]
-        [InfoBox("Ten degrees reads almost flat, twenty five starts to read as a " +
-                 "top down game. Absolum and Streets of Rage 4 sit around fifteen " +
-                 "to twenty.")]
+        [InfoBox("Zero is a flat side view, and flat means the back lane lands " +
+                 "on screen exactly where the front one does. Ten to fifteen " +
+                 "separates the lanes while still reading as a side view. Past " +
+                 "twenty five it starts reading as a top down game.")]
         [PropertyRange(0f, 35f)]
         [OnValueChanged(nameof(Apply))]
         [SerializeField] private float pitchDegrees = DefaultPitch;
 
         [BoxGroup("Angle")]
         [ShowInInspector, DisplayAsString]
-        [LabelText("A step into the room")]
-        private string DepthReadout =>
-            $"{Mathf.Sin(pitchDegrees * Mathf.Deg2Rad):0.000} screen units per metre  " +
-            $"({WalkableDepth * Mathf.Sin(pitchDegrees * Mathf.Deg2Rad) * PixelsPerUnit:0} px " +
-            $"across a {WalkableDepth:0.0} m band)";
-
-        [BoxGroup("Angle")]
-        [ShowInInspector, DisplayAsString]
         [LabelText("A jump")]
         private string JumpReadout =>
             $"keeps {Mathf.Cos(pitchDegrees * Mathf.Deg2Rad):P0} of its height on screen";
+
+        // ---- Lanes ----------------------------------------------------------
+
+        [BoxGroup("Lanes", centerLabel: true)]
+        [InfoBox("Characters do not walk into the screen. They stand on a lane " +
+                 "and are shifted onto another one whole, so the only depths " +
+                 "that exist are the ones listed here.")]
+        [InfoBox("The back lane has to be far enough behind to be obviously a " +
+                 "different place, and the readout below is the honest answer " +
+                 "in pixels. Under about twenty pixels of separation a player " +
+                 "cannot tell which lane they are on, and the mechanic reads as " +
+                 "a bug.", InfoMessageType.Warning)]
+        [PropertyRange(1, 4)]
+        [OnValueChanged(nameof(Apply))]
+        [SerializeField] private int laneCount = 1;
+
+        [BoxGroup("Lanes")]
+        [PropertyRange(0.5f, 6f)]
+        [OnValueChanged(nameof(Apply))]
+        [Tooltip("Metres between one lane and the next, measured into the screen.")]
+        [SerializeField] private float laneSpacing = 2.5f;
+
+        [BoxGroup("Lanes")]
+        [ShowInInspector, DisplayAsString]
+        [LabelText("Lanes separate by")]
+        private string LaneReadout
+        {
+            get
+            {
+                if (laneCount <= 1) return "one lane only, nothing to shift between";
+
+                var lift = laneSpacing * Mathf.Sin(pitchDegrees * Mathf.Deg2Rad);
+                var pixels = lift * pixelsPerUnit;
+                var verdict = pixels < 20f
+                    ? "  too close to read, raise the pitch or the spacing"
+                    : "";
+                return $"{lift:0.00} m on screen ({pixels:0} px){verdict}";
+            }
+        }
+
+        /// <summary>How many lanes this scene offers. One means no shifting.</summary>
+        public static int LaneCount => _instance != null ? Mathf.Max(1, _instance.laneCount) : 1;
+
+        /// <summary>World Z of a lane. Lane zero is the one nearest the camera.</summary>
+        public static float LaneZ(int lane)
+        {
+            var spacing = _instance != null ? _instance.laneSpacing : 2.5f;
+            return Mathf.Clamp(lane, 0, LaneCount - 1) * spacing;
+        }
 
         // ---- Framing --------------------------------------------------------
 
@@ -85,11 +127,6 @@ namespace Weizza
         [SerializeField] private float characterHeight = 1.8f;
 
         [BoxGroup("Framing")]
-        [Tooltip("Metres of floor the player can walk into and out of. Only used " +
-                 "for the readout, the level geometry is what actually decides.")]
-        [SerializeField] private float walkableDepth = 3f;
-
-        [BoxGroup("Framing")]
         [ShowInInspector, DisplayAsString]
         [LabelText("Pixel perfect at")]
         private string PixelPerfectReadout =>
@@ -106,15 +143,14 @@ namespace Weizza
                 : "-";
 
         public float PixelsPerUnit => pixelsPerUnit;
-        public float WalkableDepth => walkableDepth;
 
         // ---- Where the camera sits ------------------------------------------
 
         [BoxGroup("Distance", centerLabel: true)]
         [InfoBox("Orthographic ignores distance for size, so this only decides " +
                  "what fits between the near and far clip planes. Keep it far " +
-                 "enough back that the deepest parallax layer is still in front " +
-                 "of the far plane.")]
+                 "enough back that the furthest parallax layer is still in " +
+                 "front of the far plane.")]
         [PropertyRange(5f, 100f)]
         [OnValueChanged(nameof(Apply))]
         [SerializeField] private float cameraDistance = 24f;

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69ce28d61b9b952418c79ff9c5c01b10, type: 3}
+  m_Name: STANCE_Than
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.StanceDefinition
+  id: 1
+  displayName: Than
+  tint: {r: 0.357, g: 0.4, b: 0.439, a: 1}
+  intent: Iron. Slow to start, hard to stop, eats hits without flinching.
+  maxHealth: 150
+  damageTaken: 0.7
+  lifesteal: 0
+  runSpeed: 4
+  depthSpeed: 2.3
+  acceleration: 35
+  deceleration: 40
+  airControl: 0.45
+  canJump: 1
+  jumpHeight: 2
+  jumpRiseTime: 0.38
+  fallGravityMultiplier: 2
+  jumpCutMultiplier: 0.45
+  coyoteFrames: 6
+  jumpBufferFrames: 7
+  canDash: 0
+  dashDistance: 0
+  dashFrames: 0
+  iFrameStart: 0
+  iFrameEnd: 0
+  dashCooldownFrames: 0
+  dashIsBlink: 0
+  canParry: 1
+  parryWindowFrames: 8
+  parryRecoveryFrames: 18
+  parryStunFrames: 26
+  hyperArmor: 1
+  knockbackResistance: 0.7
+  lightCombo:
+  - {fileID: 11400000, guid: 2b8803ad0a8589046924db242264a457, type: 2}
+  - {fileID: 11400000, guid: 49745e6a97ba0ed4aad210f413be3ca5, type: 2}
+  - {fileID: 11400000, guid: c698e7492f310ab48abf0d5cb5fe544b, type: 2}
+  heavy: {fileID: 11400000, guid: 6d2608ea66506d140b327e1943e23cfa, type: 2}

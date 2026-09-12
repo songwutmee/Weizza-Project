@@ -180,13 +180,20 @@ namespace Weizza
                 MutedLine("STANCE");
                 GUILayout.Space(2f);
 
+                // Normal is a real stance the player starts in, so it belongs in
+                // the row. Leaving it out meant that standing in Normal lit
+                // nothing up at all, which read as the panel being broken.
                 GUILayout.BeginHorizontal();
+                StanceButton(StanceId.Normal);
+                GUILayout.Space(4f);
                 StanceButton(StanceId.Than);
                 GUILayout.Space(4f);
                 StanceButton(StanceId.Se);
                 GUILayout.Space(4f);
                 StanceButton(StanceId.In);
                 GUILayout.EndHorizontal();
+
+                DrawSwitchWindow();
 
                 var vitals = _player.Vitals;
                 if (vitals == null) return;
@@ -208,25 +215,72 @@ namespace Weizza
 
         private void StanceButton(StanceId id)
         {
+            var definition = _player.Tuning != null ? _player.Tuning.Get(id) : null;
             var isCurrent = _player.Stance == id;
 
-            if (!isCurrent)
+            // A stance with no asset behind it silently does nothing when
+            // pressed, which is indistinguishable from a broken button. Saying
+            // so on the button itself is the whole reason this branch exists.
+            if (definition == null)
             {
-                if (GUILayout.Button(id.ToString(), _button)) _player.TryStartSwitch(id);
+                var was = GUI.color;
+                GUI.color = new Color(1f, 1f, 1f, 0.35f);
+                GUILayout.Button($"{id}\nno asset", _button, GUILayout.Height(34f));
+                GUI.color = was;
                 return;
             }
 
-            // The active button borrows that stance's own tint rather than one
-            // fixed accent colour, so the panel and the world agree on what
-            // each school looks like.
-            var tint = _player.Tuning != null && _player.Tuning.Get(id) != null
-                ? _player.Tuning.Get(id).tint
-                : Accent;
+            if (!isCurrent)
+            {
+                if (GUILayout.Button(id.ToString(), _button, GUILayout.Height(34f)))
+                {
+                    _player.TryStartSwitch(id);
+                }
+                return;
+            }
 
-            if (GUILayout.Button(id.ToString(), TintedButtonStyle(tint)))
+            // The active stance is filled with its own tint rather than one
+            // fixed accent colour, so the panel and the world agree on what
+            // each school looks like. The brackets are there for the same
+            // reason a colour alone is not enough: on a small screen, in a
+            // hurry, shape reads faster than hue. Plain ASCII on purpose, since
+            // the built in IMGUI font cannot be trusted with symbols.
+            var label = $"[ {id} ]";
+            if (GUILayout.Button(label, TintedButtonStyle(definition.tint), GUILayout.Height(34f)))
             {
                 _player.TryStartSwitch(id);
             }
+        }
+
+        /// <summary>
+        /// Draws the switch window while it is open.
+        ///
+        /// The 0.4 seconds with no armour and no i-frames is the price of being
+        /// the only person alive who can change school mid fight. It is also
+        /// invisible, so tuning it without a readout is guesswork.
+        /// </summary>
+        private void DrawSwitchWindow()
+        {
+            var remaining = _player.SwitchRemaining;
+            if (remaining <= 0f) return;
+
+            var total = _player.Tuning != null ? _player.Tuning.SwitchSeconds : 0.4f;
+            var fraction = total > 0f ? Mathf.Clamp01(remaining / total) : 0f;
+
+            GUILayout.Space(4f);
+
+            var rect = GUILayoutUtility.GetRect(1f, 4f, GUILayout.ExpandWidth(true));
+            Fill(rect, Off);
+
+            var filled = rect;
+            filled.width *= fraction;
+            Fill(filled, Danger);
+
+            GUILayout.Space(2f);
+            var was = GUI.color;
+            GUI.color = Danger;
+            GUILayout.Label($"vulnerable  {remaining * 1000f:0} ms", _mono);
+            GUI.color = was;
         }
 
         private GUIStyle TintedButtonStyle(Color tint)
@@ -284,7 +338,10 @@ namespace Weizza
             Card(() =>
             {
                 var motor = _player.Motor;
-                Row("speed", $"{motor.GroundSpeed:0.00} m/s", "depth", $"{motor.Depth:0.00}");
+                var lane = ViewRig.LaneCount > 1
+                    ? $"{motor.Lane} of {ViewRig.LaneCount - 1}"
+                    : "single";
+                Row("speed", $"{motor.GroundSpeed:0.00} m/s", "lane", lane);
                 Row("height", $"{motor.transform.position.y:0.00}", "dash cd",
                     $"{_player.DashCooldownRemaining * 1000f:0} ms");
             });

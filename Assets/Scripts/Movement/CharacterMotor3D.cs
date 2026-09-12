@@ -5,24 +5,28 @@ using UnityEngine;
 namespace Weizza
 {
     /// <summary>
-    /// Moves one character through the 3D world. Nothing here decides what a
-    /// character wants to do, only what physically happens when it tries.
+    /// Moves one character along the side scrolling lane. Nothing here decides
+    /// what a character wants to do, only what physically happens when it tries.
     ///
-    /// Three axes, and they are not interchangeable:
-    ///   X  along the screen, the side scrolling axis
-    ///   Z  into and out of the room, the depth a brawler repositions on
+    /// Two axes carry gameplay:
+    ///   X  along the screen, the direction the game runs in
     ///   Y  height, which only a jump changes
+    ///
+    /// Z is not a free axis. A character stands on a lane and is shifted onto
+    /// another one whole, never part way, so the only Z values that ever exist
+    /// are the ones ViewRig lists. Pinning is enforced here rather than trusted
+    /// to callers, because a single stray push on Z leaves a character between
+    /// lanes, where hits stop landing and nothing on screen explains why.
     ///
     /// Built on CharacterController rather than a Rigidbody because every rule
     /// this game has about movement is a rule about exact position on an exact
     /// frame: dash invincibility, knockback, a 0.4 second window with no armour.
-    /// A dynamic Rigidbody has opinions of its own about all three, and the
-    /// result is a negotiation instead of a rule.
+    /// A dynamic Rigidbody has opinions of its own about all of them, and
+    /// the result is a negotiation instead of a rule.
     ///
-    /// Whether a room is a flat arena or a platforming section is not a setting
-    /// here. It is the shape of the floor: a wide slab lets the player walk into
-    /// the room, a narrow bridge does not. Geometry decides, so a level designer
-    /// never has to remember to tag anything.
+    /// How far a character can go is not a setting here. It is the shape of the
+    /// floor: a slab carries them, a gap drops them. Geometry decides, so a
+    /// level designer never has to remember to tag anything.
     /// </summary>
     [AddComponentMenu("Weizza/Character Motor 3D")]
     [RequireComponent(typeof(CharacterController))]
@@ -41,15 +45,32 @@ namespace Weizza
         [PropertyRange(0.1f, 5f)]
         [SerializeField] private float groundStick = 2f;
 
+        [BoxGroup("Setup")]
+        [Tooltip("Which lane this character starts on. Zero is the lane nearest " +
+                 "the camera, which is where everything belongs unless a level " +
+                 "deliberately puts it behind.")]
+        [PropertyRange(0, 3)]
+        [SerializeField] private int lane;
+
         // ---- Live -----------------------------------------------------------
 
         [FoldoutGroup("Live", expanded: true)]
         [ShowInInspector, ReadOnly]
-        [Tooltip("X along the screen, Y height, Z into the room.")]
+        [Tooltip("X along the screen, Y height. Z is pinned to the lane.")]
         public Vector3 Velocity;
 
         [FoldoutGroup("Live")]
         [ShowInInspector, ReadOnly] public bool Grounded { get; private set; }
+
+        /// <summary>
+        /// Lane the character is standing on. Changed only by a shift, never by
+        /// ordinary movement.
+        /// </summary>
+        [FoldoutGroup("Live")]
+        [ShowInInspector, ReadOnly] public int Lane => lane;
+
+        /// <summary>Raised when the character lands on a different lane.</summary>
+        public event Action<int> LaneChanged;
 
         [FoldoutGroup("Live")]
         [ShowInInspector, ReadOnly] public Facing Facing { get; private set; } = Facing.Right;
@@ -58,10 +79,10 @@ namespace Weizza
         [ShowInInspector, ReadOnly]
         [Tooltip("Speed along the ground, ignoring the jump. What the run " +
                  "animation should be reading.")]
-        public float GroundSpeed => new Vector2(Velocity.x, Velocity.z).magnitude;
+        public float GroundSpeed => Mathf.Abs(Velocity.x);
 
-        /// <summary>Position in the depth band. Used to decide whether hits connect.</summary>
-        public float Depth => transform.position.z;
+        /// <summary>World Z the character is pinned to. Decides whether hits connect.</summary>
+        public float Depth => ViewRig.LaneZ(lane);
 
         /// <summary>Raised on the frame the character touches down, with impact speed.</summary>
         public event Action<float> Landed;
@@ -114,10 +135,51 @@ namespace Weizza
             // pose while standing still.
             if (Grounded && Velocity.y <= 0f) Velocity.y = -groundStick;
 
+            // The lane is enforced on the velocity and again on the position.
+            // Velocity alone is not enough: a capsule shoved sideways by another
+            // capsule slides off the lane without any code having asked it to.
+            Velocity.z = 0f;
             Controller.Move(Velocity * dt);
             Grounded = Controller.isGrounded;
 
+            var position = transform.position;
+            var laneZ = Depth;
+            if (!Mathf.Approximately(position.z, laneZ))
+            {
+                Controller.enabled = false;
+                transform.position = new Vector3(position.x, position.y, laneZ);
+                Controller.enabled = true;
+            }
+
             if (!wasGrounded && Grounded) Landed?.Invoke(Mathf.Max(0f, impact));
+        }
+
+        /// <summary>
+        /// Moves the character onto another lane, whole, on one frame.
+        ///
+        /// There is no travel between lanes on purpose. A character caught half
+        /// way would be standing somewhere the level geometry does not describe,
+        /// and whether a hit connects would depend on the exact frame it landed.
+        /// Whatever sells the shift to the player is an effect on top of this,
+        /// not a slower version of it.
+        /// </summary>
+        public bool ShiftToLane(int next)
+        {
+            next = Mathf.Clamp(next, 0, ViewRig.LaneCount - 1);
+            if (next == lane) return false;
+
+            lane = next;
+
+            if (Controller != null)
+            {
+                var position = transform.position;
+                Controller.enabled = false;
+                transform.position = new Vector3(position.x, position.y, Depth);
+                Controller.enabled = true;
+            }
+
+            LaneChanged?.Invoke(lane);
+            return true;
         }
 
         public void SetFacing(Facing facing)
@@ -140,7 +202,7 @@ namespace Weizza
         public void Teleport(Vector3 position)
         {
             if (Controller != null) Controller.enabled = false;
-            transform.position = position;
+            transform.position = new Vector3(position.x, position.y, Depth);
             if (Controller != null) Controller.enabled = true;
             Velocity = Vector3.zero;
         }

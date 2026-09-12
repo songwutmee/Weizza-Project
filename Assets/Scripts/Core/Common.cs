@@ -49,6 +49,9 @@ namespace Weizza
         public const string PlayerDamaged = "Combat.PlayerDamaged";
         public const string PlayerDied = "Combat.PlayerDied";
         public const string PlayerRevived = "Combat.PlayerRevived";
+
+        /// <summary>Carries the lane index landed on.</summary>
+        public const string PlayerBlinkedLane = "Combat.PlayerBlinkedLane";
         public const string ParrySuccess = "Combat.ParrySuccess";
         public const string EnemyDefeated = "Combat.EnemyDefeated";
         public const string EncounterStarted = "Combat.EncounterStarted";

@@ -30,6 +30,13 @@ namespace Weizza
                  "to a fixed angle, for a prop drawn at a different tilt.")]
         [SerializeField] private bool followRig = true;
 
+        [Tooltip("Tick when the source drawings face left. Sprite packs are not " +
+                 "consistent about which way a character is drawn, and getting " +
+                 "it wrong mirrors everything: the character runs backwards, " +
+                 "and attacks come out of the wrong side of the body.")]
+        [ToggleLeft]
+        [SerializeField] private bool artFacesLeft;
+
         [BoxGroup("Facing")]
         [HideIf(nameof(followRig))]
         [PropertyRange(0f, 45f)]
@@ -101,6 +108,7 @@ namespace Weizza
             transform.localPosition = offset - forward * depthBias;
         }
 
-        public void SetFacing(Facing facing) => FlippedX = facing == Facing.Left;
+        public void SetFacing(Facing facing) =>
+            FlippedX = artFacesLeft ? facing == Facing.Right : facing == Facing.Left;
     }
 }

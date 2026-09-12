@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69ce28d61b9b952418c79ff9c5c01b10, type: 3}
+  m_Name: STANCE_In
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.StanceDefinition
+  id: 3
+  displayName: In
+  tint: {r: 0.298, g: 0.478, b: 0.588, a: 1}
+  intent: Inscription. Fastest hands in the game, made of paper.
+  maxHealth: 80
+  damageTaken: 1.25
+  lifesteal: 0
+  runSpeed: 6.4
+  depthSpeed: 3.6
+  acceleration: 90
+  deceleration: 100
+  airControl: 0.75
+  canJump: 0
+  jumpHeight: 0
+  jumpRiseTime: 0
+  fallGravityMultiplier: 0
+  jumpCutMultiplier: 0.45
+  coyoteFrames: 6
+  jumpBufferFrames: 7
+  canDash: 1
+  dashDistance: 4.2
+  dashFrames: 9
+  iFrameStart: 1
+  iFrameEnd: 7
+  dashCooldownFrames: 22
+  dashIsBlink: 1
+  canParry: 0
+  parryWindowFrames: 8
+  parryRecoveryFrames: 18
+  parryStunFrames: 26
+  hyperArmor: 0
+  knockbackResistance: 0
+  lightCombo:
+  - {fileID: 11400000, guid: f83fef43216a6634cb1da4020c2ee1b3, type: 2}
+  - {fileID: 11400000, guid: ed90bc3c843998b4cab41b0d9389d85d, type: 2}
+  - {fileID: 11400000, guid: 7fa222b1a4d3c3f4d816e4927d9e264e, type: 2}
+  - {fileID: 11400000, guid: 155e6e87ea772a54ab7488963a5b32d2, type: 2}
+  - {fileID: 11400000, guid: 680ea31d6f31c794cbc788bfd50c6108, type: 2}
+  heavy: {fileID: 11400000, guid: af425b906429cd5409f4a37d0062087d, type: 2}

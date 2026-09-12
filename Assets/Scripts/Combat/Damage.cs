@@ -11,8 +11,13 @@ namespace Weizza
         /// <summary>Who swung. May be null for hazards.</summary>
         public GameObject source;
 
-        /// <summary>World point the hit landed, for effects.</summary>
-        public Vector2 point;
+        /// <summary>
+        /// World point the hit landed, for effects. Kept in three dimensions
+        /// because the room has real depth: flattening it puts every spark on
+        /// the plane the camera happens to be looking at rather than on the
+        /// thing that was struck.
+        /// </summary>
+        public Vector3 point;
 
         /// <summary>Which way to push. Already resolved to a direction, not a facing.</summary>
         public Vector2 knockback;

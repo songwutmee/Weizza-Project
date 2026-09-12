@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26199b53bebaff04db9488ab8469d5dc, type: 3}
+  m_Name: ATK_Se_L3
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.AttackDefinition
+  displayName: Se Light 3
+  animationState: Se_Light_3
+  startupFrames: 6
+  activeFrames: 3
+  recoveryFrames: 12
+  damage: 11
+  poiseDamage: 11
+  hitboxOffset: {x: 0.8, y: 0.6}
+  hitboxSize: {x: 1.2, y: 1}
+  depthTolerance: 0.45
+  knockbackX: 4
+  knockbackY: 0
+  hitStopFrames: 5
+  screenShake: 0
+  hitStunFrames: 14
+  superArmor: 0
+  launcher: 0
+  fullDepth: 0
+  lungeDistance: 0

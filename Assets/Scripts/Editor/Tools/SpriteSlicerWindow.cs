@@ -36,6 +36,33 @@ namespace Weizza.EditorTools
             window.Show();
         }
 
+        // ---- Header ---------------------------------------------------------
+
+        [PropertyOrder(-100)]
+        [Title("Sprite Slicer", "Cuts every sheet in a folder, measuring the cells instead of guessing",
+            TitleAlignments.Left)]
+        [InfoBox("Point a folder at it, press Scan, look at what it measured, then " +
+                 "slice.\n\n" +
+                 "Slicing by hand is not slow because of the clicks. It is slow " +
+                 "because two numbers per sheet have to be guessed, and a wrong " +
+                 "guess does not look like a wrong guess: a cell width that is " +
+                 "off by a pixel makes an animation that slides, and a pivot " +
+                 "that is off makes a character that hops half a metre whenever " +
+                 "it changes animation. Both get diagnosed as movement bugs.")]
+        [ShowInInspector, DisplayAsString(false), HideLabel]
+        [PropertySpace(0f, 8f)]
+        private string Blurb => "";
+
+        [PropertyOrder(-99)]
+        [ShowInInspector, DisplayAsString, HideLabel]
+        [GUIColor(1f, 0.85f, 0.55f)]
+        [ShowIf("@this.filterMode == UnityEngine.FilterMode.Point")]
+        [PropertySpace(0f, 6f)]
+        private string PixelArtWarning =>
+            "Filter Mode is Point, which is a pixel art setting. Correct for these " +
+            "placeholder sheets, wrong for the hand drawn art this game ships with. " +
+            "Switch to Bilinear when the real drawings arrive.";
+
         // ---- Source ---------------------------------------------------------
 
         [BoxGroup("Source", centerLabel: true)]
@@ -47,7 +74,7 @@ namespace Weizza.EditorTools
 
         [BoxGroup("Source")]
         [HorizontalGroup("Source/Row")]
-        [Button("Scan and measure", ButtonSizes.Large), GUIColor(0.55f, 0.78f, 1f)]
+        [Button("Scan and measure", ButtonSizes.Gigantic), GUIColor(0.55f, 0.78f, 1f)]
         private void ScanButton() => Scan();
 
         [HorizontalGroup("Source/Row", 0.25f)]
@@ -240,7 +267,47 @@ namespace Weizza.EditorTools
 
         // ---- Slicing -----------------------------------------------------------
 
-        [PropertySpace(10)]
+        [PropertySpace(10f, 2f)]
+        [ShowInInspector, DisplayAsString, HideLabel]
+        [GUIColor(nameof(TallyColour))]
+        private string Tally
+        {
+            get
+            {
+                if (sheets == null || sheets.Count == 0) return "Nothing scanned yet";
+
+                var ticked = 0;
+                var unsure = 0;
+                foreach (var sheet in sheets)
+                {
+                    if (sheet == null || !sheet.include) continue;
+                    ticked++;
+
+                    // One cell means the measurement found no repeating frame,
+                    // which is either a genuinely single image or a sheet it
+                    // failed to read. Worth a look either way before slicing.
+                    if (sheet.columns * sheet.rows <= 1) unsure++;
+                }
+
+                return unsure > 0
+                    ? $"{ticked} sheets ticked, {unsure} measured as a single frame. Check those first."
+                    : $"{ticked} of {sheets.Count} sheets ticked and measured";
+            }
+        }
+
+        private Color TallyColour()
+        {
+            if (sheets == null || sheets.Count == 0) return new Color(0.72f, 0.75f, 0.8f);
+
+            foreach (var sheet in sheets)
+            {
+                if (sheet == null || !sheet.include) continue;
+                if (sheet.columns * sheet.rows <= 1) return new Color(1f, 0.8f, 0.5f);
+            }
+
+            return new Color(0.72f, 0.93f, 0.78f);
+        }
+
         [Button("Slice everything ticked", ButtonSizes.Gigantic), GUIColor(0.45f, 0.82f, 0.55f)]
         private void SliceAll()
         {

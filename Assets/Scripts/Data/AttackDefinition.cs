@@ -38,12 +38,6 @@ namespace Weizza
         public int recoveryFrames = 12;
 
         [BoxGroup("Timing")]
-        [PropertyRange(0, 120)]
-        [Tooltip("First frame the next combo step may be buffered into. " +
-                 "Set inside recovery to make the combo flow, after it to make it commit.")]
-        public int cancelFrame = 14;
-
-        [BoxGroup("Timing")]
         [ShowInInspector, DisplayAsString]
         [LabelText("Total")]
         public string TotalReadout =>
@@ -54,7 +48,6 @@ namespace Weizza
         public float StartupSeconds => Timing.Frames(startupFrames);
         public float ActiveSeconds => Timing.Frames(activeFrames);
         public float RecoverySeconds => Timing.Frames(recoveryFrames);
-        public float CancelSeconds => Timing.Frames(cancelFrame);
 
         // ---- Damage -------------------------------------------------------
 

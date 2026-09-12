@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9e58b47f9346574da562e775256e1ce, type: 3}
+  m_Name: ENEMY_Boar
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.EnemyDefinition
+  displayName: Boar
+  intent: Charges in a straight line. Punishes standing still, harmless if you move.
+  maxHealth: 40
+  poise: 8
+  poiseRecoveryPerSecond: 10
+  knockbackScale: 0.8
+  walkSpeed: 1.2
+  chaseSpeed: 4.5
+  depthSpeed: 1.6
+  aggroRange: 7
+  loseAggroRange: 11
+  depthTolerance: 0.5
+  decisionInterval: 0.25
+  moves:
+  - id: charge
+    attack: {fileID: 11400000, guid: 46547b1b45be63e40811355d0e64cbdf, type: 2}
+    weight: 1
+    range: {x: 1.5, y: 6}
+    cooldown: 2.5
+    telegraphFrames: 26
+    telegraphTint: {r: 1, g: 0.55, b: 0.35, a: 1}
+    telegraphClip: Idle
+    travelSpeed: 9
+    travelClip: Run
