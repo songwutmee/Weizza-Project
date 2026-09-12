@@ -41,13 +41,15 @@ namespace Weizza
         /// <summary>Pitch every sprite in the game leans back by, in degrees.</summary>
         public static float Pitch => _instance != null ? _instance.pitchDegrees : DefaultPitch;
 
-        public const float DefaultPitch = 12f;
+        public const float DefaultPitch = 0f;
 
         [BoxGroup("Angle", centerLabel: true)]
-        [InfoBox("Zero is a flat side view, and flat means the back lane lands " +
-                 "on screen exactly where the front one does. Ten to fifteen " +
-                 "separates the lanes while still reading as a side view. Past " +
-                 "twenty five it starts reading as a top down game.")]
+        [InfoBox("Zero is the standard for this game: a flat side view, sprites " +
+                 "drawn square on with no lean, and pixels landing exactly where " +
+                 "the artist put them. Only raise it to separate lanes, because " +
+                 "at zero the back lane draws where the front one does. Ten to " +
+                 "fifteen separates them and still reads as a side view, and past " +
+                 "twenty five it reads as a top down game.")]
         [PropertyRange(0f, 35f)]
         [OnValueChanged(nameof(Apply))]
         [SerializeField] private float pitchDegrees = DefaultPitch;

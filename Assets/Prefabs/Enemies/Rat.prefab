@@ -76,8 +76,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4313898186998519106}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.15643448, y: -0, z: -0, w: 0.98768836}
-  m_LocalPosition: {x: 0, y: 0.0015450851, z: -0.0047552823}
+  m_LocalRotation: {x: 0.13917312, y: -0, z: -0, w: 0.9902681}
+  m_LocalPosition: {x: 0, y: 0.0013781867, z: -0.0048063085}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -259,6 +259,7 @@ MonoBehaviour:
   flashFrames: 4
   armorTint: {r: 1, g: 0.85, b: 0.4, a: 1}
   ignoredTint: {r: 0.5, g: 0.8, b: 1, a: 1}
+  holdPulseHz: 3.5
   landSquash: 0.22
   fullSquashSpeed: 14
   squashFrames: 8
@@ -341,6 +342,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.CharacterMotor3D
   art: {fileID: 0}
   groundStick: 2
+  lane: 0
   Velocity: {x: 0, y: 0, z: 0}
 --- !u!114 &1057914901656542885
 MonoBehaviour:
@@ -404,6 +406,9 @@ MonoBehaviour:
   hitbox: {fileID: 611423927159758004}
   spriteFeel: {fileID: 2608487304434474334}
   target: {fileID: 0}
+  separationRadius: 0.9
+  separationStrength: 2.5
+  reachHeight: 1.2
   autoBrain: 1
   idleClip: Idle
   walkClip: Idle

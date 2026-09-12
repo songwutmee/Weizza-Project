@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b0ce5d327d506341a6a287e34ded9e7, type: 3}
+  m_Name: SpeakerDatabase
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Narrative.SpeakerDatabase
+  speakers:
+  - id: SOKA
+    nameKey: NPC_SOKA_NAME
+    portraits:
+    - emotion: neutral
+      sprite: {fileID: 21300000, guid: 1cc1afcdf17a5704cb4588774423f0a6, type: 3}
+    - emotion: worried
+      sprite: {fileID: 21300000, guid: 1cc1afcdf17a5704cb4588774423f0a6, type: 3}
