@@ -34,6 +34,15 @@ namespace Weizza
         [BoxGroup("Flash")]
         [SerializeField] private Color ignoredTint = new(0.5f, 0.8f, 1f);
 
+        [BoxGroup("Telegraph", centerLabel: true)]
+        [InfoBox("A wind up pulses instead of holding still, so it reads as a " +
+                 "different message from a damage flash. Colour alone was not " +
+                 "enough: an orange hold and a red blink look the same at a " +
+                 "glance on a small sprite.")]
+        [PropertyRange(0.5f, 8f)]
+        [Tooltip("Pulses per second while a tint is held.")]
+        [SerializeField] private float holdPulseHz = 3.5f;
+
         [BoxGroup("Squash", centerLabel: true)]
         [PropertyRange(0f, 0.6f)]
         [Tooltip("How much the sprite flattens on a hard landing.")]
@@ -51,6 +60,9 @@ namespace Weizza
         private Vector3 _baseScale = Vector3.one;
         private CancellationTokenSource _flashLife;
         private CancellationTokenSource _squashLife;
+        private bool _holding;
+        private Color _heldTint = Color.white;
+        private float _holdStarted;
 
         private void Awake()
         {
@@ -65,6 +77,7 @@ namespace Weizza
         private void OnDisable()
         {
             CancelAll();
+            _holding = false;
             if (sprite == null) return;
             sprite.color = _baseColor;
         }
@@ -108,6 +121,54 @@ namespace Weizza
             FlashAsync(tint, _flashLife.Token).Forget();
         }
 
+        /// <summary>
+        /// Holds a tint until released, for a telegraph that has to last as
+        /// long as the wind up rather than a few frames.
+        ///
+        /// This exists so exactly one component ever writes the sprite's
+        /// colour. An enemy brain setting the colour itself would be fighting
+        /// this one every time a hit landed mid telegraph, and the loser of
+        /// that fight is whichever wrote first, which changes frame to frame.
+        /// </summary>
+        public void HoldTint(Color tint)
+        {
+            if (sprite == null) return;
+            _holding = true;
+            _heldTint = tint;
+            _holdStarted = Time.unscaledTime;
+            _flashLife?.Cancel();
+            _flashLife?.Dispose();
+            _flashLife = null;
+            sprite.color = tint;
+        }
+
+        /// <summary>
+        /// Pulses the held tint, so a wind up cannot be mistaken for a damage
+        /// flash.
+        ///
+        /// The two are different messages and were reading as the same one: a
+        /// flash is a single blink that means something just happened, a
+        /// telegraph is a sustained beat that means something is about to.
+        /// Colour alone was not carrying that, and a still tint on a small
+        /// sprite is easy to miss entirely.
+        /// </summary>
+        private void Update()
+        {
+            if (!_holding || sprite == null) return;
+
+            // Unscaled, because a telegraph interrupted by hit stop should keep
+            // pulsing rather than freezing into a solid colour.
+            var beat = Mathf.PingPong((Time.unscaledTime - _holdStarted) * holdPulseHz * 2f, 1f);
+            sprite.color = Color.Lerp(_baseColor, _heldTint, 0.35f + beat * 0.65f);
+        }
+
+        /// <summary>Drops a held tint and goes back to the sprite's own colour.</summary>
+        public void ReleaseTint()
+        {
+            _holding = false;
+            if (sprite != null && _flashLife == null) sprite.color = _baseColor;
+        }
+
         private async UniTaskVoid FlashAsync(Color tint, CancellationToken token)
         {
             sprite.color = tint;
@@ -122,7 +183,11 @@ namespace Weizza
                 return;
             }
 
-            if (sprite != null) sprite.color = _baseColor;
+            _flashLife = null;
+
+            // A hit landing mid telegraph must not wipe the telegraph. The
+            // flash is temporary, the held tint is the state underneath it.
+            if (sprite != null) sprite.color = _holding ? _heldTint : _baseColor;
         }
 
         /// <summary>Squashes on landing, scaled by how hard the landing was.</summary>

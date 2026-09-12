@@ -16,40 +16,65 @@ namespace Weizza
     [Serializable]
     public sealed class SpriteClip
     {
-        [HorizontalGroup("Head", 0.35f)]
+        [HorizontalGroup("Head", 0.46f)]
         [HideLabel]
+        [GUIColor(nameof(HeadColour))]
         [Tooltip("What the code asks for by name. Keep it short and stable.")]
         public string name = "Idle";
 
-        [HorizontalGroup("Head", 0.25f)]
-        [LabelWidth(30)]
+        [HorizontalGroup("Head", 0.18f)]
+        [LabelText("Fps"), LabelWidth(26)]
         [Tooltip("Drawings per second. Hand drawn action usually reads best " +
                  "between 10 and 15, not 60.")]
         [MinValue(1f)]
         public float fps = 12f;
 
-        [HorizontalGroup("Head", 0.2f)]
-        [ToggleLeft]
+        [HorizontalGroup("Head", 0.18f)]
+        [ToggleLeft, LabelWidth(36)]
+        [LabelText("Loop")]
         public bool loop = true;
 
-        [HorizontalGroup("Head", 0.2f)]
-        [ToggleLeft]
+        [HorizontalGroup("Head", 0.18f)]
+        [ToggleLeft, LabelWidth(36)]
+        [LabelText("Hold")]
         [Tooltip("For a one shot: stay on the last drawing instead of blanking.")]
         public bool hold = true;
 
-        [ListDrawerSettings(ShowFoldout = false, DefaultExpandedState = false)]
+        // Everything below folds away. A clip with thirty drawings in it used
+        // to push every other clip off the bottom of the panel, which made a
+        // list of eight animations unusable for finding anything in.
+        [FoldoutGroup("Frames and offsets")]
+        [ShowInInspector, DisplayAsString, HideLabel]
+        private string Readout =>
+            Length == 0
+                ? "no drawings yet, this clip will not play"
+                : $"{Length} drawings, {Duration * 1000f:0} ms at {fps:0.#} fps";
+
+        [FoldoutGroup("Frames and offsets")]
+        [ListDrawerSettings(ShowFoldout = false, DefaultExpandedState = true,
+            ShowIndexLabels = true, DraggableItems = true)]
         [Tooltip("In order. Frame zero is the first drawing shown.")]
         public Sprite[] frames;
 
+        [FoldoutGroup("Frames and offsets")]
         [Tooltip("Corrects a sheet whose ground line does not sit where the " +
                  "others do. Positive Y lifts the drawing. Fix it here rather " +
                  "than by re-slicing, so the correction is visible next to the " +
                  "animation it belongs to.")]
         public Vector2 artOffset;
 
+        [FoldoutGroup("Frames and offsets")]
         [Tooltip("Frames that raise FrameEvent. Footsteps, dust, a shout. " +
                  "Gameplay timing does not come from here, the attack data owns that.")]
         public int[] eventFrames;
+
+        /// <summary>
+        /// Red for a clip with no drawings in it, because that is the one
+        /// broken state that still looks perfectly fine in the list.
+        /// </summary>
+        private Color HeadColour => Length == 0
+            ? new Color(1f, 0.55f, 0.55f)
+            : new Color(0.72f, 0.93f, 0.78f);
 
         public int Length => frames?.Length ?? 0;
         public float Duration => fps <= 0f ? 0f : Length / fps;
@@ -84,6 +109,48 @@ namespace Weizza
         [BoxGroup("Setup")]
         [Tooltip("Played on Start, if it exists.")]
         [SerializeField] private string defaultClip = "Idle";
+
+        [BoxGroup("Setup")]
+        [InfoBox("Only for prototyping, while most of the art does not exist yet. " +
+                 "A missing clip borrows this one instead of leaving the " +
+                 "character frozen, and still logs once so it never quietly " +
+                 "ships that way. Empty this the moment the real clips exist.")]
+        [Tooltip("Stand in for any clip that has not been drawn yet.")]
+        [SerializeField] private string fallbackClip = "";
+
+        [PropertyOrder(-5)]
+        [ShowInInspector, DisplayAsString, HideLabel]
+        [GUIColor(nameof(RosterColour))]
+        [PropertySpace(6f, 2f)]
+        private string Roster
+        {
+            get
+            {
+                if (clips == null || clips.Count == 0) return "No clips yet. Add one below.";
+
+                var empty = 0;
+                foreach (var clip in clips)
+                {
+                    if (clip == null || clip.Length == 0) empty++;
+                }
+
+                return empty == 0
+                    ? $"{clips.Count} clips, all with drawings in them"
+                    : $"{clips.Count} clips, {empty} of them empty and will not play";
+            }
+        }
+
+        private Color RosterColour()
+        {
+            if (clips == null || clips.Count == 0) return new Color(1f, 0.85f, 0.55f);
+
+            foreach (var clip in clips)
+            {
+                if (clip == null || clip.Length == 0) return new Color(1f, 0.6f, 0.55f);
+            }
+
+            return new Color(0.7f, 0.92f, 0.76f);
+        }
 
         [ListDrawerSettings(ShowFoldout = false, DefaultExpandedState = true,
             ShowIndexLabels = false)]
@@ -192,21 +259,8 @@ namespace Weizza
         /// </summary>
         public bool Play(string clipName, bool restart = false)
         {
-            var clip = Find(clipName);
-            if (clip == null)
-            {
-                // Warned once per name rather than returned silently. This gets
-                // called every frame from a state machine, so a typo here used
-                // to look exactly like a character that simply never animates,
-                // with nothing in the console to say why.
-                if (_warnedMissingClips.Add(clipName))
-                {
-                    Debug.LogWarning(
-                        $"[Weizza] '{name}' has no clip called '{clipName}'. " +
-                        "Check the exact spelling against the Sprite Animator's clip list.", this);
-                }
-                return false;
-            }
+            var clip = Resolve(clipName);
+            if (clip == null) return false;
 
             if (target == null && _warnedMissingTarget == false)
             {
@@ -230,22 +284,8 @@ namespace Weizza
         /// </summary>
         public bool PlayStretched(string clipName, float seconds, bool restart = true)
         {
-            var clip = Find(clipName);
-            if (clip == null || clip.Length == 0)
-            {
-                // Same silent-failure trap as Play: an attack's animationState
-                // that does not match a real clip name used to swing the
-                // hitbox with no visible change to the sprite at all, and
-                // nothing in the console to explain why.
-                if (_warnedMissingClips.Add(clipName))
-                {
-                    Debug.LogWarning(
-                        $"[Weizza] '{name}' has no clip called '{clipName}'. Check the " +
-                        "attack's Animation State field against the Sprite Animator's clip list.",
-                        this);
-                }
-                return false;
-            }
+            var clip = Resolve(clipName);
+            if (clip == null || clip.Length == 0) return false;
 
             if (ReferenceEquals(clip, _clip) && !restart) return true;
 
@@ -287,6 +327,41 @@ namespace Weizza
 
         public bool Has(string clipName) => Find(clipName) != null;
 
+        /// <summary>
+        /// Finds a clip, or the stand in, and says so once either way.
+        ///
+        /// The warning is the important half. A missing clip used to look
+        /// exactly like a character that simply never animates, and a silent
+        /// stand in would be worse again: the game would look finished while
+        /// half the moves were borrowing one drawing.
+        /// </summary>
+        private SpriteClip Resolve(string clipName)
+        {
+            var clip = Find(clipName);
+            if (clip != null) return clip;
+
+            var stand = string.IsNullOrEmpty(fallbackClip) ? null : Find(fallbackClip);
+
+            if (_warnedMissingClips.Add(clipName))
+            {
+                if (stand != null)
+                {
+                    Debug.LogWarning(
+                        $"[Weizza] '{name}' has no clip '{clipName}', using '{fallbackClip}' " +
+                        "as a stand in. Fine while the art is missing, not fine to ship.", this);
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        $"[Weizza] '{name}' has no clip called '{clipName}'. Check the exact " +
+                        "spelling against the Sprite Animator's clip list, or set a Fallback " +
+                        "Clip while the art does not exist yet.", this);
+                }
+            }
+
+            return stand;
+        }
+
         private SpriteClip Find(string clipName)
         {
             if (string.IsNullOrEmpty(clipName)) return null;
@@ -305,41 +380,134 @@ namespace Weizza
         // written into the scene: they are the three boxes above a button, not
         // data the component owns.
 
-        [PropertyOrder(-10)]
+        // Everything in this section stacks vertically on purpose. A labelled
+        // field inside a fixed width horizontal group is unreadable the moment
+        // the inspector panel is narrow, and the inspector panel is narrow most
+        // of the time. Only the button rows go sideways, because buttons have
+        // no label to collide with their own value.
+
+        [PropertyOrder(-12)]
         [BoxGroup("Add a clip", centerLabel: true)]
-        [InfoBox("Drop a sheet in, check the suggested name, press the button. " +
-                 "A clip is looked up by this exact name later, so this box is " +
-                 "not cosmetic: a name that does not match what the player " +
-                 "controller asks for is a character that never animates, with " +
-                 "no error to explain why.")]
-        [HorizontalGroup("Add a clip/Fields", 0.45f)]
-        [LabelWidth(44)]
+        [InfoBox("Drop a sheet in, name it, press the green button. The name is " +
+                 "how code finds the clip, so a typo is a character that never " +
+                 "animates and never says why.")]
+        [ShowInInspector, DisplayAsString(false), HideLabel]
+        private string AddHint => "";
+
+        [PropertyOrder(-11)]
+        [BoxGroup("Add a clip")]
+        [PreviewField(64, ObjectFieldAlignment.Center)]
+        [HideLabel]
         [ShowInInspector, System.NonSerialized]
-        [LabelText("Sheet")]
         [OnValueChanged(nameof(SuggestClipName))]
         public Texture2D sheetToAdd;
 
+        // Common names as one press each. Typing them by hand is where the
+        // silent misspellings come from, and a clip called Attak animates
+        // nothing while looking completely correct in the list.
         [PropertyOrder(-10)]
-        [HorizontalGroup("Add a clip/Fields", 0.25f)]
-        [LabelWidth(36)]
+        [BoxGroup("Add a clip")]
+        [HorizontalGroup("Add a clip/Quick")]
+        [Button("Idle"), GUIColor(0.62f, 0.78f, 0.95f)]
+        private void QuickIdle() => SetQuick("Idle", 8f, true);
+
+        [PropertyOrder(-10)]
+        [HorizontalGroup("Add a clip/Quick")]
+        [Button("Walk"), GUIColor(0.62f, 0.78f, 0.95f)]
+        private void QuickWalk() => SetQuick("Walk", 10f, true);
+
+        [PropertyOrder(-10)]
+        [HorizontalGroup("Add a clip/Quick")]
+        [Button("Run"), GUIColor(0.62f, 0.78f, 0.95f)]
+        private void QuickRun() => SetQuick("Run", 14f, true);
+
+        [PropertyOrder(-10)]
+        [HorizontalGroup("Add a clip/Quick")]
+        [Button("Attack"), GUIColor(0.95f, 0.82f, 0.5f)]
+        private void QuickAttack() => SetQuick("Attack", 14f, false);
+
+        [PropertyOrder(-10)]
+        [HorizontalGroup("Add a clip/Quick")]
+        [Button("Hit"), GUIColor(0.95f, 0.72f, 0.45f)]
+        private void QuickHit() => SetQuick("Hit", 12f, false);
+
+        [PropertyOrder(-10)]
+        [HorizontalGroup("Add a clip/Quick")]
+        [Button("Death"), GUIColor(0.9f, 0.55f, 0.5f)]
+        private void QuickDeath() => SetQuick("Death", 10f, false);
+
+        [PropertyOrder(-9)]
+        [BoxGroup("Add a clip")]
         [ShowInInspector, System.NonSerialized]
-        [LabelText("Name")]
+        [LabelText("Clip name")]
+        [GUIColor(nameof(NameColour))]
         public string clipNameToAdd = "";
 
-        [PropertyOrder(-10)]
-        [HorizontalGroup("Add a clip/Fields", 0.15f)]
-        [LabelWidth(28)]
+        [PropertyOrder(-9)]
+        [BoxGroup("Add a clip")]
+        [PropertyRange(1f, 30f)]
         [ShowInInspector, System.NonSerialized]
-        [LabelText("Fps")]
+        [LabelText("Frames per second")]
         public float fpsToAdd = 12f;
 
-        [PropertyOrder(-10)]
-        [HorizontalGroup("Add a clip/Fields", 0.15f)]
-        [LabelWidth(36)]
+        [PropertyOrder(-9)]
+        [BoxGroup("Add a clip")]
         [ToggleLeft]
         [ShowInInspector, System.NonSerialized]
-        [LabelText("Loop")]
+        [LabelText("Loops forever")]
         public bool loopToAdd = true;
+
+        // Hand drawn art arrives as one PNG per frame, not as a grid sheet,
+        // because drawn poses have wildly different bounding boxes and a
+        // uniform grid pays for the widest one in every single cell.
+        [PropertyOrder(-8)]
+        [BoxGroup("Add a clip")]
+        [FolderPath]
+        [ShowInInspector, System.NonSerialized]
+        [LabelText("Folder of frames")]
+        [Tooltip("For art delivered as one PNG per frame. Ordered by the number " +
+                 "at the end of the file name, so Attack_2 comes before Attack_10 " +
+                 "rather than after it.")]
+        public string frameFolderToAdd = "";
+
+        [PropertyOrder(-8)]
+        [BoxGroup("Add a clip")]
+        [Button("Add every frame in that folder", ButtonSizes.Large)]
+        [GUIColor(0.5f, 0.75f, 0.9f)]
+        [EnableIf("@!string.IsNullOrEmpty(this.frameFolderToAdd)")]
+        private void AddClipFromFolderButton()
+        {
+            if (!AddClipFromFolder(frameFolderToAdd, clipNameToAdd, fpsToAdd, loopToAdd)) return;
+            clipNameToAdd = string.Empty;
+        }
+
+        private void SetQuick(string clipName, float fps, bool loop)
+        {
+            clipNameToAdd = clipName;
+            fpsToAdd = fps;
+            loopToAdd = loop;
+        }
+
+        private string AddButtonLabel
+        {
+            get
+            {
+                if (sheetToAdd == null) return "Drop a sliced sheet in first";
+                var resolved = string.IsNullOrEmpty(clipNameToAdd)
+                    ? StripSheetSuffix(sheetToAdd.name)
+                    : clipNameToAdd;
+
+                return Has(resolved)
+                    ? $"Replace '{resolved}' with this sheet"
+                    : $"Add '{resolved}'";
+            }
+        }
+
+        private Color NameColour() => string.IsNullOrWhiteSpace(clipNameToAdd)
+            ? new Color(1f, 0.72f, 0.6f)
+            : Has(clipNameToAdd)
+                ? new Color(1f, 0.9f, 0.55f)
+                : new Color(0.72f, 0.93f, 0.78f);
 
         /// <summary>
         /// Pulls every sliced sprite out of one sheet, in order, and adds it as
@@ -348,10 +516,6 @@ namespace Weizza
         /// round, which is the sort of mistake that reads as a bad animation
         /// rather than as a bug.
         /// </summary>
-        [PropertyOrder(-10)]
-        [BoxGroup("Add a clip")]
-        [Button("Add this sheet as a clip", ButtonSizes.Large)]
-        [GUIColor(0.45f, 0.82f, 0.55f)]
         /// <summary>
         /// Guesses a clip name from the sheet's file name the moment a sheet is
         /// dropped in, so the common case (Idle-Sheet.png import called
@@ -364,7 +528,7 @@ namespace Weizza
             clipNameToAdd = StripSheetSuffix(sheetToAdd.name);
         }
 
-        private static string StripSheetSuffix(string sheetName)
+        public static string StripSheetSuffix(string sheetName)
         {
             const string suffix = "-Sheet";
             return sheetName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)
@@ -372,17 +536,87 @@ namespace Weizza
                 : sheetName;
         }
 
-        private void AddClipFromSheet()
+        // The attributes below sit directly on the method they fire, with no
+        // doc comment between them. A doc comment in that gap is not a comment
+        // to the compiler, it is the next member's documentation, and Odin
+        // bound this button to whatever declaration followed it: the button
+        // used to call SuggestClipName and AddClipFromSheet was never reached.
+        [PropertyOrder(-10)]
+        [BoxGroup("Add a clip")]
+        [Button("$AddButtonLabel", ButtonSizes.Gigantic)]
+        [GUIColor(0.45f, 0.82f, 0.55f)]
+        [EnableIf("@this.sheetToAdd != null")]
+        private void AddClipFromSheetButton()
         {
-            var sheet = sheetToAdd;
-            var clipName = clipNameToAdd;
-            var fps = fpsToAdd;
-            var loop = loopToAdd;
+            if (!AddClipFromSheet(sheetToAdd, clipNameToAdd, fpsToAdd, loopToAdd)) return;
 
+            // Empty the boxes so the next sheet starts from a clean slot rather
+            // than from the last one, which is how a clip ends up added twice.
+            sheetToAdd = null;
+            clipNameToAdd = string.Empty;
+        }
+
+        /// <summary>
+        /// Pulls every sliced sprite out of one sheet, in order, and adds it as
+        /// a clip. Saves dragging fifteen sub sprites in one at a time and, more
+        /// importantly, saves getting frame nine and frame ten the wrong way
+        /// round, which is the sort of mistake that reads as a bad animation
+        /// rather than as a bug.
+        ///
+        /// Public so a builder tool can assemble a whole character's clip list
+        /// without a human pressing this button once per animation.
+        /// </summary>
+        public bool AddClipFromFolder(string folder, string clipName, float fps, bool loop)
+        {
+            if (string.IsNullOrEmpty(folder) || UnityEditor.AssetDatabase.IsValidFolder(folder) == false)
+            {
+                Debug.LogWarning($"[Weizza] '{folder}' is not a folder in this project.", this);
+                return false;
+            }
+
+            var found = new List<Sprite>();
+            foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:Sprite", new[] { folder }))
+            {
+                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                var sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                if (sprite != null) found.Add(sprite);
+            }
+
+            if (found.Count == 0)
+            {
+                Debug.LogWarning(
+                    $"[Weizza] No sprites in '{folder}'. The PNGs are probably still " +
+                    "importing as plain textures: set Texture Type to Sprite on them first.",
+                    this);
+                return false;
+            }
+
+            found.Sort((a, b) => TrailingNumber(a.name).CompareTo(TrailingNumber(b.name)));
+
+            var resolved = string.IsNullOrEmpty(clipName)
+                ? System.IO.Path.GetFileName(folder)
+                : clipName;
+
+            clips.RemoveAll(existing => existing != null && existing.name == resolved);
+            clips.Add(new SpriteClip
+            {
+                name = resolved,
+                frames = found.ToArray(),
+                fps = fps,
+                loop = loop,
+            });
+
+            UnityEditor.EditorUtility.SetDirty(this);
+            Debug.Log($"[Weizza] Added '{resolved}' with {found.Count} frames from {folder}.", this);
+            return true;
+        }
+
+        public bool AddClipFromSheet(Texture2D sheet, string clipName, float fps, bool loop)
+        {
             if (sheet == null)
             {
                 Debug.LogWarning("[Weizza] Drop a sliced sheet into the Sheet slot first.", this);
-                return;
+                return false;
             }
 
             var path = UnityEditor.AssetDatabase.GetAssetPath(sheet);
@@ -399,7 +633,7 @@ namespace Weizza
                 Debug.LogWarning(
                     $"[Weizza] '{sheet.name}' has no sprites in it. Set Texture Type " +
                     "to Sprite, Sprite Mode to Multiple, and slice it first.", this);
-                return;
+                return false;
             }
 
             // Sub sprites come back in whatever order the importer wrote them,
@@ -407,6 +641,11 @@ namespace Weizza
             found.Sort((a, b) => TrailingNumber(a.name).CompareTo(TrailingNumber(b.name)));
 
             var resolved = string.IsNullOrEmpty(clipName) ? StripSheetSuffix(sheet.name) : clipName;
+
+            // Replacing rather than appending, so running a builder twice over
+            // the same character does not leave two clips answering to one name
+            // with only the first one ever findable.
+            clips.RemoveAll(existing => existing != null && existing.name == resolved);
 
             clips.Add(new SpriteClip
             {
@@ -418,11 +657,7 @@ namespace Weizza
 
             UnityEditor.EditorUtility.SetDirty(this);
             Debug.Log($"[Weizza] Added '{resolved}' with {found.Count} frames.", this);
-
-            // Empty the boxes so the next sheet starts from a clean slot rather
-            // than from the last one, which is how a clip ends up added twice.
-            sheetToAdd = null;
-            clipNameToAdd = string.Empty;
+            return true;
         }
 
         private static int TrailingNumber(string value)

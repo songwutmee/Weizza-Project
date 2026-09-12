@@ -12,6 +12,14 @@ namespace Weizza
         Dash = 2,
         StanceSwitch = 3,
         Dead = 4,
+
+        /// <summary>
+        /// Took a hit that broke through. Input is ignored so the knockback is
+        /// allowed to actually move the character. Without this state the
+        /// movement code rewrites the velocity on the same frame the hit set
+        /// it, and being hit costs health with no other consequence at all.
+        /// </summary>
+        Hurt = 5,
     }
 
     /// <summary>
@@ -67,6 +75,18 @@ namespace Weizza
         [SerializeField] private string jumpClip = "Jump";
 
         [BoxGroup("Animation")]
+        [Tooltip("Played for the whole dash. No art for it yet, so leaving this " +
+                 "pointing at a clip that does not exist is fine: the animator " +
+                 "warns once and the dash still works. Fill the clip in later " +
+                 "and nothing else has to change.")]
+        [SerializeField] private string dashClip = "Dash";
+
+        [BoxGroup("Animation")]
+        [Tooltip("Played while flinching from a hit. No art for it yet is fine, " +
+                 "the animator falls back and warns once.")]
+        [SerializeField] private string hurtClip = "Hurt";
+
+        [BoxGroup("Animation")]
         [PropertyRange(0.05f, 2f)]
         [Tooltip("Ground speed above which the run animation plays.")]
         [SerializeField] private float runThreshold = 0.35f;
@@ -116,12 +136,12 @@ namespace Weizza
         private float _dashReadyAt;
         private float _switchReadyAt;
         private StanceId _pendingStance;
+        private HitReactor _reactor;
 
         private float _attackBufferedUntil;
         private bool _attackBufferHeavy;
         private AttackDefinition _attack;
         private int _comboIndex;
-        private bool _comboQueued;
         private bool _hitboxOpen;
 
         private static InputReader Input => InputReader.Instance;
@@ -132,6 +152,14 @@ namespace Weizza
             Vitals = GetComponent<Vitals>();
             if (animator == null) animator = GetComponentInChildren<SpriteAnimator>();
             if (spriteFeel == null) spriteFeel = GetComponentInChildren<SpriteFeel>();
+            _reactor = GetComponent<HitReactor>();
+
+            if (_reactor == null)
+            {
+                Debug.LogWarning(
+                    $"[Weizza] '{name}' has no HitReactor, so getting hit will cost health " +
+                    "and nothing else: no flinch, no knockback, no flash.", this);
+            }
             if (hitbox == null) hitbox = GetComponentInChildren<HitboxEmitter>();
 
             if (animator == null)
@@ -156,6 +184,7 @@ namespace Weizza
             Motor.Landed += OnLanded;
             if (Vitals != null) Vitals.Died += OnDied;
             if (hitbox != null) hitbox.Connected += OnHitConnected;
+            if (_reactor != null) _reactor.Staggered += OnStaggered;
         }
 
         private void OnDisable()
@@ -163,6 +192,7 @@ namespace Weizza
             Motor.Landed -= OnLanded;
             if (Vitals != null) Vitals.Died -= OnDied;
             if (hitbox != null) hitbox.Connected -= OnHitConnected;
+            if (_reactor != null) _reactor.Staggered -= OnStaggered;
         }
 
         private void Start() => ApplyStance(
@@ -181,6 +211,7 @@ namespace Weizza
                 case PlayerState.Attack: TickAttack(dt); break;
                 case PlayerState.Dash: TickDash(dt); break;
                 case PlayerState.StanceSwitch: TickSwitch(dt); break;
+                case PlayerState.Hurt: TickHurt(dt); break;
                 case PlayerState.Dead: TickDead(dt); break;
             }
 
@@ -247,25 +278,23 @@ namespace Weizza
         }
 
         /// <summary>
-        /// Accelerates along the screen and into the room. Depth is always
-        /// slower than running sideways, or the room stops reading as a side
-        /// view and starts reading as a top down game.
+        /// Accelerates along the screen. Only the horizontal half of the stick
+        /// drives movement: up and down are free for whatever a level needs
+        /// them for, such as a door or a ladder, rather than for walking.
         /// </summary>
         private void Drive(Vector2 input, float dt, float scale)
         {
             if (CurrentStance == null) return;
 
             var targetX = input.x * CurrentStance.runSpeed * scale;
-            var targetZ = input.y * CurrentStance.depthSpeed * scale;
 
-            var rate = input.sqrMagnitude > 0.01f
+            var rate = Mathf.Abs(input.x) > 0.1f
                 ? CurrentStance.acceleration
                 : CurrentStance.deceleration;
 
             if (!Motor.Grounded) rate *= CurrentStance.airControl;
 
             Motor.Velocity.x = Mathf.MoveTowards(Motor.Velocity.x, targetX, rate * dt);
-            Motor.Velocity.z = Mathf.MoveTowards(Motor.Velocity.z, targetZ, rate * dt);
         }
 
         private void ApplyGravity(float dt)
@@ -276,10 +305,23 @@ namespace Weizza
 
             var gravity = CurrentStance.RiseGravity;
 
+            // Gravity is derived from the jump numbers, so a stance authored
+            // with no jump (In) can end up deriving zero, and a character with
+            // zero gravity that gets knocked upwards never comes back down.
+            // Falling is not optional, whatever the stance can or cannot do.
+            if (gravity <= 0.01f) gravity = Mathf.Abs(Physics.gravity.y) * 3f;
+
             // Falling faster than rising is the single biggest thing that stops
             // a jump feeling like a balloon.
+            //
+            // Clamped to at least one, because this is a multiplier and a
+            // stance authored with no jump leaves it at zero. Zero here undoes
+            // the guard above and gives the character no gravity at all, which
+            // showed up as the player being knocked upwards by an enemy and
+            // then hanging in the air permanently with Velocity.y stuck at the
+            // knockback value.
             var falling = Motor.Velocity.y < 0f || Input == null || !Input.JumpHeld;
-            if (falling) gravity *= CurrentStance.fallGravityMultiplier;
+            if (falling) gravity *= Mathf.Max(1f, CurrentStance.fallGravityMultiplier);
 
             Motor.Velocity.y -= gravity * dt;
         }
@@ -326,6 +368,8 @@ namespace Weizza
 
             var direction = Motor.Facing.Sign();
 
+            if (CurrentStance.dashIsBlink && TryBlinkLane()) return true;
+
             if (CurrentStance.dashIsBlink)
             {
                 // In moves by a written ward, not by legs: it does not travel
@@ -340,6 +384,34 @@ namespace Weizza
                 Motor.Velocity = new Vector3(CurrentStance.dashDistance / duration * direction, 0f, 0f);
             }
 
+            return true;
+        }
+
+        /// <summary>
+        /// Blinks onto the lane behind or in front, if the stick was pushed
+        /// that way and the scene has a lane there to land on.
+        ///
+        /// Deliberately the same press as the ordinary blink. In already moves
+        /// by stepping out of one place and into another, so crossing a lane is
+        /// the same idea aimed differently rather than a second ability with
+        /// its own button, and a level that offers no second lane simply gives
+        /// back the sideways blink with nothing to explain.
+        /// </summary>
+        private bool TryBlinkLane()
+        {
+            if (ViewRig.LaneCount <= 1) return false;
+
+            var push = Input != null ? Input.MoveRaw.y : 0f;
+            if (Mathf.Abs(push) < 0.5f) return false;
+
+            // Up goes away from the camera, matching the way the lanes are laid
+            // out and the way a player reads a background as being further up
+            // the screen.
+            var next = Motor.Lane + (push > 0f ? 1 : -1);
+            if (next < 0 || next >= ViewRig.LaneCount) return false;
+            if (!Motor.ShiftToLane(next)) return false;
+
+            StoryEvents.Raise(GameEvents.PlayerBlinkedLane, next.ToString());
             return true;
         }
 
@@ -388,7 +460,6 @@ namespace Weizza
             if (attack == null) return;
 
             _attack = attack;
-            _comboQueued = false;
             _hitboxOpen = false;
             EnterState(PlayerState.Attack);
 
@@ -398,12 +469,10 @@ namespace Weizza
             {
                 var duration = Mathf.Max(Timing.Frame, attack.StartupSeconds + attack.ActiveSeconds);
                 Motor.Velocity.x = attack.lungeDistance / duration * Motor.Facing.Sign();
-                Motor.Velocity.z = 0f;
             }
             else
             {
                 Motor.Velocity.x = 0f;
-                Motor.Velocity.z = 0f;
             }
 
             if (animator != null) animator.PlayStretched(attack.animationState, attack.TotalSeconds);
@@ -436,20 +505,14 @@ namespace Weizza
                 if (Vitals != null) Vitals.SuperArmor = false;
             }
 
-            // A press inside the cancel window is remembered as the next
-            // combo step, so a light chain flows instead of forcing every hit
-            // to wait out its own recovery.
-            if (_stateTimer >= _attack.CancelSeconds && Time.time <= _attackBufferedUntil)
-            {
-                _comboQueued = true;
-            }
+            // No early cancel: the swing has to run its full length, recovery
+            // included, before anything happens next. Mashing the button
+            // never buys back a single frame of recovery, it only decides
+            // whether the very next thing that happens is another swing or a
+            // return to standing still.
+            if (_stateTimer < _attack.TotalSeconds) return;
 
-            if (_stateTimer < _attack.TotalSeconds && !(_comboQueued && _stateTimer >= _attack.CancelSeconds))
-            {
-                return;
-            }
-
-            if (_comboQueued)
+            if (Time.time <= _attackBufferedUntil)
             {
                 _attackBufferedUntil = 0f;
                 var heavy = _attackBufferHeavy;
@@ -459,7 +522,6 @@ namespace Weizza
                     next = 0;
                 }
 
-                CloseHitbox();
                 _comboIndex = heavy ? 0 : next;
                 StartAttack(heavy ? null : NextComboStep(_comboIndex), heavy);
                 return;
@@ -481,7 +543,6 @@ namespace Weizza
             if (Vitals != null) Vitals.SuperArmor = false;
             _attack = null;
             _comboIndex = 0;
-            _comboQueued = false;
             EnterState(PlayerState.Locomotion);
         }
 
@@ -492,12 +553,57 @@ namespace Weizza
             HitStop.Freeze(info.hitStopFrames);
             CameraFeel.Instance?.Shake(info.screenShake, new Vector2(info.knockback.x, 0f));
 
+            // Scaled off hit stop rather than off damage, because hit stop is
+            // already the number tuned for how heavy a hit is meant to read.
+            HitSpark.Play(info.point, info.knockback, info.hitStopFrames * 0.12f,
+                result == HitResult.Hit ? Color.white : new Color(1f, 0.85f, 0.4f));
+
             if (result == HitResult.Parried) return;
 
             // Se has no self heal outside a shrine. Lifesteal is the only tap,
             // which is what makes the glass cannon a real choice instead of a
             // worse stance with a bigger number.
             if (info.lifesteal > 0f && Vitals != null) Vitals.Heal(info.amount * info.lifesteal);
+        }
+
+        // ---- Getting hit ------------------------------------------------------------
+
+        /// <summary>
+        /// Raised only for hits that broke through. A hit the player armoured
+        /// or blinked past never reaches here, so Than keeps swinging through
+        /// chip damage exactly the way an enemy with poise does.
+        /// </summary>
+        private void OnStaggered(DamageInfo info)
+        {
+            if (State == PlayerState.Dead) return;
+
+            // Whatever was happening is over. Leaving the hitbox open through a
+            // flinch would let a player trade hits by getting hit, which reads
+            // as the game not noticing.
+            CloseHitbox();
+            if (Vitals != null)
+            {
+                Vitals.SuperArmor = false;
+                Vitals.Invincible = false;
+            }
+
+            EnterState(PlayerState.Hurt);
+        }
+
+        private void TickHurt(float dt)
+        {
+            // Deliberately does not touch Velocity.x. The knockback the reactor
+            // wrote is the whole point of this state, and the movement code
+            // would erase it on the first frame.
+            if (_reactor == null || !_reactor.InHitstun)
+            {
+                EnterState(PlayerState.Locomotion);
+                return;
+            }
+
+            // Bleed off sideways speed slowly so the shove has weight and then
+            // settles, rather than sliding until the stun happens to end.
+            Motor.Velocity.x = Mathf.MoveTowards(Motor.Velocity.x, 0f, 8f * dt);
         }
 
         // ---- Stance switching -----------------------------------------------------
@@ -509,7 +615,8 @@ namespace Weizza
         public bool TryStartSwitch(StanceId target)
         {
             if (target == Stance || tuning == null) return false;
-            if (State is PlayerState.Dead or PlayerState.StanceSwitch or PlayerState.Attack) return false;
+            if (State is PlayerState.Dead or PlayerState.StanceSwitch
+                or PlayerState.Attack or PlayerState.Hurt) return false;
             if (Time.time < _switchReadyAt) return false;
             if (tuning.Get(target) == null) return false;
 
@@ -579,7 +686,6 @@ namespace Weizza
         private void TickDead(float dt)
         {
             Motor.Velocity.x = Mathf.MoveTowards(Motor.Velocity.x, 0f, 30f * dt);
-            Motor.Velocity.z = Mathf.MoveTowards(Motor.Velocity.z, 0f, 30f * dt);
         }
 
         /// <summary>
@@ -612,6 +718,25 @@ namespace Weizza
             // the frame data by StartAttack. Falling through to the ordinary
             // idle/run/jump logic below would stomp it the instant it started.
             if (State == PlayerState.Attack) return;
+
+            if (State == PlayerState.Hurt)
+            {
+                animator.Play(hurtClip);
+                return;
+            }
+
+            // The dash owns its clip the same way, stretched so a nine frame
+            // blink and a twelve frame slide both read as one complete motion
+            // rather than as a clip cut off partway.
+            if (State == PlayerState.Dash)
+            {
+                if (CurrentStance != null)
+                {
+                    animator.PlayStretched(dashClip, Timing.Frames(CurrentStance.dashFrames),
+                        restart: false);
+                }
+                return;
+            }
 
             if (!Motor.Grounded)
             {
