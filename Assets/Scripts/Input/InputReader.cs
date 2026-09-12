@@ -48,6 +48,8 @@ namespace Weizza
         private InputAction _pause;
         private InputAction _log;
         private InputAction _sprint;
+        private InputAction _point;
+        private InputAction _click;
         private InputAction _stanceThan;
         private InputAction _stanceSe;
         private InputAction _stanceIn;
@@ -109,6 +111,16 @@ namespace Weizza
             _log = Button("Log", "<Keyboard>/j", "<Gamepad>/select");
             _sprint = Button("Sprint", "<Keyboard>/leftCtrl", "<Gamepad>/leftStickPress");
 
+            _point = new InputAction("Point", InputActionType.Value, expectedControlType: "Vector2");
+            _point.AddBinding("<Mouse>/position");
+
+            // Deliberately the same control as Light. A click on an interactable
+            // is a different intent from a swing, and giving each intent its own
+            // action means the one place that has to arbitrate between them is
+            // whatever the pointer is over, not this file.
+            _click = new InputAction("Click", InputActionType.Button);
+            _click.AddBinding("<Mouse>/leftButton");
+
             _stanceThan = Button("StanceThan", "<Keyboard>/1", "<Gamepad>/dpad/left");
             _stanceSe = Button("StanceSe", "<Keyboard>/2", "<Gamepad>/dpad/up");
             _stanceIn = Button("StanceIn", "<Keyboard>/3", "<Gamepad>/dpad/right");
@@ -136,7 +148,7 @@ namespace Weizza
         private InputAction[] All() => new[]
         {
             _move, _jump, _light, _heavy, _dash, _guard, _interact, _pause, _log,
-            _sprint, _stanceThan, _stanceSe, _stanceIn, _stanceCycle,
+            _sprint, _point, _click, _stanceThan, _stanceSe, _stanceIn, _stanceCycle,
         };
 
         // ---- Gameplay queries ---------------------------------------------
@@ -175,6 +187,11 @@ namespace Weizza
 
         public bool AdvancePressed => LightPressed || (_interact != null && _interact.WasPressedThisFrame());
         public bool InteractPressed => _interact != null && _interact.WasPressedThisFrame();
+
+        /// <summary>Pointer position in screen pixels. Zero when there is no mouse.</summary>
+        public Vector2 PointerPosition => _point != null ? _point.ReadValue<Vector2>() : Vector2.zero;
+
+        public bool PointerPressed => _click != null && _click.WasPressedThisFrame();
         public bool PausePressed => _pause != null && _pause.WasPressedThisFrame();
         public bool ToggleLogPressed => _log != null && _log.WasPressedThisFrame();
         public Vector2 Move => MoveValue;
