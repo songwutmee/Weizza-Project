@@ -61,7 +61,43 @@ namespace Weizza.EditorTools
             if (texture.LoadImage(File.ReadAllBytes(assetPath))) return texture;
 
             Object.DestroyImmediate(texture);
-            return null;
+
+            // LoadImage decodes PNG and JPG and nothing else, so a PSD or a TIF
+            // straight from the artist fails here. Those are already imported and
+            // sitting in memory as a GPU texture, so take the pixels back off the
+            // card instead of decoding the file a second way.
+            return FromImported(assetPath);
+        }
+
+        /// <summary>
+        /// Copies an imported texture into a readable one through the GPU.
+        ///
+        /// Goes through a RenderTexture rather than GetPixels because the importer
+        /// setting that would allow GetPixels is off for almost every asset in a
+        /// real project, and turning it on doubles the memory for every one of
+        /// them. A blit does not care.
+        /// </summary>
+        private static Texture2D FromImported(string assetPath)
+        {
+            var source = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+            if (source == null) return null;
+
+            var buffer = RenderTexture.GetTemporary(
+                source.width, source.height, 0,
+                RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+
+            var previous = RenderTexture.active;
+            Graphics.Blit(source, buffer);
+            RenderTexture.active = buffer;
+
+            var copy = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
+            copy.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0);
+            copy.Apply();
+
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(buffer);
+
+            return copy;
         }
 
         public static SheetLayout Analyse(Texture2D texture)

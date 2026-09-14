@@ -41,6 +41,63 @@ namespace Weizza.EditorTools
         [PropertyOrder(-100)]
         [Title("Sprite Slicer", "Cuts every sheet in a folder, measuring the cells instead of guessing",
             TitleAlignments.Left)]
+        [TitleGroup("What kind of sheet")]
+        [EnumToggleButtons, HideLabel]
+        [InfoBox("Frames is for a character sheet, where the poses sit on an even " +
+                 "grid and the gaps between them give the cell size away. Grid is " +
+                 "for a tileset that touches edge to edge, where there are no gaps " +
+                 "to find and the size has to be typed. Automatic is Unity's own " +
+                 "detection, the same one behind Slice in the Sprite Editor: it " +
+                 "finds each separate piece whatever shape and size it is, which " +
+                 "is what a hand drawn pack actually looks like.")]
+        [OnValueChanged(nameof(Scan))]
+        public SliceMode mode = SliceMode.Automatic;
+
+        [TitleGroup("What kind of sheet")]
+        [ShowIf("@mode == SliceMode.Automatic")]
+        [LabelText("Ignore pieces under (px)")]
+        [MinValue(1)]
+        [Tooltip("Anything smaller than this is treated as a stray speck rather " +
+                 "than a piece. Raise it when the slice finds hundreds of specks " +
+                 "scattered around the real art.")]
+        [OnValueChanged(nameof(Scan))]
+        public int autoMinSize = 8;
+
+        [TitleGroup("What kind of sheet")]
+        [ShowIf("@mode == SliceMode.Automatic")]
+        [LabelText("Grow pieces by (px)")]
+        [PropertyRange(0, 8)]
+        [Tooltip("Pads each piece outwards. A pixel or two stops a soft edge being " +
+                 "clipped where the detection decided the art ended.")]
+        [OnValueChanged(nameof(Scan))]
+        public int autoExtrude = 0;
+
+        [TitleGroup("What kind of sheet")]
+        [ShowIf("@mode == SliceMode.Grid")]
+        [LabelText("Tile size (px)")]
+        [MinValue(2)]
+        [InfoBox("One square tile, in pixels. Sixteen and thirty two cover most " +
+                 "packs. If the slice comes out half a tile off, this number is " +
+                 "wrong and nothing else is.")]
+        [OnValueChanged(nameof(Scan))]
+        public int tileSize = 16;
+
+        [TitleGroup("What kind of sheet")]
+        [ShowIf("@mode == SliceMode.Grid")]
+        [ShowInInspector, DisplayAsString]
+        [LabelText("Which means")]
+        private string GridReadout
+        {
+            get
+            {
+                if (sheets == null || sheets.Count == 0) return "scan a folder to see";
+
+                var first = sheets[0];
+                return $"{first.name} cuts into {first.columns} x {first.rows} " +
+                       $"= {first.columns * first.rows} tiles";
+            }
+        }
+
         [InfoBox("Point a folder at it, press Scan, look at what it measured, then " +
                  "slice.\n\n" +
                  "Slicing by hand is not slow because of the clicks. It is slow " +
@@ -144,6 +201,19 @@ namespace Weizza.EditorTools
         [ShowInInspector, LabelText("Sheets")]
         public List<SheetRow> sheets = new();
 
+        /// <summary>How the cells in a sheet are found.</summary>
+        public enum SliceMode
+        {
+            /// <summary>Measured from the gaps between poses. Character sheets.</summary>
+            Frames = 0,
+
+            /// <summary>Cut on a fixed square grid. Tilesets.</summary>
+            Grid = 1,
+
+            /// <summary>Unity's own detection. Loose pieces of any shape or size.</summary>
+            Automatic = 2,
+        }
+
         [Serializable]
         public sealed class SheetRow
         {
@@ -191,6 +261,7 @@ namespace Weizza.EditorTools
             [HideInInspector] public int width;
             [HideInInspector] public int height;
             [HideInInspector] public int cellHeight = 1;
+            [HideInInspector] public Rect[] found;
         }
 
         // ---- Scanning ---------------------------------------------------------
@@ -205,8 +276,12 @@ namespace Weizza.EditorTools
                 return;
             }
 
-            var files = Directory.GetFiles(root, "*.png", SearchOption.AllDirectories);
-            System.Array.Sort(files);
+            // PSD included because a working file straight from the artist
+            // should not have to be flattened to PNG before it can be sliced.
+            var files = new List<string>();
+            files.AddRange(Directory.GetFiles(root, "*.png", SearchOption.AllDirectories));
+            files.AddRange(Directory.GetFiles(root, "*.psd", SearchOption.AllDirectories));
+            files.Sort();
 
             foreach (var file in files)
             {
@@ -217,30 +292,153 @@ namespace Weizza.EditorTools
                 var readable = SheetAnalysis.LoadReadable(assetPath);
                 if (readable == null) continue;
 
-                var layout = SheetAnalysis.Analyse(readable);
-                var frames = layout.FrameCount;
-
-                sheets.Add(new SheetRow
+                sheets.Add(mode switch
                 {
-                    preview = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath),
-                    path = assetPath,
-                    name = Path.GetFileNameWithoutExtension(assetPath),
-                    width = readable.width,
-                    height = readable.height,
-                    size = $"{readable.width} x {readable.height}",
-                    columns = layout.columns,
-                    rows = layout.rows,
-                    cell = $"{layout.cellWidth} x {layout.cellHeight}",
-                    pivotY = layout.pivotY,
-                    cellHeight = layout.cellHeight,
-                    status = Describe(layout, frames),
-                    include = frames > 1,
+                    SliceMode.Grid => GridRow(assetPath, readable),
+                    SliceMode.Automatic => AutoRow(assetPath, readable),
+                    _ => FrameRow(assetPath, readable),
                 });
 
                 DestroyImmediate(readable);
             }
 
             Debug.Log($"[Weizza] Measured {sheets.Count} sheets under {root}.");
+        }
+
+        private SheetRow FrameRow(string assetPath, Texture2D readable)
+        {
+            var layout = SheetAnalysis.Analyse(readable);
+            var frames = layout.FrameCount;
+
+            return new SheetRow
+            {
+                preview = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath),
+                path = assetPath,
+                name = Path.GetFileNameWithoutExtension(assetPath),
+                width = readable.width,
+                height = readable.height,
+                size = $"{readable.width} x {readable.height}",
+                columns = layout.columns,
+                rows = layout.rows,
+                cell = $"{layout.cellWidth} x {layout.cellHeight}",
+                pivotY = layout.pivotY,
+                cellHeight = layout.cellHeight,
+                status = Describe(layout, frames),
+                include = frames > 1,
+            };
+        }
+
+        /// <summary>
+        /// Cuts a sheet on a fixed grid instead of measuring it.
+        ///
+        /// A tileset has no gaps between its tiles, so there is nothing for the
+        /// measuring to find and it reports the whole sheet as one enormous frame.
+        /// That is not a failure of the measuring: a dense grid genuinely does
+        /// not carry the information, and the only place the tile size exists is
+        /// in whatever the artist decided. So it gets typed in.
+        /// </summary>
+        private SheetRow GridRow(string assetPath, Texture2D readable)
+        {
+            var size = Mathf.Max(2, tileSize);
+            var columns = Mathf.Max(1, readable.width / size);
+            var rows = Mathf.Max(1, readable.height / size);
+
+            // A sheet that is not a whole number of tiles across is the loudest
+            // sign the size is wrong, and saying so is far more use than slicing
+            // it anyway and leaving a sliver on the right hand edge.
+            var ragged = readable.width % size != 0 || readable.height % size != 0;
+
+            return new SheetRow
+            {
+                preview = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath),
+                path = assetPath,
+                name = Path.GetFileNameWithoutExtension(assetPath),
+                width = readable.width,
+                height = readable.height,
+                size = $"{readable.width} x {readable.height}",
+                columns = columns,
+                rows = rows,
+                cell = $"{size} x {size}",
+                pivotY = 0.5f,
+                cellHeight = size,
+                status = ragged
+                    ? $"<color=#E8A33D>{readable.width} x {readable.height} does not divide " +
+                      $"by {size}, so the size is probably wrong</color>"
+                    : $"<color=#7BE38B>{columns} x {rows} = {columns * rows} tiles</color>",
+                include = !ragged,
+            };
+        }
+
+        /// <summary>
+        /// Hands the sheet to Unity and asks where the pieces are.
+        ///
+        /// This is the same detection that Slice runs in the Sprite Editor, so a
+        /// sheet cut here and a sheet cut by hand come out identical. Writing a
+        /// second detector would mean two answers to one question, and the one
+        /// that disagreed with the Sprite Editor would always be judged the wrong
+        /// one no matter which was actually better.
+        /// </summary>
+        private SheetRow AutoRow(string assetPath, Texture2D readable)
+        {
+            var found = Automatic(readable, Mathf.Max(1, autoMinSize), autoExtrude);
+
+            // Top to bottom, then left to right, the way the sheet reads. Unity
+            // hands them back in whatever order the scan happened to find them,
+            // and unordered names turn a re-slice into a reshuffle of every
+            // reference pointing at this sheet.
+            System.Array.Sort(found, (a, b) =>
+            {
+                var byRow = b.yMax.CompareTo(a.yMax);
+                return byRow != 0 ? byRow : a.xMin.CompareTo(b.xMin);
+            });
+
+            return new SheetRow
+            {
+                preview = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath),
+                path = assetPath,
+                name = Path.GetFileNameWithoutExtension(assetPath),
+                width = readable.width,
+                height = readable.height,
+                size = $"{readable.width} x {readable.height}",
+                columns = found.Length,
+                rows = 1,
+                cell = found.Length > 0 ? $"{found[0].width:0} x {found[0].height:0}" : "none",
+                pivotY = 0.5f,
+                cellHeight = found.Length > 0 ? Mathf.RoundToInt(found[0].height) : 1,
+                found = found,
+                status = found.Length == 0
+                    ? "<color=#8A8F98>nothing found, the sheet may be empty</color>"
+                    : $"<color=#7BE38B>{found.Length} piece(s) found</color>",
+                include = found.Length > 0,
+            };
+        }
+
+        /// <summary>
+        /// Calls Unity's automatic sprite detection.
+        ///
+        /// Reached by reflection because the class is internal to the editor. It
+        /// has sat in the same place for years and most slicing tools lean on it,
+        /// so the risk is small, and the alternative is reimplementing connected
+        /// component detection and then explaining why it disagrees with the
+        /// editor sitting next to it.
+        /// </summary>
+        private static Rect[] Automatic(Texture2D texture, int minSize, int extrude)
+        {
+            var type = System.Type.GetType("UnityEditorInternal.InternalSpriteUtility, UnityEditor");
+            var method = type?.GetMethod("GenerateAutomaticSpriteRectangles",
+                System.Reflection.BindingFlags.Public
+                | System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Static);
+
+            if (method == null)
+            {
+                Debug.LogWarning("[Weizza] Unity's automatic slicing is not reachable in this " +
+                                 "version, so use Grid or Frames instead.");
+                return System.Array.Empty<Rect>();
+            }
+
+            return method.Invoke(null, new object[] { texture, minSize, extrude }) as Rect[]
+                   ?? System.Array.Empty<Rect>();
         }
 
         private static string Describe(SheetLayout layout, int frames)
@@ -396,32 +594,56 @@ namespace Weizza.EditorTools
                 known[existing.name] = existing.spriteID;
             }
 
-            var cellWidth = row.width / Mathf.Max(1, row.columns);
-            var cellHeight = row.height / Mathf.Max(1, row.rows);
             var pivot = new Vector2(pivotX, row.pivotY);
-
             var rects = new List<SpriteRect>(row.columns * row.rows);
             var index = 0;
 
-            for (var r = 0; r < row.rows; r++)
+            if (row.found is { Length: > 0 })
             {
-                // Row zero is the top row, the way a sheet reads. Texture space
-                // counts up from the bottom, hence the flip.
-                var y = row.height - (r + 1) * cellHeight;
-
-                for (var c = 0; c < row.columns; c++)
+                foreach (var piece in row.found)
                 {
-                    var name = $"{row.name}_{index}";
+                    var found = $"{row.name}_{index}";
                     rects.Add(new SpriteRect
                     {
-                        name = name,
-                        rect = new Rect(c * cellWidth, y, cellWidth, cellHeight),
-                        alignment = SpriteAlignment.Custom,
-                        pivot = pivot,
+                        name = found,
+                        rect = piece,
+
+                        // Centre, not the measured pivot. A pivot taken off the
+                        // bottom of a cell means nothing when every piece is a
+                        // different height, which is the whole point of this mode.
+                        alignment = SpriteAlignment.Center,
+                        pivot = new Vector2(0.5f, 0.5f),
                         border = Vector4.zero,
-                        spriteID = known.TryGetValue(name, out var id) ? id : GUID.Generate(),
+                        spriteID = known.TryGetValue(found, out var foundId) ? foundId : GUID.Generate(),
                     });
                     index++;
+                }
+            }
+            else
+            {
+                var cellWidth = row.width / Mathf.Max(1, row.columns);
+                var cellHeight = row.height / Mathf.Max(1, row.rows);
+
+                for (var r = 0; r < row.rows; r++)
+                {
+                    // Row zero is the top row, the way a sheet reads. Texture
+                    // space counts up from the bottom, hence the flip.
+                    var y = row.height - (r + 1) * cellHeight;
+
+                    for (var c = 0; c < row.columns; c++)
+                    {
+                        var name = $"{row.name}_{index}";
+                        rects.Add(new SpriteRect
+                        {
+                            name = name,
+                            rect = new Rect(c * cellWidth, y, cellWidth, cellHeight),
+                            alignment = SpriteAlignment.Custom,
+                            pivot = pivot,
+                            border = Vector4.zero,
+                            spriteID = known.TryGetValue(name, out var id) ? id : GUID.Generate(),
+                        });
+                        index++;
+                    }
                 }
             }
 

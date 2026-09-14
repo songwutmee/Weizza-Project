@@ -3242,6 +3242,89 @@ Transform:
   - {fileID: 1034271765}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1222981599
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1222981601}
+  - component: {fileID: 1222981600}
+  m_Layer: 0
+  m_Name: Terrain
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1222981600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222981599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b13ebe310e3e16f48836c964aba5d028, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Level.TerrainSpline
+  points:
+  - position: {x: -8.965912, y: 0.6469574}
+    thickness: 1
+    side: 0
+    sharp: 0
+  - position: {x: -4.450053, y: 2.096705}
+    thickness: 1
+    side: 0
+    sharp: 0
+  - position: {x: -0.65447474, y: -0.18613434}
+    thickness: 1
+    side: 0
+    sharp: 1
+  - position: {x: 2.3836775, y: -2.179515}
+    thickness: 1
+    side: 0
+    sharp: 1
+  - position: {x: 6.1072626, y: -1.2566385}
+    thickness: 1
+    side: 0
+    sharp: 0
+  - position: {x: 12.736656, y: -0.28195953}
+    thickness: 1
+    side: 0
+    sharp: 0
+  fill: 0
+  smoothing: 6
+  bodyDepth: 6
+  caveThickness: 10
+  style: {fileID: 11400000, guid: 59d0274694be4ca42860a407929a3356, type: 2}
+  tint: {r: 1, g: 1, b: 1, a: 1}
+  slant: 0
+  sortingOrder: -10
+  generateCollision: 1
+  collisionThickness: 1
+  collisionDepth: 0.5
+  collisionMergeAngle: 6
+  isTrigger: 0
+  surfacePhysics: {fileID: 0}
+--- !u!4 &1222981601
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222981599}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -5, y: 2.79, z: -2.83}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1238142594
 GameObject:
   m_ObjectHideFlags: 0
@@ -5677,3 +5760,4 @@ SceneRoots:
   - {fileID: 1196270881}
   - {fileID: 950851614}
   - {fileID: 962150224}
+  - {fileID: 1222981601}
