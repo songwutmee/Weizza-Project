@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e63e32604924f9d40a80356753c7bc04, type: 3}
+  m_Name: FerrMossy_Study
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Level.TerrainStyle
+  fillMaterial: {fileID: 2100000, guid: 95ca02363a3eace48835f0a652062264, type: 2}
+  fillTileSize: 0.9
+  edgeMaterial: {fileID: 2100000, guid: 0d075ba480a56944f8de560159bd5f4e, type: 2}
+  edgeTileWidth: 1.0919431
+  shuffle: 1
+  top:
+    draw: 1
+    collide: 1
+    depth: 0.45
+    lift: 0
+    depthSort: 0
+    leftCap: {fileID: 924684305, guid: 15fd735064aebae41b5ab74f8b49ff7a, type: 3}
+    rightCap: {fileID: -590449772, guid: 15fd735064aebae41b5ab74f8b49ff7a, type: 3}
+    capWidth: 0.45
+    variants:
+    - {fileID: -1810910990, guid: 15fd735064aebae41b5ab74f8b49ff7a, type: 3}
+  left:
+    draw: 0
+    collide: 1
+    depth: 0.9
+    lift: 0
+    depthSort: 0
+    leftCap: {fileID: 0}
+    rightCap: {fileID: 0}
+    capWidth: 0.6
+    variants: []
+  right:
+    draw: 0
+    collide: 1
+    depth: 0.9
+    lift: 0
+    depthSort: 0
+    leftCap: {fileID: 0}
+    rightCap: {fileID: 0}
+    capWidth: 0.6
+    variants: []
+  bottom:
+    draw: 0
+    collide: 0
+    depth: 0.6
+    lift: 0
+    depthSort: 0
+    leftCap: {fileID: 0}
+    rightCap: {fileID: 0}
+    capWidth: 0.6
+    variants: []
