@@ -460,41 +460,59 @@ namespace Weizza.Level
 
                 if (!face.draw) continue;
 
-                // The tile a segment belongs to is decided once, from where the
-                // segment starts. A segment straddling a boundary is squashed
-                // into the tile it began in, which at this subdivision is a
-                // fraction of a pixel and far cheaper than splitting geometry.
-                var tile = Mathf.FloorToInt(from / tileWidth);
-                var piece = style.Piece(side, tile);
-                if (piece == null) continue;
-
-                var rect = UvRect(piece);
-                var u0 = Mathf.Lerp(rect.xMin, rect.xMax, Mathf.Clamp01((from - tile * tileWidth) / tileWidth));
-                var u1 = Mathf.Lerp(rect.xMin, rect.xMax, Mathf.Clamp01((travelled - tile * tileWidth) / tileWidth));
-
                 var normal = Normal(a.position, b.position);
                 var z = -face.depthSort;
 
-                var outerA = a.position + normal * face.lift;
-                var outerB = b.position + normal * face.lift;
-                var innerA = outerA - normal * face.depth * a.thickness;
-                var innerB = outerB - normal * face.depth * b.thickness;
+                // A segment is cut where it crosses a tile boundary and a quad
+                // is emitted for each part. Drawing the whole segment as one
+                // tile instead stretches the art across everything past the
+                // boundary, which on grass reads as smeared blades and was the
+                // most visible fault in a long run.
+                var cut = from;
+                while (cut < travelled - 0.0001f)
+                {
+                    var tile = Mathf.FloorToInt(cut / tileWidth + 0.0001f);
+                    var tileEnd = (tile + 1) * tileWidth;
+                    var next = Mathf.Min(tileEnd, travelled);
 
-                var v = verts.Count;
-                verts.Add(new Vector3(outerA.x, outerA.y, z - slant));
-                verts.Add(new Vector3(innerA.x, innerA.y, z + slant));
-                verts.Add(new Vector3(outerB.x, outerB.y, z - slant));
-                verts.Add(new Vector3(innerB.x, innerB.y, z + slant));
+                    var piece = style.Piece(side, tile);
+                    if (piece == null) { cut = next; continue; }
 
-                uvs.Add(new Vector2(u0, rect.yMax));
-                uvs.Add(new Vector2(u0, rect.yMin));
-                uvs.Add(new Vector2(u1, rect.yMax));
-                uvs.Add(new Vector2(u1, rect.yMin));
+                    var rect = UvRect(piece);
+                    var u0 = Mathf.Lerp(rect.xMin, rect.xMax, (cut - tile * tileWidth) / tileWidth);
+                    var u1 = Mathf.Lerp(rect.xMin, rect.xMax, (next - tile * tileWidth) / tileWidth);
 
-                for (var c = 0; c < 4; c++) colours.Add(tint);
+                    var f0 = (cut - from) / length;
+                    var f1 = (next - from) / length;
 
-                tris.Add(v); tris.Add(v + 2); tris.Add(v + 1);
-                tris.Add(v + 1); tris.Add(v + 2); tris.Add(v + 3);
+                    var pos0 = Vector2.Lerp(a.position, b.position, f0);
+                    var pos1 = Vector2.Lerp(a.position, b.position, f1);
+                    var thick0 = Mathf.Lerp(a.thickness, b.thickness, f0);
+                    var thick1 = Mathf.Lerp(a.thickness, b.thickness, f1);
+
+                    var outerA = pos0 + normal * face.lift;
+                    var outerB = pos1 + normal * face.lift;
+                    var innerA = outerA - normal * face.depth * thick0;
+                    var innerB = outerB - normal * face.depth * thick1;
+
+                    var v = verts.Count;
+                    verts.Add(new Vector3(outerA.x, outerA.y, z - slant));
+                    verts.Add(new Vector3(innerA.x, innerA.y, z + slant));
+                    verts.Add(new Vector3(outerB.x, outerB.y, z - slant));
+                    verts.Add(new Vector3(innerB.x, innerB.y, z + slant));
+
+                    uvs.Add(new Vector2(u0, rect.yMax));
+                    uvs.Add(new Vector2(u0, rect.yMin));
+                    uvs.Add(new Vector2(u1, rect.yMax));
+                    uvs.Add(new Vector2(u1, rect.yMin));
+
+                    for (var c = 0; c < 4; c++) colours.Add(tint);
+
+                    tris.Add(v); tris.Add(v + 2); tris.Add(v + 1);
+                    tris.Add(v + 1); tris.Add(v + 2); tris.Add(v + 3);
+
+                    cut = next;
+                }
             }
 
             // Only an open line has ends that hang in mid air. A loop meets

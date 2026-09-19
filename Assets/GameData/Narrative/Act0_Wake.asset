@@ -1,0 +1,136 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecc2e5e4604f726448db89f35a4f3a6e, type: 3}
+  m_Name: Act0_Wake
+  m_EditorClassIdentifier: StoryKit.Runtime::StoryKit.Flow.FlowGraphAsset
+  _entryNodeId: c85e6cb4c33f47a4904ba9e6a1486a51
+  _nodes:
+  - rid: 1603323666853789778
+  - rid: 1603323666853789779
+  - rid: 1603323666853789780
+  - rid: 1603323666853789781
+  - rid: 1603323666853789782
+  - rid: 1603323666853789783
+  - rid: 1603323666853789784
+  - rid: 1603323666853789785
+  - rid: 1603323666853789786
+  - rid: 1603323666853789787
+  - rid: 1603323666853789788
+  _schemaVersion: 2
+  references:
+    version: 2
+    RefIds:
+    - rid: 1603323666853789778
+      type: {class: StartNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: c85e6cb4c33f47a4904ba9e6a1486a51
+        _title: Start
+        _position: {x: 0, y: 0}
+        _nextNodeIds:
+        - 0ef25852e24f46b3a9c0c37f927558a1
+    - rid: 1603323666853789779
+      type: {class: LockControlNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: 0ef25852e24f46b3a9c0c37f927558a1
+        _title: Lock player input (Lock Control)
+        _position: {x: 113.333336, y: -260.66666}
+        _nextNodeIds: []
+        _runningNextId: aa39a9c0167645e99e242dd72b75e432
+        _completedNextId: 
+        _reason: cutscene wake
+    - rid: 1603323666853789780
+      type: {class: FadeNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: aa39a9c0167645e99e242dd72b75e432
+        _title: Cut to black (Fade)
+        _position: {x: 359.33334, y: -96}
+        _nextNodeIds:
+        - bafae5265c5c432f8b95d99f12cdea96
+        _toAlpha: 1
+        _duration: 0
+    - rid: 1603323666853789781
+      type: {class: LetterboxNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: bafae5265c5c432f8b95d99f12cdea96
+        _title: Bars in (Letterbox)
+        _position: {x: 533.3333, y: -220}
+        _nextNodeIds:
+        - c2fc648e738b41e989fd87ac3bd6cd9b
+        _show: 1
+        _duration: 0.25
+    - rid: 1603323666853789782
+      type: {class: ActorAnimationNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: c2fc648e738b41e989fd87ac3bd6cd9b
+        _title: Set pose to idle (Actor Animation)
+        _position: {x: 653.3333, y: -66}
+        _nextNodeIds:
+        - d011854186454690a9367225431274a2
+        _actorId: Player
+        _animationName: Idle
+        _waitForEnd: 0
+    - rid: 1603323666853789783
+      type: {class: FadeNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: d011854186454690a9367225431274a2
+        _title: Fade up from black (Fade)
+        _position: {x: 907.3333, y: -261.33334}
+        _nextNodeIds:
+        - d827a11ca2a842a59e87b7de45df0a0e
+        _toAlpha: 0
+        _duration: 0.6
+    - rid: 1603323666853789784
+      type: {class: WaitNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: d827a11ca2a842a59e87b7de45df0a0e
+        _title: Breath before walking (Wait)
+        _position: {x: 1064.6666, y: -53.333332}
+        _nextNodeIds:
+        - aec67f2010064c77a52191bf7b1ab91d
+        _seconds: 2.2
+    - rid: 1603323666853789785
+      type: {class: ActorMoveNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: aec67f2010064c77a52191bf7b1ab91d
+        _title: Walk a few steps (Actor Move)
+        _position: {x: 1235.3334, y: -236.66666}
+        _nextNodeIds:
+        - a3f90646b0f147d19d755304cf4d6f2f
+        _actorId: Player
+        _targetId: Wake_Walk
+        _speed: 1.7272726
+    - rid: 1603323666853789786
+      type: {class: LetterboxNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: a3f90646b0f147d19d755304cf4d6f2f
+        _title: Bars out (Letterbox)
+        _position: {x: 1430, y: -66}
+        _nextNodeIds:
+        - e910abad791c465f90dd1bb499cddead
+        _show: 0
+        _duration: 0.25
+    - rid: 1603323666853789787
+      type: {class: CancelNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: e910abad791c465f90dd1bb499cddead
+        _title: Unlock player input (Cancel)
+        _position: {x: 1634.6666, y: -236.66666}
+        _nextNodeIds:
+        - 782a74acf2ce41e6ab40777491a778bf
+        _targetNodeId: 0ef25852e24f46b3a9c0c37f927558a1
+    - rid: 1603323666853789788
+      type: {class: EndNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: 782a74acf2ce41e6ab40777491a778bf
+        _title: End
+        _position: {x: 1671.3334, y: -66}
+        _nextNodeIds: []

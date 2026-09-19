@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6dd29340d8e4044796aeff922ae939b, type: 3}
+  m_Name: ItemDatabase
+  m_EditorClassIdentifier: StoryKit.Runtime::StoryKit.ItemDatabaseAsset
+  _items:
+  - id: moss_bloom
+    displayName: Moss Bloom
+    description: A soft cluster of forest moss. Smells faintly of rain.
+    examineText: 
+    icon: {fileID: 708914001, guid: 80ffbf710868cec4baee14726e22a84b, type: 3}
+    isKeyItem: 0
+    maxStack: 99
+    nameKey: 
+    descriptionKey: 
+    examineKey: 
+  - id: quiet_leaf
+    displayName: Quiet Leaf
+    description: It has not made a sound since it fell.
+    examineText: 
+    icon: {fileID: 306000505, guid: 80ffbf710868cec4baee14726e22a84b, type: 3}
+    isKeyItem: 0
+    maxStack: 99
+    nameKey: 
+    descriptionKey: 
+    examineKey: 

@@ -167,9 +167,22 @@ namespace Weizza.Level
             var variants = Of(side).variants;
             if (variants == null || variants.Count == 0) return null;
 
-            var hash = tile * 73856093 ^ (int)side * 19349663 ^ shuffle * 83492791;
-            var index = (hash & 0x7FFFFFFF) % variants.Count;
-            return variants[index];
+            // The bits are mixed before the remainder is taken. Multiplying the
+            // tile number and going straight to a remainder leaves the low bits
+            // marching in step with the tile, so four variants came out as the
+            // same four in the same order all the way along a run, which is the
+            // one thing the variants exist to avoid.
+            unchecked
+            {
+                var hash = (uint)(tile * 73856093) ^ (uint)((int)side * 19349663) ^ (uint)(shuffle * 83492791);
+                hash ^= hash >> 16;
+                hash *= 0x7feb352dU;
+                hash ^= hash >> 15;
+                hash *= 0x846ca68bU;
+                hash ^= hash >> 16;
+
+                return variants[(int)(hash % (uint)variants.Count)];
+            }
         }
 
         /// <summary>The texture every edge sprite must share, or null if they disagree.</summary>

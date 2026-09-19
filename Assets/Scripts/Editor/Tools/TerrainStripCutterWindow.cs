@@ -205,30 +205,47 @@ namespace Weizza.EditorTools
         /// original and at the right end all of the pixel that started the strip,
         /// so the two edges land on the same colour and the join disappears.
         ///
-        /// It costs some sharpness in the middle, which on moss and rock nobody
-        /// can see, and it is the only way to get a tiling band out of art that
-        /// was not drawn to tile.
+        /// The hand off happens inside a narrow window in the middle rather than
+        /// across the whole strip. Spread over the full width, every column is
+        /// half of one piece of moss and half of another, and the silhouette
+        /// turns to mush. Confined to a window, most of the strip is verbatim
+        /// art and there is one soft seam per tile that reads as overlap.
         /// </summary>
         private void Seamless(Texture2D src, int x0, int y0, int band,
                               Color32[] into, int sheetWidth, int slot)
         {
+            // How much of the strip the cross fade is allowed to occupy.
+            const float WindowFraction = 0.3f;
+            var lo = 0.5f - WindowFraction * 0.5f;
+            var hi = 0.5f + WindowFraction * 0.5f;
+
             for (var x = 0; x < stripWidth; x++)
             {
-                var blend = x / (float)stripWidth;
+                var along = x / (float)stripWidth;
+                var blend = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(lo, hi, along));
 
                 for (var y = 0; y < band; y++)
                 {
                     var a = src.GetPixel(x0 + x, y0 + y);
                     var b = src.GetPixel(x0 + x - stripWidth, y0 + y);
 
-                    var mixed = Color.Lerp(a, b, blend);
+                    // Mixed with alpha already multiplied in. A transparent pixel
+                    // still carries a colour in the file, usually white, and
+                    // mixing that straight paints white haze over the moss tips
+                    // wherever one side of the blend was empty.
+                    var pa = new Vector3(a.r, a.g, a.b) * a.a;
+                    var pb = new Vector3(b.r, b.g, b.b) * b.a;
+                    var premultiplied = Vector3.Lerp(pa, pb, blend);
 
                     // Alpha is taken as the stronger of the two rather than
                     // blended. Averaging it eats the tips of the moss, which are
                     // the part that made the edge read as grown rather than cut.
-                    mixed.a = Mathf.Max(a.a, b.a);
+                    var alpha = Mathf.Max(a.a, b.a);
 
-                    into[y * sheetWidth + slot * stripWidth + x] = mixed;
+                    var rgb = alpha > 0.001f ? premultiplied / alpha : Vector3.zero;
+
+                    into[y * sheetWidth + slot * stripWidth + x] =
+                        new Color(rgb.x, rgb.y, rgb.z, alpha);
                 }
             }
         }
@@ -393,6 +410,14 @@ namespace Weizza.EditorTools
                 var entry = so.FindProperty(face);
                 entry.FindPropertyRelative("depth").floatValue = bandMetres;
                 entry.FindPropertyRelative("capWidth").floatValue = tileWidth;
+
+                // The band has to straddle the ground line rather than hang below
+                // it. Hung below, every gap between two blades shows the body
+                // behind, so the grass reads as a flat strip cut off square along
+                // the top instead of as blades standing against the sky. The part
+                // left under the line is what hides the body's own edge.
+                entry.FindPropertyRelative("lift").floatValue =
+                    face == "top" ? bandMetres * 0.62f : bandMetres * 0.3f;
             }
 
             var fillMaterial = AssetDatabase.LoadAssetAtPath<Material>($"{folder}/{styleName}_Fill.mat");
