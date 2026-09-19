@@ -3,6 +3,7 @@ using Sirenix.OdinInspector;
 using StoryKit;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Weizza.Narrative;
 
 namespace Weizza
 {
@@ -95,6 +96,14 @@ namespace Weizza
             EnsureStyles();
             if (CombatGizmos.Enabled) DrawBoxes();
             if (!_visible) return;
+
+            // A conversation, or the item reveal card, already claims the
+            // screen and both already gate against each other the same way.
+            // Left alone the debug panel sat on top of the dialogue box every
+            // time, which is exactly the kind of thing a playtester assumes is
+            // a real UI bug rather than a stats overlay that forgot to get out
+            // of the way.
+            if (DialogueDirector.Talking || ItemRevealScreen.Showing) return;
 
             var stanceTint = _player != null && _player.CurrentStance != null
                 ? _player.CurrentStance.tint

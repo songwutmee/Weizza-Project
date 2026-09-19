@@ -144,6 +144,32 @@ namespace Weizza
                   $"({characterHeight * pixelsPerUnit:0} px drawn)"
                 : "-";
 
+        [BoxGroup("Framing")]
+        [InfoBox("How far up the screen the character's feet sit, as a rough " +
+                 "percent. Low shows mostly sky and canopy above them, the way " +
+                 "Neva frames a wide shot. High shows more ground below their " +
+                 "feet. This is the one number to drag for that look, instead " +
+                 "of hand converting it into a Cinemachine screen position.")]
+        [PropertyRange(0f, 70f)]
+        [OnValueChanged(nameof(Apply))]
+        [SerializeField] private float groundInFramePercent = 44f;
+
+        // Measured against the real game view, not derived from Cinemachine's
+        // own maths: at pitch 16 and Screen Position Y 0, the feet land at
+        // 43.79 percent up the frame, and every 0.01 added to Screen Position
+        // Y moves that by almost exactly 1 percent (Cinemachine's Screen
+        // Position is itself a normalised viewport fraction, so the 100x slope
+        // is not a coincidence, only the 43.79 baseline is scene specific).
+        // Re-measure this constant with WorldToScreenPoint if the pitch is
+        // ever changed by more than a degree or two.
+        private const float FeetPercentAtZeroScreenY = 43.79f;
+
+        [BoxGroup("Framing")]
+        [ShowInInspector, DisplayAsString]
+        [LabelText("Screen Position Y this writes")]
+        private string GroundFramingReadout =>
+            $"{(FeetPercentAtZeroScreenY - groundInFramePercent) / 100f:0.###}";
+
         public float PixelsPerUnit => pixelsPerUnit;
 
         // ---- Where the camera sits ------------------------------------------
@@ -232,6 +258,16 @@ namespace Weizza
                 camera.Lens.OrthographicSize = orthographicSize;
                 camera.Lens.NearClipPlane = 0.1f;
                 camera.Lens.FarClipPlane = farClipPlane;
+
+                var composer = camera.GetComponent<CinemachinePositionComposer>();
+                if (composer != null)
+                {
+                    var composition = composer.Composition;
+                    composition.ScreenPosition = new Vector2(
+                        composition.ScreenPosition.x,
+                        (FeetPercentAtZeroScreenY - groundInFramePercent) / 100f);
+                    composer.Composition = composition;
+                }
             }
 
             RefreshSprites();

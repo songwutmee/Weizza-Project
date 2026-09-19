@@ -87,6 +87,11 @@ namespace Weizza
         [SerializeField] private string hurtClip = "Hurt";
 
         [BoxGroup("Animation")]
+        [Tooltip("Played once on death and held on its last frame until the " +
+                 "respawn director puts the player back on their feet.")]
+        [SerializeField] private string deathClip = "Common_Death";
+
+        [BoxGroup("Animation")]
         [PropertyRange(0.05f, 2f)]
         [Tooltip("Ground speed above which the run animation plays.")]
         [SerializeField] private float runThreshold = 0.35f;
@@ -713,6 +718,15 @@ namespace Weizza
         private void PushAnimation()
         {
             if (animator == null) return;
+
+            // Death beats everything, including an attack that was mid swing
+            // when the killing hit landed. Without this the body keeps running
+            // its idle on the floor while the respawn sequence plays over it.
+            if (State == PlayerState.Dead)
+            {
+                animator.Play(deathClip, restart: false);
+                return;
+            }
 
             // An attack owns its own clip for its whole duration, stretched to
             // the frame data by StartAttack. Falling through to the ordinary

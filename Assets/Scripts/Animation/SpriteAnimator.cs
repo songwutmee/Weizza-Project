@@ -328,6 +328,13 @@ namespace Weizza
         public bool Has(string clipName) => Find(clipName) != null;
 
         /// <summary>
+        /// The clip itself, for code that needs to know its length or loop
+        /// flag before deciding how long to wait on it. Play and PlayStretched
+        /// stay the only ways to actually start one.
+        /// </summary>
+        public SpriteClip GetClip(string clipName) => Find(clipName);
+
+        /// <summary>
         /// Finds a clip, or the stand in, and says so once either way.
         ///
         /// The warning is the important half. A missing clip used to look

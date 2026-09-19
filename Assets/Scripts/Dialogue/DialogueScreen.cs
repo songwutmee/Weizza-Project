@@ -104,7 +104,16 @@ namespace Weizza.Narrative
 
         public async UniTask OpenAsync(CancellationToken ct)
         {
-            gameObject.SetActive(true);
+            // This used to be gameObject.SetActive(true), back when this
+            // script lived on Panel itself. It now lives on Dialogue Canvas so
+            // that Panel can be switched off in the Inspector without
+            // breaking IDialogueUI registration, which means that line was
+            // reactivating the Canvas (already active, a no-op) instead of
+            // the Panel someone had just hidden for editing. group.gameObject
+            // is Panel by construction, so this is the one line that has to
+            // reach it explicitly: whatever Panel's state was left in, a real
+            // conversation starting always forces it back on.
+            if (group != null) group.gameObject.SetActive(true);
             if (choiceRoot != null) choiceRoot.SetActive(false);
             await FadeTo(1f, ct);
         }
@@ -362,7 +371,18 @@ namespace Weizza.Narrative
             if (portrait != null) portrait.enabled = false;
             if (choiceRoot != null) choiceRoot.SetActive(false);
             if (advanceHint != null) advanceHint.SetActive(false);
-            gameObject.SetActive(false);
+
+            // This used to be gameObject.SetActive(false), the same bug
+            // OpenAsync had. This script now lives on Dialogue Canvas, so
+            // that line was switching the whole canvas off on every close,
+            // including the very first call from Awake before anything ever
+            // talked. Awake never runs again on a disabled GameObject, so
+            // the dialogue system disabled its own IDialogueUI registration
+            // path the moment the scene started. Reaching group.gameObject
+            // (Panel) instead is the same fix as OpenAsync, and leaves the
+            // canvas itself always on, which is the one rule that matters
+            // now that Awake lives here.
+            if (group != null) group.gameObject.SetActive(false);
         }
     }
 }
