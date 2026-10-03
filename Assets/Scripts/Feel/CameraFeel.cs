@@ -56,6 +56,9 @@ namespace Weizza
         /// <summary>Shake with a direction, usually the knockback of the hit.</summary>
         public void Shake(float strength, Vector2 direction)
         {
+            // The settings scale is an accessibility dial: zero turns every
+            // shake off, for players who get motion sick.
+            strength *= GameSettings.ShakeScale;
             LastStrength = strength;
             if (impulse == null || strength <= 0f) return;
 
