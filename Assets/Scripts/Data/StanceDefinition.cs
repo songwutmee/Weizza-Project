@@ -45,10 +45,29 @@ namespace Weizza
 
         [FoldoutGroup("Vitality")]
         [PropertyRange(0f, 0.5f)]
-        [Tooltip("Se only. Fraction of damage dealt returned as health. Se has " +
-                 "no other way to heal outside a shrine, so this number is the " +
-                 "whole reason to play aggressively in it.")]
+        [Tooltip("Fraction of damage dealt returned as health on every connect. " +
+                 "No stance uses this since the redraw of October 2026, In heals " +
+                 "on a kill instead. Kept for tuning experiments.")]
         public float lifesteal;
+
+        [FoldoutGroup("Vitality")]
+        [PropertyRange(0f, 60f)]
+        [Tooltip("In. Health returned when one of this stance's hits or shots " +
+                 "finishes an enemy. In has no other sustain outside a shrine, so " +
+                 "this is what makes picking targets off at range worth it.")]
+        public float healOnKill;
+
+        [FoldoutGroup("Vitality")]
+        [ToggleLeft]
+        [Tooltip("Than. Weight is a platforming tool: plates press, weak wood " +
+                 "breaks, bounce mushrooms burst, wind cannot move it.")]
+        public bool isHeavy;
+
+        [FoldoutGroup("Vitality")]
+        [ToggleLeft]
+        [Tooltip("Se. Poison effects and miasma do nothing. Se draws life out of " +
+                 "a wound through alchemy, so the same hands are not hurt by it.")]
+        public bool poisonImmune;
 
         // ---- Ground movement ----------------------------------------------
 
@@ -76,7 +95,7 @@ namespace Weizza
 
         [FoldoutGroup("Jump", expanded: true)]
         [ToggleLeft]
-        [Tooltip("In cannot jump. It moves by a written ward, not by legs.")]
+        [Tooltip("Se cannot jump. Every room that wants height asks for another school.")]
         public bool canJump = true;
 
         [FoldoutGroup("Jump")]
@@ -124,6 +143,22 @@ namespace Weizza
                   $"(launch {JumpVelocity:0.0} m/s)"
                 : "-";
 
+        [FoldoutGroup("Jump")]
+        [ShowIf(nameof(canJump))]
+        [PropertyRange(0.2f, 1f)]
+        [Tooltip("Gravity multiplier near the top of a jump while the button is " +
+                 "still held. Celeste halves it here: the extra hang time is what " +
+                 "lets a player adjust a landing without the jump feeling floaty. " +
+                 "1 turns it off.")]
+        public float apexGravityMultiplier = 0.55f;
+
+        [FoldoutGroup("Jump")]
+        [ShowIf(nameof(canJump))]
+        [PropertyRange(0f, 4f)]
+        [Tooltip("Vertical speed, in metres per second either side of zero, " +
+                 "that counts as the top of the arc.")]
+        public float apexSpeedBand = 1.6f;
+
         /// <summary>Gravity that produces the authored height in the authored time.</summary>
         public float RiseGravity =>
             jumpRiseTime <= 0f ? 0f : 2f * jumpHeight / (jumpRiseTime * jumpRiseTime);
@@ -131,11 +166,74 @@ namespace Weizza
         /// <summary>Launch speed that reaches the authored height.</summary>
         public float JumpVelocity => jumpRiseTime <= 0f ? 0f : 2f * jumpHeight / jumpRiseTime;
 
+        // ---- Wall -----------------------------------------------------------
+
+        [FoldoutGroup("Wall", expanded: true)]
+        [ToggleLeft]
+        [Tooltip("In only. Slide down a wall while pressing into it, jump off it. " +
+                 "A shaft built around this is a room that asks for In.")]
+        public bool canWallJump;
+
+        [FoldoutGroup("Wall")]
+        [ShowIf(nameof(canWallJump))]
+        [PropertyRange(0.5f, 6f)]
+        [Tooltip("Fastest fall while sliding, metres per second.")]
+        public float wallSlideSpeed = 2.2f;
+
+        [FoldoutGroup("Wall")]
+        [ShowIf(nameof(canWallJump))]
+        [PropertyRange(0.02f, 0.4f)]
+        [Tooltip("How far from the wall still counts as touching it. Celeste " +
+                 "lets a wall jump happen 2 pixels away; this is the same favour " +
+                 "in metres. Too small and wall jumps randomly fail.")]
+        public float wallCheckDistance = 0.12f;
+
+        [FoldoutGroup("Wall")]
+        [ShowIf(nameof(canWallJump))]
+        [PropertyRange(1f, 12f)]
+        [Tooltip("Sideways speed away from the wall on a wall jump.")]
+        public float wallJumpSpeedX = 5.5f;
+
+        [FoldoutGroup("Wall")]
+        [ShowIf(nameof(canWallJump))]
+        [PropertyRange(0.5f, 4f)]
+        [Tooltip("Height a wall jump reaches, in metres.")]
+        public float wallJumpHeight = 2.1f;
+
+        [FoldoutGroup("Wall")]
+        [ShowIf(nameof(canWallJump))]
+        [PropertyRange(0, 20)]
+        [Tooltip("Frames after a wall jump where the stick cannot steer back " +
+                 "toward the wall. Zero lets a player climb one wall forever by " +
+                 "jumping straight back at it.")]
+        public int wallJumpLockFrames = 9;
+
+        [FoldoutGroup("Wall")]
+        [ShowIf(nameof(canWallJump))]
+        [PropertyRange(0, 12)]
+        [Tooltip("Frames after leaving a wall where a wall jump still works. " +
+                 "Coyote time, for walls.")]
+        public int wallCoyoteFrames = 6;
+
+        [FoldoutGroup("Wall")]
+        [ToggleLeft]
+        [Tooltip("In. Can catch and swing on vines.")]
+        public bool canSwing;
+
+        // ---- Ranged ---------------------------------------------------------
+
+        [FoldoutGroup("Ranged", expanded: true)]
+        [Tooltip("In. When set, the attack button fires this kit instead of " +
+                 "swinging the light combo. Empty means a melee stance.")]
+        public RangedKit rangedKit;
+
+        public bool IsRanged => rangedKit != null;
+
         // ---- Dash ---------------------------------------------------------
 
         [FoldoutGroup("Dash", expanded: true)]
         [ToggleLeft]
-        [Tooltip("Than has no dash. In blinks, with invincibility.")]
+        [Tooltip("Se dashes with invincibility. Than and In have no dash.")]
         public bool canDash;
 
         [FoldoutGroup("Dash")]
@@ -168,7 +266,7 @@ namespace Weizza
         [FoldoutGroup("Dash")]
         [ShowIf(nameof(canDash))]
         [ToggleLeft]
-        [Tooltip("In blinks: it teleports through anything in the way. A plain " +
+        [Tooltip("Teleports through anything in the way instead of sweeping. A plain " +
                  "dash sweeps and stops at walls.")]
         public bool dashIsBlink;
 
@@ -176,7 +274,7 @@ namespace Weizza
 
         [FoldoutGroup("Defence", expanded: true)]
         [ToggleLeft]
-        [Tooltip("Than only.")]
+        [Tooltip("Parry was cut on 17 September 2026. Leave off.")]
         public bool canParry;
 
         [FoldoutGroup("Defence")]
@@ -222,6 +320,21 @@ namespace Weizza
 
         [FoldoutGroup("Attacks")]
         public AttackDefinition heavy;
+
+        [FoldoutGroup("Attacks")]
+        [Tooltip("PROPOSAL, not canon yet. Light pressed in the air with down held. " +
+                 "Neva has one; empty means this stance has no down attack and " +
+                 "nothing changes. Give the attack a hitbox offset below the feet.")]
+        public AttackDefinition downAttack;
+
+        [FoldoutGroup("Attacks")]
+        [ShowIf(nameof(HasDownAttack))]
+        [PropertyRange(0f, 20f)]
+        [Tooltip("Upward speed when the down attack connects. A bounce off an " +
+                 "enemy's head is also a platforming tool.")]
+        public float pogoBounce = 10f;
+
+        public bool HasDownAttack => downAttack != null;
 
         [FoldoutGroup("Attacks")]
         [ShowInInspector, DisplayAsString]

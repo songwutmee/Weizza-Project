@@ -14,20 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.AttackDefinition
   displayName: Se Heavy
   animationState: Se_Heavy
-  startupFrames: 12
-  activeFrames: 4
-  recoveryFrames: 20
-  damage: 26
-  poiseDamage: 26
+  startupFrames: 9
+  activeFrames: 3
+  recoveryFrames: 16
+  damage: 18
+  poiseDamage: 18
   hitboxOffset: {x: 0.8, y: 0.6}
   hitboxSize: {x: 1.2, y: 1}
   depthTolerance: 0.45
-  knockbackX: 6
+  knockbackX: 5
   knockbackY: 0
-  hitStopFrames: 9
-  screenShake: 0.3
+  hitStopFrames: 7
+  screenShake: 0.25
   hitStunFrames: 14
   superArmor: 0
   launcher: 0
   fullDepth: 0
-  lungeDistance: 0.4
+  lungeDistance: 0

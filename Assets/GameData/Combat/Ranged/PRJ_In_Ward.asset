@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f1415cd24411864ab2626dcefeb19ef, type: 3}
+  m_Name: PRJ_In_Ward
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.ProjectileDefinition
+  displayName: In Ward
+  speed: 16
+  gravity: 18
+  lifetime: 1.6
+  radius: 0.2
+  pierce: 0
+  bounces: 0
+  bounceDamping: 0.6
+  homingDegreesPerSecond: 0
+  homingRange: 5
+  damage: 9
+  poiseDamage: 7
+  knockbackX: 2.5
+  knockbackY: 0
+  hitStopFrames: 2
+  hitStunFrames: 12
+  screenShake: 0.05
+  defendable: 1
+  sprite: {fileID: 0}
+  tint: {r: 0.78, g: 0.9, b: 1, a: 1}
+  size: 0.5
+  faceVelocity: 1
+  spinDegreesPerSecond: 540
+  trailSeconds: 0.12

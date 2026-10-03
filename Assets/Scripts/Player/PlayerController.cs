@@ -134,6 +134,25 @@ namespace Weizza
         public PlayerTuning Tuning => tuning;
         public float DashCooldownRemaining => Mathf.Max(0f, _dashReadyAt - Time.time);
 
+        /// <summary>
+        /// Multiplies run speed. Set by whatever is slowing the player for its
+        /// own reasons (winding up a throw, an effect), reset to one by the
+        /// same owner. Never written by this class.
+        /// </summary>
+        public float ExternalMoveScale { get; set; } = 1f;
+
+        /// <summary>Free to start something new: standing or moving, not locked by a cutscene, alive.</summary>
+        public bool CanAct => State == PlayerState.Locomotion && !StoryControl.MovementLocked &&
+                              (Vitals == null || Vitals.IsAlive);
+
+        [FoldoutGroup("Live")]
+        [ShowInInspector, ReadOnly]
+        [Tooltip("-1 a wall on the left, 1 on the right, 0 none.")]
+        public int WallSide => _wallSide;
+
+        [FoldoutGroup("Live")]
+        [ShowInInspector, ReadOnly] public bool WallSliding { get; private set; }
+
         private float _stateTimer;
         private float _coyoteUntil;
         private float _jumpBufferedUntil;
@@ -148,16 +167,45 @@ namespace Weizza
         private AttackDefinition _attack;
         private int _comboIndex;
         private bool _hitboxOpen;
+        private bool _downAttacking;
+
+        private int _wallSide;
+        private int _lastWallSide;
+        private float _wallCoyoteUntil;
+        private float _wallJumpLockUntil;
+
+        private TagContainer _tags;
+        private System.IDisposable _dashIFrames;
+        private readonly System.Collections.Generic.List<System.IDisposable> _stanceTags = new(4);
+        private EffectReceiver _effects;
+
+        private static readonly RaycastHit[] WallHits = new RaycastHit[1];
 
         private static InputReader Input => InputReader.Instance;
+
+        private const int PlayerWings = 4;
 
         private void Awake()
         {
             Motor = GetComponent<CharacterMotor3D>();
             Vitals = GetComponent<Vitals>();
+
+            // The player's health is four butterfly wings, Hollow Knight style.
+            // Set here so every scene's player gets it without editing each one;
+            // a value typed on the Vitals component by hand still wins.
+            if (Vitals != null && Vitals.Wings == 0) Vitals.Wings = PlayerWings;
             if (animator == null) animator = GetComponentInChildren<SpriteAnimator>();
             if (spriteFeel == null) spriteFeel = GetComponentInChildren<SpriteFeel>();
             _reactor = GetComponent<HitReactor>();
+            _tags = this.Tags();
+            // Added here rather than placed by hand, so an existing scene picks
+            // up effects and ranged stances with no rewiring. Both sit idle
+            // until something uses them.
+            _effects = GetComponent<EffectReceiver>();
+            if (_effects == null && Vitals != null) _effects = gameObject.AddComponent<EffectReceiver>();
+            if (GetComponent<PlayerShooter>() == null) gameObject.AddComponent<PlayerShooter>();
+            if (GetComponent<SafeGroundTracker>() == null) gameObject.AddComponent<SafeGroundTracker>();
+            if (GetComponent<StanceSwitchFeedback>() == null) gameObject.AddComponent<StanceSwitchFeedback>();
 
             if (_reactor == null)
             {
@@ -190,6 +238,7 @@ namespace Weizza
             if (Vitals != null) Vitals.Died += OnDied;
             if (hitbox != null) hitbox.Connected += OnHitConnected;
             if (_reactor != null) _reactor.Staggered += OnStaggered;
+            if (Vitals != null) Vitals.Damaged += OnDamagedForMercy;
         }
 
         private void OnDisable()
@@ -198,6 +247,44 @@ namespace Weizza
             if (Vitals != null) Vitals.Died -= OnDied;
             if (hitbox != null) hitbox.Connected -= OnHitConnected;
             if (_reactor != null) _reactor.Staggered -= OnStaggered;
+            if (Vitals != null) Vitals.Damaged -= OnDamagedForMercy;
+            EndMercy();
+        }
+
+        // ---- Mercy frames ---------------------------------------------------------
+
+        [BoxGroup("Getting Hit", centerLabel: true)]
+        [PropertyRange(0f, 2.5f)]
+        [Tooltip("Seconds of invulnerability after losing a wing. Hollow Knight uses about 1.3. " +
+                 "Without it, standing in a crowd or on a crawler drains every wing in a second.")]
+        [SerializeField] private float mercySeconds = 1.1f;
+
+        private System.IDisposable _mercy;
+        private float _mercyUntil;
+        private SpriteRenderer _bodyRenderer;
+
+        private void OnDamagedForMercy(DamageInfo info, HitResult result)
+        {
+            if (result is not (HitResult.Hit or HitResult.Armored) || Vitals == null || !Vitals.IsAlive) return;
+            if (!Vitals.UsesWings || mercySeconds <= 0f) return;
+            _mercyUntil = Time.time + mercySeconds;
+            if (_mercy == null && _tags != null) _mercy = _tags.Add(GameTag.Invincible);
+        }
+
+        /// <summary>Ticked from Update. Flickers the body while mercy runs, the universal "you can't be hit" cue.</summary>
+        private void TickMercy()
+        {
+            if (_mercy == null) return;
+            if (_bodyRenderer == null && animator != null) _bodyRenderer = animator.GetComponent<SpriteRenderer>();
+            if (Time.time >= _mercyUntil) { EndMercy(); return; }
+            if (_bodyRenderer != null) _bodyRenderer.enabled = Mathf.FloorToInt(Time.time * 16f) % 2 == 0;
+        }
+
+        private void EndMercy()
+        {
+            _mercy?.Dispose();
+            _mercy = null;
+            if (_bodyRenderer != null) _bodyRenderer.enabled = true;
         }
 
         private void Start() => ApplyStance(
@@ -207,6 +294,21 @@ namespace Weizza
         {
             var dt = Time.deltaTime;
             _stateTimer += dt;
+            TickMercy();
+
+            if (_override != null)
+            {
+                if (State != PlayerState.Locomotion || !_override.TickOverride(this, dt))
+                {
+                    EndOverride();
+                }
+                else
+                {
+                    Motor.Step(dt);
+                    PushAnimation();
+                    return;
+                }
+            }
 
             ReadInput();
 
@@ -221,6 +323,7 @@ namespace Weizza
             }
 
             ApplyGravity(dt);
+            ApplyWallSlide();
             Motor.Step(dt);
 
             if (_hitboxOpen) hitbox.Sweep();
@@ -247,8 +350,12 @@ namespace Weizza
                 _dashBufferedUntil = Time.time + Timing.Frames(tuning.dashBufferFrames);
             }
 
-            if (Input.LightPressed) BufferAttack(heavy: false);
-            if (Input.HeavyPressed) BufferAttack(heavy: true);
+            // A ranged stance has no melee. PlayerShooter reads the same
+            // buttons, and buffering a swing here as well would play a light
+            // combo on top of every shot.
+            var ranged = CurrentStance != null && CurrentStance.IsRanged;
+            if (!ranged && Input.LightPressed) BufferAttack(heavy: false);
+            if (!ranged && Input.HeavyPressed) BufferAttack(heavy: true);
 
             if (StoryControl.MovementLocked) return;
 
@@ -267,9 +374,18 @@ namespace Weizza
         private void TickLocomotion(float dt)
         {
             var move = Move();
-            Drive(move, dt, 1f);
-            Motor.FaceMovement(move.x);
+            DetectWall();
 
+            // During the lock after a wall jump the stick cannot steer, or a
+            // player would climb a single wall forever by jumping straight
+            // back into it.
+            if (Time.time >= _wallJumpLockUntil)
+            {
+                Drive(move, dt, ExternalMoveScale * SpeedMultiplier());
+                Motor.FaceMovement(move.x);
+            }
+
+            if (TryConsumeWallJump()) return;
             if (TryConsumeJump()) return;
             if (TryConsumeDash()) return;
             TryConsumeAttack();
@@ -326,9 +442,145 @@ namespace Weizza
             // then hanging in the air permanently with Velocity.y stuck at the
             // knockback value.
             var falling = Motor.Velocity.y < 0f || Input == null || !Input.JumpHeld;
-            if (falling) gravity *= Mathf.Max(1f, CurrentStance.fallGravityMultiplier);
+
+            // Apex hang, the Celeste trick: near the top of a jump that is
+            // still being held, gravity eases off so there is a moment to line
+            // up the landing. Checked before the fall multiplier on purpose,
+            // so the first frames of falling still get the hang.
+            var held = Input != null && Input.JumpHeld;
+            var atApex = CurrentStance.canJump && held && !Motor.Grounded &&
+                         Mathf.Abs(Motor.Velocity.y) < CurrentStance.apexSpeedBand;
+
+            if (atApex) gravity *= Mathf.Clamp(CurrentStance.apexGravityMultiplier, 0.1f, 1f);
+            else if (falling) gravity *= Mathf.Max(1f, CurrentStance.fallGravityMultiplier);
 
             Motor.Velocity.y -= gravity * dt;
+        }
+
+        private IPlayerOverride _override;
+
+        /// <summary>True while a vine or another gadget is driving the player.</summary>
+        public bool Overridden => _override != null;
+
+        /// <summary>
+        /// Hands movement to a gadget. Refused unless the player is in plain
+        /// locomotion, so a gadget can never cut into an attack or a flinch.
+        /// </summary>
+        public bool BeginOverride(IPlayerOverride gadget)
+        {
+            if (gadget == null || _override != null || State != PlayerState.Locomotion) return false;
+            _override = gadget;
+            return true;
+        }
+
+        public void EndOverride()
+        {
+            if (_override == null) return;
+            var ending = _override;
+            _override = null;
+            ending.EndOverride(this);
+        }
+
+        /// <summary>Lets a gadget consume a buffered jump press, the way the controller's own jump does.</summary>
+        public bool ConsumeJumpPress()
+        {
+            if (Time.time > _jumpBufferedUntil) return false;
+            _jumpBufferedUntil = 0f;
+            return true;
+        }
+
+        private float SpeedMultiplier()
+        {
+            if (_tags != null && _tags.Has(GameTag.Rooted)) return 0f;
+            return _effects != null ? _effects.MoveSpeedMultiplier : 1f;
+        }
+
+        // ---- Wall (In) -----------------------------------------------------------
+
+        /// <summary>
+        /// Looks a short way out from both sides of the capsule for a wall.
+        ///
+        /// Two rays, at knee and head height, rather than one at the middle,
+        /// so a ledge lip that only catches the head still counts and a low
+        /// step that only catches the feet does not get mistaken for a wall
+        /// unless the head agrees.
+        /// </summary>
+        private void DetectWall()
+        {
+            _wallSide = 0;
+            if (CurrentStance == null || !CurrentStance.canWallJump || Motor.Grounded) return;
+
+            var controller = Motor.Controller;
+            if (controller == null) return;
+
+            var reach = controller.radius + CurrentStance.wallCheckDistance;
+            var basePoint = transform.position + controller.center;
+            var low = basePoint + Vector3.down * controller.height * 0.25f;
+            var high = basePoint + Vector3.up * controller.height * 0.3f;
+
+            if (WallAt(low, high, 1, reach)) _wallSide = 1;
+            else if (WallAt(low, high, -1, reach)) _wallSide = -1;
+
+            if (_wallSide == 0) return;
+            _lastWallSide = _wallSide;
+            _wallCoyoteUntil = Time.time + Timing.Frames(CurrentStance.wallCoyoteFrames);
+        }
+
+        private static bool WallAt(Vector3 low, Vector3 high, int side, float reach)
+        {
+            var direction = Vector3.right * side;
+            var mask = LayerMask.GetMask("Default");
+            return HitsWall(low, direction, reach, mask) && HitsWall(high, direction, reach, mask);
+        }
+
+        private static bool HitsWall(Vector3 from, Vector3 direction, float reach, int mask)
+        {
+            if (Physics.RaycastNonAlloc(from, direction, WallHits, reach, mask,
+                    QueryTriggerInteraction.Ignore) == 0) return false;
+            return Mathf.Abs(WallHits[0].normal.x) > 0.7f;
+        }
+
+        /// <summary>
+        /// Caps the fall while pressing into a wall. Runs after gravity so it
+        /// clamps the final speed rather than being undone by it.
+        /// </summary>
+        private void ApplyWallSlide()
+        {
+            WallSliding = false;
+            if (State != PlayerState.Locomotion || _wallSide == 0 || CurrentStance == null) return;
+            if (Motor.Velocity.y >= 0f) return;
+
+            var push = Input != null && !StoryControl.MovementLocked ? Input.MoveRaw.x : 0f;
+            if (Mathf.Abs(push) < 0.3f || Mathf.Sign(push) != _wallSide) return;
+
+            WallSliding = true;
+            Motor.Velocity.y = Mathf.Max(Motor.Velocity.y, -CurrentStance.wallSlideSpeed);
+            Motor.SetFacing(FacingExtensions.FromSign(-_wallSide));
+        }
+
+        private bool TryConsumeWallJump()
+        {
+            if (CurrentStance == null || !CurrentStance.canWallJump) return false;
+            if (Motor.Grounded) return false;
+            if (Time.time > _jumpBufferedUntil) return false;
+
+            var touching = _wallSide != 0;
+            if (!touching && Time.time > _wallCoyoteUntil) return false;
+
+            var side = touching ? _wallSide : _lastWallSide;
+            if (side == 0) return false;
+
+            _jumpBufferedUntil = 0f;
+            _wallCoyoteUntil = 0f;
+
+            var gravity = CurrentStance.RiseGravity > 0.01f ? CurrentStance.RiseGravity : Mathf.Abs(Physics.gravity.y) * 3f;
+            Motor.Velocity.x = -side * CurrentStance.wallJumpSpeedX;
+            Motor.Velocity.y = Mathf.Sqrt(2f * gravity * CurrentStance.wallJumpHeight);
+            Motor.SetFacing(FacingExtensions.FromSign(-side));
+
+            _wallJumpLockUntil = Time.time + Timing.Frames(CurrentStance.wallJumpLockFrames);
+            StoryEvents.Raise(GameEvents.WallJumped, side.ToString());
+            return true;
         }
 
         private bool TryConsumeJump()
@@ -336,6 +588,16 @@ namespace Weizza
             if (CurrentStance == null || !CurrentStance.canJump) return false;
             if (Time.time > _jumpBufferedUntil) return false;
             if (!Motor.Grounded && Time.time > _coyoteUntil) return false;
+
+            // Down and jump on a one way ledge is a drop, not a jump. The
+            // platform handles the drop; jumping as well would launch the
+            // player upward through it instead.
+            if (Input != null && Input.DownHeld && Motor.GroundCollider != null &&
+                Motor.GroundCollider.GetComponentInParent<OneWayPlatform>() != null)
+            {
+                _jumpBufferedUntil = 0f;
+                return false;
+            }
 
             _jumpBufferedUntil = 0f;
             _coyoteUntil = 0f;
@@ -372,16 +634,21 @@ namespace Weizza
                 CurrentStance.dashFrames + CurrentStance.dashCooldownFrames);
 
             var direction = Motor.Facing.Sign();
+            StoryEvents.Raise(GameEvents.Dashed, Stance.ToString());
 
-            if (CurrentStance.dashIsBlink && TryBlinkLane()) return true;
+            // Crossing a lane belongs to the dash button, whichever school owns
+            // the dash. It used to be the blink's alone, and moved with the
+            // dash to Se in the October 2026 redraw.
+            if (TryBlinkLane()) return true;
 
             if (CurrentStance.dashIsBlink)
             {
-                // In moves by a written ward, not by legs: it does not travel
-                // through the space between, it stops being in one place and
-                // starts being in the other.
-                Motor.Teleport(transform.position +
-                               new Vector3(CurrentStance.dashDistance * direction, 0f, 0f));
+                // A blink does not travel through the space between, it stops
+                // being in one place and starts being in the other. The landing
+                // is checked so a blink aimed into a wall stops short of it
+                // instead of burying the capsule inside the geometry.
+                var target = transform.position + new Vector3(CurrentStance.dashDistance * direction, 0f, 0f);
+                Motor.Teleport(SafeBlinkTarget(transform.position, target));
             }
             else
             {
@@ -429,17 +696,59 @@ namespace Weizza
             }
 
             var frame = Mathf.FloorToInt(_stateTimer / Timing.Frame);
-            if (Vitals != null)
-            {
-                Vitals.Invincible = frame >= CurrentStance.iFrameStart &&
-                                    frame <= CurrentStance.iFrameEnd;
-            }
+            var inWindow = CurrentStance.iFrameEnd > 0 &&
+                           frame >= CurrentStance.iFrameStart && frame <= CurrentStance.iFrameEnd;
+            SetDashIFrames(inWindow);
 
             if (_stateTimer < Timing.Frames(CurrentStance.dashFrames)) return;
 
-            if (Vitals != null) Vitals.Invincible = false;
+            SetDashIFrames(false);
             Motor.Velocity.x = 0f;
             EnterState(PlayerState.Locomotion);
+        }
+
+        /// <summary>
+        /// Dash invulnerability as its own counted hold on the Invincible tag.
+        /// A respawn grace running at the same time holds its own, so neither
+        /// can end the other early, which is the stacking bug the tag system
+        /// was adopted to fix.
+        /// </summary>
+        private void SetDashIFrames(bool on)
+        {
+            if (on && _dashIFrames == null && _tags != null) _dashIFrames = _tags.Add(GameTag.Invincible);
+            else if (!on && _dashIFrames != null)
+            {
+                _dashIFrames.Dispose();
+                _dashIFrames = null;
+            }
+        }
+
+        /// <summary>
+        /// Walks a blink destination back toward the start until the capsule
+        /// fits there.
+        /// </summary>
+        private Vector3 SafeBlinkTarget(Vector3 from, Vector3 to)
+        {
+            var controller = Motor.Controller;
+            if (controller == null) return to;
+
+            var mask = LayerMask.GetMask("Default");
+            var radius = controller.radius * 0.95f;
+            var half = Mathf.Max(0f, controller.height * 0.5f - controller.radius);
+            const int steps = 24;
+
+            for (var i = 0; i <= steps; i++)
+            {
+                var candidate = Vector3.Lerp(to, from, i / (float)steps);
+                // Lifted a hair, or a capsule resting on the floor counts as
+                // overlapping the floor and every blink is refused.
+                var centre = candidate + controller.center + Vector3.up * 0.06f;
+                var blocked = Physics.CheckCapsule(centre + Vector3.up * half, centre + Vector3.down * half,
+                    radius, mask, QueryTriggerInteraction.Ignore);
+                if (!blocked) return candidate;
+            }
+
+            return from;
         }
 
         // ---- Attack ---------------------------------------------------------------
@@ -449,6 +758,17 @@ namespace Weizza
             if (Time.time > _attackBufferedUntil || CurrentStance == null || hitbox == null) return;
 
             _attackBufferedUntil = 0f;
+            // Light in the air with down held is the down attack, when the
+            // stance has one. Checked first so it wins over a light combo.
+            if (!_attackBufferHeavy && !Motor.Grounded && CurrentStance.HasDownAttack &&
+                Input != null && Input.DownHeld)
+            {
+                _downAttacking = true;
+                StartAttack(CurrentStance.downAttack, heavy: false);
+                return;
+            }
+
+            _downAttacking = false;
             StartAttack(_attackBufferHeavy ? null : NextComboStep(0), _attackBufferHeavy);
         }
 
@@ -545,6 +865,7 @@ namespace Weizza
         private void EndAttack()
         {
             CloseHitbox();
+            _downAttacking = false;
             if (Vitals != null) Vitals.SuperArmor = false;
             _attack = null;
             _comboIndex = 0;
@@ -553,6 +874,7 @@ namespace Weizza
 
         private void OnHitConnected(IDamageable victim, HitResult result, DamageInfo info)
         {
+            CombatSignals.Report(victim, result, info, byPlayer: true, ranged: false);
             if (result is HitResult.Missed or HitResult.Ignored) return;
 
             HitStop.Freeze(info.hitStopFrames);
@@ -565,10 +887,47 @@ namespace Weizza
 
             if (result == HitResult.Parried) return;
 
-            // Se has no self heal outside a shrine. Lifesteal is the only tap,
-            // which is what makes the glass cannon a real choice instead of a
-            // worse stance with a bigger number.
             if (info.lifesteal > 0f && Vitals != null) Vitals.Heal(info.amount * info.lifesteal);
+            if (_downAttacking && result != HitResult.Ignored)
+            {
+                Motor.Velocity.y = CurrentStance.pogoBounce;
+                _coyoteUntil = 0f;
+            }
+
+            HealIfKilled(victim, result);
+        }
+
+        /// <summary>
+        /// A shot from PlayerShooter connected. Gets the same freeze, shake and
+        /// spark as a swing, scaled by the projectile's own smaller numbers,
+        /// and the same heal on a kill.
+        /// </summary>
+        public void ReportRangedHit(IDamageable victim, HitResult result, DamageInfo info)
+        {
+            CombatSignals.Report(victim, result, info, byPlayer: true, ranged: true);
+            if (result is HitResult.Missed or HitResult.Ignored) return;
+
+            HitStop.Freeze(info.hitStopFrames);
+            CameraFeel.Instance?.Shake(info.screenShake, new Vector2(info.knockback.x, 0f));
+            HitSpark.Play(info.point, info.knockback, Mathf.Max(0.25f, info.hitStopFrames * 0.12f),
+                result == HitResult.Hit ? Color.white : new Color(1f, 0.85f, 0.4f));
+
+            HealIfKilled(victim, result);
+        }
+
+        /// <summary>
+        /// In heals when its hit finishes something. Hitboxes and shots both
+        /// skip anything already dead, so a victim that is dead after this hit
+        /// was killed by it.
+        /// </summary>
+        private void HealIfKilled(IDamageable victim, HitResult result)
+        {
+            if (CurrentStance == null || CurrentStance.healOnKill <= 0f || Vitals == null) return;
+            if (result is HitResult.Missed or HitResult.Ignored or HitResult.Parried) return;
+            if (victim == null || victim.IsAlive) return;
+
+            Vitals.Heal(CurrentStance.healOnKill);
+            StoryEvents.Raise(GameEvents.HealedOnKill, CurrentStance.healOnKill);
         }
 
         // ---- Getting hit ------------------------------------------------------------
@@ -586,6 +945,7 @@ namespace Weizza
             // flinch would let a player trade hits by getting hit, which reads
             // as the game not noticing.
             CloseHitbox();
+            SetDashIFrames(false);
             if (Vitals != null)
             {
                 Vitals.SuperArmor = false;
@@ -625,6 +985,12 @@ namespace Weizza
             if (Time.time < _switchReadyAt) return false;
             if (tuning.Get(target) == null) return false;
 
+            if (!StanceProgress.IsLearned(target))
+            {
+                StoryEvents.Raise(GameEvents.StanceLocked, target.ToString());
+                return false;
+            }
+
             _pendingStance = target;
             EnterState(PlayerState.StanceSwitch);
 
@@ -639,6 +1005,18 @@ namespace Weizza
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Puts the player in a stance with no switch window. Loading a save
+        /// and the debug console only; gameplay always goes through
+        /// TryStartSwitch so the 0.4 second price is paid.
+        /// </summary>
+        public void ForceStance(StanceId id)
+        {
+            if (State == PlayerState.Dead) return;
+            ApplyStance(id, refillHealth: false);
+            if (State == PlayerState.StanceSwitch) EnterState(PlayerState.Locomotion);
         }
 
         private void TickSwitch(float dt)
@@ -674,8 +1052,27 @@ namespace Weizza
                 Vitals.Parrying = false;
             }
 
+            ApplyStanceTags(stance);
+            if (_reactor != null) _reactor.KnockbackResistance = stance.hyperArmor ? stance.knockbackResistance : 0f;
+
             StoryState.Global.Set(StateKeys.Stance, (int)id);
             StoryEvents.Raise(GameEvents.StanceSwitched, id.ToString());
+        }
+
+        /// <summary>
+        /// A school's standing traits as tags, so level pieces ask "is this
+        /// body heavy" instead of "is this Than". A plate that reads the tag
+        /// keeps working if weight ever moves to another school or an item.
+        /// </summary>
+        private void ApplyStanceTags(StanceDefinition stance)
+        {
+            foreach (var handle in _stanceTags) handle.Dispose();
+            _stanceTags.Clear();
+            if (_tags == null) return;
+
+            if (stance.hyperArmor) _stanceTags.Add(_tags.Add(GameTag.HyperArmor));
+            if (stance.isHeavy) _stanceTags.Add(_tags.Add(GameTag.Heavy));
+            if (stance.poisonImmune) _stanceTags.Add(_tags.Add(GameTag.PoisonImmune));
         }
 
         // ---- Death ----------------------------------------------------------------

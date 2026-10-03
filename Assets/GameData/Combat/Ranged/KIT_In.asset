@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4f04663f5c907f4981a30a06132cffb, type: 3}
+  m_Name: KIT_In
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.RangedKit
+  mode: 2
+  projectile: {fileID: 11400000, guid: 541bb6308bafb1842b19af9b4783c700, type: 2}
+  cooldownFrames: 14
+  muzzleOffset: {x: 0.35, y: 1.1}
+  moveScaleWhileHolding: 0.35
+  padReticleDistance: 5
+  padDeadzone: 0.25
+  restAngle: 12
+  aimAssist: 0.25
+  aimAssistAngle: 14
+  aimSlowScale: 0.25
+  aimSlowMaxSeconds: 2.5
+  aimSlowCooldown: 1
+  showPathWhileAiming: 1
+  minLaunchSpeed: 5
+  maxLaunchSpeed: 17
+  fullPowerSeconds: 0.9
+  powerCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  showPathWhileWinding: 0
+  chargeStartDelay: 0.14
+  fullChargeSeconds: 1.1
+  chargeSlowScale: 0.35
+  chargeMaxHoldSeconds: 3
+  chargeSpeed: {x: 10, y: 26}
+  fullChargeDamage: 2.2
+  fullChargeExtraPierce: 2
+  lineDrawSeconds: 0.25
+  pathColour: {r: 0.85, g: 0.95, b: 1, a: 0.85}
+  fullChargeColour: {r: 1, g: 0.95, b: 0.7, a: 1}
+  pathWidth: 0.06
+  pathScrollSpeed: 2.5
+  pathPreviewSeconds: 1.2

@@ -15,28 +15,43 @@ MonoBehaviour:
   id: 2
   displayName: Se
   tint: {r: 0.545, g: 0.227, b: 0.196, a: 1}
-  intent: Herbal. Fragile, aggressive, heals only by hitting things.
-  maxHealth: 90
-  damageTaken: 1.15
-  lifesteal: 0.18
-  runSpeed: 5.6
-  depthSpeed: 3.2
-  acceleration: 70
-  deceleration: 80
-  airControl: 0.7
-  canJump: 1
-  jumpHeight: 2.5
-  jumpRiseTime: 0.32
+  intent: Herbal. Fastest feet and hands, dashes through harm, shrugs off poison,
+    cannot jump.
+  maxHealth: 100
+  damageTaken: 1
+  lifesteal: 0
+  healOnKill: 0
+  isHeavy: 0
+  poisonImmune: 1
+  runSpeed: 6.4
+  depthSpeed: 3.6
+  acceleration: 90
+  deceleration: 100
+  airControl: 0.75
+  canJump: 0
+  jumpHeight: 2.2
+  jumpRiseTime: 0.33
   fallGravityMultiplier: 1.7
   jumpCutMultiplier: 0.45
   coyoteFrames: 6
   jumpBufferFrames: 7
+  apexGravityMultiplier: 0.55
+  apexSpeedBand: 1.6
+  canWallJump: 0
+  wallSlideSpeed: 2.2
+  wallCheckDistance: 0.12
+  wallJumpSpeedX: 5.5
+  wallJumpHeight: 2.1
+  wallJumpLockFrames: 9
+  wallCoyoteFrames: 6
+  canSwing: 0
+  rangedKit: {fileID: 0}
   canDash: 1
-  dashDistance: 3.2
-  dashFrames: 12
-  iFrameStart: 0
-  iFrameEnd: 0
-  dashCooldownFrames: 30
+  dashDistance: 4
+  dashFrames: 10
+  iFrameStart: 1
+  iFrameEnd: 7
+  dashCooldownFrames: 22
   dashIsBlink: 0
   canParry: 0
   parryWindowFrames: 8
@@ -49,4 +64,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 95c86c8b216fcd14e92a4ee4b2d209be, type: 2}
   - {fileID: 11400000, guid: 18bbbdd216c54de458e5807d8c6efc4c, type: 2}
   - {fileID: 11400000, guid: 8e0f6c28f792f61478933a72d6f25036, type: 2}
+  - {fileID: 11400000, guid: 0000f6e491fcd174290abe3e98f74737, type: 2}
   heavy: {fileID: 11400000, guid: a72437406db5eef4091750aa51c0837c, type: 2}
