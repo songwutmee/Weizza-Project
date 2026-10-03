@@ -112,6 +112,11 @@ namespace Weizza
             // moment a cutscene starts stepping it. Direction takes over the
             // body clean.
             if (motor != null) motor.Velocity = Vector3.zero;
+
+            // Stand still in idle. With the controller off nothing else picks an
+            // animation, and a title card over a character frozen mid stride
+            // reads as the game hanging.
+            animator?.Play("Idle");
         }
 
         public void EndDirected()

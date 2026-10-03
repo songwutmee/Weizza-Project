@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecc2e5e4604f726448db89f35a4f3a6e, type: 3}
+  m_Name: Test_Reveal
+  m_EditorClassIdentifier: StoryKit.Runtime::StoryKit.Flow.FlowGraphAsset
+  _entryNodeId: e9456990cf7646108e4e56ba646b817a
+  _nodes:
+  - rid: 565058878302322777
+  - rid: 565058878302322778
+  - rid: 565058878302322779
+  - rid: 565058878302322780
+  - rid: 565058878302322781
+  - rid: 565058878302322782
+  - rid: 565058878302322783
+  - rid: 565058878302322784
+  _schemaVersion: 2
+  references:
+    version: 2
+    RefIds:
+    - rid: 565058878302322777
+      type: {class: LockControlNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: e9456990cf7646108e4e56ba646b817a
+        _title: Lock player
+        _position: {x: 0, y: 0}
+        _nextNodeIds: []
+        _runningNextId: 0db1af703e514bb19784110ed96c564a
+        _completedNextId: 
+        _reason: Test_Reveal
+    - rid: 565058878302322778
+      type: {class: LetterboxNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: 0db1af703e514bb19784110ed96c564a
+        _title: Bars in
+        _position: {x: 0, y: 110}
+        _nextNodeIds:
+        - 28a59ef290eb47d687a97f30a24de754
+        _show: 1
+        _duration: 0.5
+    - rid: 565058878302322779
+      type: {class: FrameShotNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: 28a59ef290eb47d687a97f30a24de754
+        _title: Pull back
+        _position: {x: 0, y: 220}
+        _nextNodeIds:
+        - e1a2702675334aa08585d607dd1eac0f
+        _targetStageId: player
+        _framing: 3
+        _blend: 1.5
+        _returnToGameCamera: 0
+    - rid: 565058878302322780
+      type: {class: LocalizedBannerNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: e1a2702675334aa08585d607dd1eac0f
+        _title: Banner
+        _position: {x: 0, y: 330}
+        _nextNodeIds:
+        - 3d9c20e33b7849f19b58b924d8dd879d
+        _key: AREA_FOREST
+        _fallback: The Forest
+        _seconds: 1
+    - rid: 565058878302322781
+      type: {class: WaitNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: 3d9c20e33b7849f19b58b924d8dd879d
+        _title: Hold
+        _position: {x: 0, y: 440}
+        _nextNodeIds:
+        - 0453243cbbb84cfdb2b1ef45c93a1531
+        _seconds: 1
+    - rid: 565058878302322782
+      type: {class: FrameShotNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: 0453243cbbb84cfdb2b1ef45c93a1531
+        _title: Camera back
+        _position: {x: 0, y: 550}
+        _nextNodeIds:
+        - 15b759d6ef714115a6dc252445b585f6
+        _targetStageId: 
+        _framing: 0
+        _blend: 1
+        _returnToGameCamera: 1
+    - rid: 565058878302322783
+      type: {class: LetterboxNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: 15b759d6ef714115a6dc252445b585f6
+        _title: Bars out
+        _position: {x: 0, y: 660}
+        _nextNodeIds:
+        - 977113962a654559b49e8d128366d1a4
+        _show: 0
+        _duration: 0.5
+    - rid: 565058878302322784
+      type: {class: CancelNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: 977113962a654559b49e8d128366d1a4
+        _title: Unlock player
+        _position: {x: 0, y: 770}
+        _nextNodeIds: []
+        _targetNodeId: e9456990cf7646108e4e56ba646b817a

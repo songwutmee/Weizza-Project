@@ -71,6 +71,26 @@ namespace Weizza
             transform.position = new Vector3(here.x, y, here.z);
         }
 
+        /// <summary>
+        /// Jumps straight to the player with no settle, and tells every Cinemachine
+        /// camera to forget its damping. Without this a gate or a respawn shows the
+        /// camera sliding across the whole level behind the fade.
+        /// </summary>
+        public static void CutToPlayer()
+        {
+            foreach (var anchor in FindObjectsByType<CameraAnchor>(FindObjectsSortMode.None))
+            {
+                if (anchor.player == null) continue;
+                var here = anchor.player.transform.position;
+                anchor._floorY = here.y;
+                anchor._velocity = 0f;
+                anchor._started = true;
+                anchor.transform.position = here;
+            }
+            foreach (var cam in FindObjectsByType<Unity.Cinemachine.CinemachineVirtualCameraBase>(FindObjectsSortMode.None))
+                cam.PreviousStateIsValid = false;
+        }
+
         [TitleGroup("Height")]
         [ShowInInspector, DisplayAsString]
         [LabelText("Holding at")]
