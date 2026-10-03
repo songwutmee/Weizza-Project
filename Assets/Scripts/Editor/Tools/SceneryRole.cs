@@ -6,7 +6,7 @@ namespace Weizza.EditorTools
     /// The seven bands a sprite in this level can belong to. One source of
     /// truth shared by Map Painter and the Scenery snap menu, because two
     /// separately kept copies of the same numbers is exactly the bug class
-    /// CLAUDE.md warns about: they drift apart and nobody notices which one
+    /// the project notes warns about: they drift apart and nobody notices which one
     /// is stale.
     /// </summary>
     public enum SceneryRole
@@ -22,7 +22,7 @@ namespace Weizza.EditorTools
 
     /// <summary>
     /// The measured numbers behind each role, read off the real scene on
-    /// 18 September 2026. See CLAUDE.md, "The map is not a Tilemap", for the
+    /// 18 September 2026. See the project notes, "The map is not a Tilemap", for the
     /// table and the reasoning behind the Z values.
     ///
     /// Three of the roles cover a range of sorting orders rather than one
