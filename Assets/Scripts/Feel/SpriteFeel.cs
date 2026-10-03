@@ -1,5 +1,6 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using PrimeTween;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -59,7 +60,7 @@ namespace Weizza
         private Color _baseColor = Color.white;
         private Vector3 _baseScale = Vector3.one;
         private CancellationTokenSource _flashLife;
-        private CancellationTokenSource _squashLife;
+        private Tween _squashTween;
         private bool _holding;
         private Color _heldTint = Color.white;
         private float _holdStarted;
@@ -89,9 +90,7 @@ namespace Weizza
             _flashLife?.Cancel();
             _flashLife?.Dispose();
             _flashLife = null;
-            _squashLife?.Cancel();
-            _squashLife?.Dispose();
-            _squashLife = null;
+            _squashTween.Stop();
         }
 
         /// <summary>Tints for the result of one hit. Colour says what happened.</summary>
@@ -198,44 +197,24 @@ namespace Weizza
             var strength = Mathf.Clamp01(impactSpeed / Mathf.Max(0.01f, fullSquashSpeed));
             if (strength <= 0.05f) return;
 
-            _squashLife?.Cancel();
-            _squashLife?.Dispose();
-            _squashLife = new CancellationTokenSource();
-            SquashAsync(strength * landSquash, _squashLife.Token).Forget();
-        }
-
-        private async UniTaskVoid SquashAsync(float amount, CancellationToken token)
-        {
+            var amount = strength * landSquash;
             var duration = Timing.Frames(squashFrames);
-            var elapsed = 0f;
 
-            try
+            // The sign is read once, not every frame, so a character that
+            // turns around mid squash keeps stretching along the facing it
+            // landed with rather than flipping the pulse halfway through.
+            var facing = Mathf.Sign(sprite.transform.localScale.x);
+
+            _squashTween.Stop();
+            _squashTween = Tween.Custom(0f, 1f, duration, t =>
             {
-                while (elapsed < duration)
-                {
-                    elapsed += Time.unscaledDeltaTime;
-                    var t = Mathf.Clamp01(elapsed / duration);
-
-                    // Out and back in one curve, so it never needs a second pass.
-                    var pulse = Mathf.Sin(t * Mathf.PI) * amount;
-                    var scale = _baseScale;
-                    sprite.transform.localScale = new Vector3(
-                        Mathf.Sign(sprite.transform.localScale.x) * Mathf.Abs(scale.x) * (1f + pulse),
-                        scale.y * (1f - pulse),
-                        scale.z);
-
-                    await UniTask.Yield(PlayerLoopTiming.Update, token);
-                }
-            }
-            catch (System.OperationCanceledException)
-            {
-                return;
-            }
-
-            if (sprite == null) return;
-            sprite.transform.localScale = new Vector3(
-                Mathf.Sign(sprite.transform.localScale.x) * Mathf.Abs(_baseScale.x),
-                _baseScale.y, _baseScale.z);
+                // Out and back in one curve, so it never needs a second pass.
+                var pulse = Mathf.Sin(t * Mathf.PI) * amount;
+                sprite.transform.localScale = new Vector3(
+                    facing * Mathf.Abs(_baseScale.x) * (1f + pulse),
+                    _baseScale.y * (1f - pulse),
+                    _baseScale.z);
+            }, useUnscaledTime: true);
         }
     }
 }

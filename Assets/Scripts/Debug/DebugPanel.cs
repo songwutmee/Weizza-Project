@@ -109,7 +109,8 @@ namespace Weizza
                 ? _player.CurrentStance.tint
                 : Accent;
 
-            GUILayout.BeginArea(new Rect(Pad, Pad, panelWidth, Screen.height - Pad * 2f));
+            // Top right. The HUD's butterfly wings own the top left corner.
+            GUILayout.BeginArea(new Rect(Screen.width - panelWidth - Pad, Pad, panelWidth, Screen.height - Pad * 2f));
             Panel(PanelBack, () =>
             {
                 Header(stanceTint);
@@ -215,8 +216,45 @@ namespace Weizza
                 if (GUILayout.Button("Get up", _button)) _player.Revive();
                 GUILayout.EndHorizontal();
 
+                // Real hits through Vitals.Receive, so hit stun, knockback, i-frames,
+                // armour and the wing rule all run exactly as they would from an
+                // enemy. Testing without spawning one.
+                GUILayout.Space(2f);
+                MutedLine(vitals.UsesWings
+                    ? $"WINGS  {vitals.WingsLeft} / {vitals.Wings}   regrow {vitals.PendingWing:P0}"
+                    : "DAMAGE");
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Hit from left", _button)) TestHit(vitals, 10f, -1f, false);
+                if (GUILayout.Button("Hit from right", _button)) TestHit(vitals, 10f, 1f, false);
+                if (GUILayout.Button("Heavy", _button)) TestHit(vitals, 40f, -_player.Motor.Facing.Sign(), true);
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Poison", _button)) _player.GetComponent<EffectReceiver>()?.Apply(DefaultEffects.Poison, this);
+                if (GUILayout.Button("Heal 8", _button)) vitals.Heal(8f);
+                if (GUILayout.Button("Heal 1 wing", _button)) vitals.Heal(vitals.WingSize);
+                GUILayout.EndHorizontal();
+
                 GUILayout.Space(2f);
                 vitals.GodMode = GUILayout.Toggle(vitals.GodMode, " God mode", _toggle);
+            });
+        }
+
+        /// <summary>A hit as an enemy would land it: from one side, defendable, with stun and shake.</summary>
+        private void TestHit(Vitals vitals, float amount, float fromSide, bool heavy)
+        {
+            var body = _player.transform.position + Vector3.up * 0.8f;
+            vitals.Receive(new DamageInfo
+            {
+                amount = amount,
+                poiseDamage = heavy ? 999f : 20f,
+                source = gameObject,
+                point = body,
+                // Knocked away from the side the hit came from.
+                knockback = new Vector2(-fromSide * (heavy ? 7f : 4f), heavy ? 6f : 3f),
+                hitStopFrames = heavy ? 10 : 4,
+                hitStunFrames = heavy ? 28 : 16,
+                screenShake = heavy ? 0.35f : 0.15f,
+                defendable = true,
             });
         }
 

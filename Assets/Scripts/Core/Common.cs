@@ -16,13 +16,13 @@ namespace Weizza
         /// <summary>No school yet. Walk and jump, no dash, no parry.</summary>
         Normal = 0,
 
-        /// <summary>Than, iron. Heavy, super armor, parry, no dash.</summary>
+        /// <summary>Than, iron. Never flinches, hardest hits, slowest, no dash. Weight is a platforming tool.</summary>
         Than = 1,
 
-        /// <summary>Se, herbal. Aggressive glass cannon, lifesteal, no self heal.</summary>
+        /// <summary>Se, herbal. Fastest feet and hands, dash with i-frames, shrugs off poison, cannot jump.</summary>
         Se = 2,
 
-        /// <summary>In, inscription. Fast and fragile, blink dash, cannot jump.</summary>
+        /// <summary>In, inscription. Fights at range, heals on a kill, wall jumps, no dash, takes more damage.</summary>
         In = 3,
     }
 
@@ -56,6 +56,45 @@ namespace Weizza
         public const string EnemyDefeated = "Combat.EnemyDefeated";
         public const string EncounterStarted = "Combat.EncounterStarted";
         public const string EncounterEnded = "Combat.EncounterEnded";
+
+        /// <summary>Carries the shot mode name.</summary>
+        public const string ShotFired = "Combat.ShotFired";
+        /// <summary>Raised once when a charge shot reaches full. Audio plays the ping off this.</summary>
+        public const string ShotChargeFull = "Combat.ShotChargeFull";
+        public const string AimSlowStarted = "Combat.AimSlowStarted";
+        public const string AimSlowEnded = "Combat.AimSlowEnded";
+
+        /// <summary>Carries the amount healed.</summary>
+        public const string HealedOnKill = "Combat.HealedOnKill";
+
+        public const string WallJumped = "Move.WallJumped";
+        public const string Dashed = "Move.Dashed";
+
+        /// <summary>Carries the stance name that was refused because it is not learned yet.</summary>
+        public const string StanceLocked = "Combat.StanceLocked";
+
+        /// <summary>Carries the stance name that was just learned.</summary>
+        public const string StanceLearned = "Progress.StanceLearned";
+
+        /// <summary>Carries the checkpoint key.</summary>
+        public const string CheckpointClaimed = "World.CheckpointClaimed";
+        public const string GameSaved = "Save.Saved";
+        public const string GameLoaded = "Save.Loaded";
+
+        /// <summary>Boss events carry the boss display name.</summary>
+        public const string BossStarted = "Boss.Started";
+        public const string BossPhaseChanged = "Boss.PhaseChanged";
+        public const string BossForcedDeath = "Boss.ForcedDeath";
+        public const string BossDefeated = "Boss.Defeated";
+
+        /// <summary>The player died in a normal way mid fight: the boss goes back to sleep at full health.</summary>
+        public const string BossReset = "Boss.Reset";
+
+        /// <summary>World events carry the room id.</summary>
+        public const string RoomEntered = "World.RoomEntered";
+        public const string RoomLoaded = "World.RoomLoaded";
+        public const string GateUsed = "World.GateUsed";
+        public const string MapOpened = "UI.MapOpened";
     }
 
     /// <summary>Blackboard keys game code writes for graphs and conditions to read.</summary>
