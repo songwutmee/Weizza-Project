@@ -72,6 +72,13 @@ namespace Weizza.EditorTools
         [Tooltip("How far along x the beams are spread.")]
         [SerializeField] private float shaftSpread = 30f;
 
+        [TitleGroup("Light shafts")]
+        [PropertyRange(0.1f, 6f)]
+        [Tooltip("Metres a beam takes to fade out once something solid stands " +
+                 "between it and the camera. Small values look like a hard cut, " +
+                 "large values make the beam look like it is dimming through fog.")]
+        [SerializeField] private float shaftOcclusionFade = 1.2f;
+
         // ---- Motes ----------------------------------------------------------
 
         [TitleGroup("Motes", "Dust in the air", TitleAlignments.Centered)]
@@ -207,7 +214,7 @@ namespace Weizza.EditorTools
             if (shafts <= 0) return;
 
             var sprite = ShaftSprite();
-            var material = Additive();
+            var material = GodRayMaterial();
 
             for (var i = 0; i < shafts; i++)
             {
@@ -289,6 +296,36 @@ namespace Weizza.EditorTools
             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
 
             AssetDatabase.CreateAsset(material, path);
+            return material;
+        }
+
+        /// <summary>
+        /// The shafts' own material, on `Weizza/GodRay`. A plain additive quad
+        /// (what `Additive()` above still gives the motes) draws at full
+        /// brightness through solid ground and foliage, which reads as a beam
+        /// painted on top of the level rather than light actually crossing it.
+        /// This one samples the depth texture and fades near whatever is
+        /// standing in front of it.
+        /// </summary>
+        private Material GodRayMaterial()
+        {
+            var path = $"{TextureFolder}/GodRay.mat";
+            var shader = Shader.Find("Weizza/GodRay");
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+            if (material == null)
+            {
+                Folder(TextureFolder);
+                material = new Material(shader) { name = "GodRay" };
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+
+            material.SetFloat("_OcclusionFade", shaftOcclusionFade);
+            EditorUtility.SetDirty(material);
             return material;
         }
 

@@ -107,6 +107,9 @@ namespace Weizza.EditorTools
                 stance.lightCombo = lights.ToArray();
                 stance.heavy = heavy;
 
+                if (recipe.makesRangedKit && (stance.rangedKit == null || overwriteExisting))
+                    stance.rangedKit = BuildRangedKit(recipe.id);
+
                 EditorUtility.SetDirty(stance);
                 built.Add(stance);
             }
@@ -127,6 +130,46 @@ namespace Weizza.EditorTools
         {
             var asset = AssetDatabase.LoadAssetAtPath<Object>($"{root}/Stances");
             if (asset != null) EditorGUIUtility.PingObject(asset);
+        }
+
+        /// <summary>
+        /// Makes In's thrown ward and the kit that fires it. Charge Line is the
+        /// starting mode because it shows the most of the system at once; the
+        /// mode is a dropdown on the kit, and number keys 7, 8, 9 swap it live.
+        /// </summary>
+        private RangedKit BuildRangedKit(StanceId id)
+        {
+            var folder = $"{root}/Ranged";
+            EnsureFolder(folder);
+
+            var projectile = LoadOrCreate<ProjectileDefinition>($"{folder}/PRJ_{id}_Ward.asset", out var projectileIsNew);
+            if (projectileIsNew || overwriteExisting)
+            {
+                projectile.displayName = $"{id} Ward";
+                projectile.speed = 16f;
+                projectile.gravity = 18f;
+                projectile.lifetime = 1.6f;
+                projectile.radius = 0.2f;
+                projectile.damage = 9f;
+                projectile.poiseDamage = 7f;
+                projectile.knockbackX = 2.5f;
+                projectile.hitStopFrames = 2;
+                projectile.hitStunFrames = 12;
+                projectile.screenShake = 0.05f;
+                projectile.tint = new Color(0.78f, 0.9f, 1f);
+                projectile.size = 0.5f;
+                EditorUtility.SetDirty(projectile);
+            }
+
+            var kit = LoadOrCreate<RangedKit>($"{folder}/KIT_{id}.asset", out var kitIsNew);
+            if (kitIsNew || overwriteExisting)
+            {
+                kit.mode = ShotMode.ChargeLine;
+                kit.projectile = projectile;
+                EditorUtility.SetDirty(kit);
+            }
+
+            return kit;
         }
 
         // ---- Wiring ----------------------------------------------------------
@@ -288,7 +331,9 @@ namespace Weizza.EditorTools
                 deceleration = 40f, airControl = 0.45f,
                 canJump = true, jumpHeight = 2.0f, jumpRiseTime = 0.38f,
                 fallGravity = 2.0f,
-                canDash = false, canParry = true, hyperArmor = true,
+                // Never flinches, and heavy enough to be a platforming tool.
+                // Parry was cut on 17 September 2026, so canParry stays off.
+                canDash = false, canParry = false, hyperArmor = true, isHeavy = true,
                 knockbackResistance = 0.7f,
                 lights = new[]
                 {
@@ -308,56 +353,28 @@ namespace Weizza.EditorTools
             {
                 id = StanceId.Se,
                 displayName = "Se",
-                intent = "Herbal. Fragile, aggressive, heals only by hitting things.",
+                intent = "Herbal. Fastest feet and hands, dashes through harm, shrugs off poison, cannot jump.",
                 tint = new Color(0.545f, 0.227f, 0.196f),
-                maxHealth = 90f, damageTaken = 1.15f,
-                // The only sustain outside a shrine, so it has to be felt.
-                // Four light hits rather than three exists for this reason:
-                // more connects means more of it.
-                lifesteal = 0.18f,
-                runSpeed = 5.6f, depthSpeed = 3.2f, acceleration = 70f,
-                deceleration = 80f, airControl = 0.7f,
-                canJump = true, jumpHeight = 2.5f, jumpRiseTime = 0.32f,
-                fallGravity = 1.7f,
-                // A movement dash, not a defensive one. No i-frames, so it never
-                // competes with In's blink for the same job.
-                canDash = true, dashDistance = 3.2f, dashFrames = 12,
-                iFrameStart = 0, iFrameEnd = 0, dashCooldown = 30, dashIsBlink = false,
-                canParry = false, hyperArmor = false,
-                lights = new[]
-                {
-                    new AttackRecipe { startup = 5, active = 3, recovery = 10, damage = 9f, hitStop = 4 },
-                    new AttackRecipe { startup = 5, active = 3, recovery = 10, damage = 9f, hitStop = 4 },
-                    new AttackRecipe { startup = 6, active = 3, recovery = 12, damage = 11f, hitStop = 5 },
-                    new AttackRecipe { startup = 8, active = 4, recovery = 16, damage = 14f, knockbackX = 5f, hitStop = 8, shake = 0.25f },
-                },
-                heavy = new AttackRecipe { startup = 12, active = 4, recovery = 20, damage = 26f, knockbackX = 6f, hitStop = 9, shake = 0.3f, lunge = 0.4f },
-            },
-
-            new()
-            {
-                id = StanceId.In,
-                displayName = "In",
-                intent = "Inscription. Fastest hands in the game, made of paper.",
-                tint = new Color(0.298f, 0.478f, 0.588f),
-                maxHealth = 80f, damageTaken = 1.25f, lifesteal = 0f,
+                // Not the fragile one any more: its only weakness on the
+                // October 2026 board is that it cannot jump.
+                maxHealth = 100f, damageTaken = 1.0f, lifesteal = 0f,
+                poisonImmune = true,
                 runSpeed = 6.4f, depthSpeed = 3.6f, acceleration = 90f,
                 deceleration = 100f, airControl = 0.75f,
-                // Cannot jump, because it moves by a written ward rather than by
-                // legs. The limitation is the fiction, not a balance patch.
-                //
-                // The jump numbers are still filled in, and must be. Gravity is
-                // derived from them, so a stance that leaves them at zero has
-                // no gravity at all: one knockback with any upward component
-                // and the player floats away and never lands.
+                // Cannot jump. The jump numbers are still filled in, and must
+                // be: gravity is derived from them, so a stance that leaves
+                // them at zero has no gravity at all and one upward knockback
+                // floats the player away for good.
                 canJump = false, jumpHeight = 2.2f, jumpRiseTime = 0.33f,
                 fallGravity = 1.7f,
-                canDash = true, dashDistance = 4.2f, dashFrames = 9,
-                iFrameStart = 1, iFrameEnd = 7, dashCooldown = 22, dashIsBlink = true,
+                // A sweeping dash with invincibility, not a teleport. It is the
+                // one defensive tool in the game, so the i-frames end before
+                // the dash does, which keeps it a read rather than a free escape.
+                canDash = true, dashDistance = 4.0f, dashFrames = 10,
+                iFrameStart = 1, iFrameEnd = 7, dashCooldown = 22, dashIsBlink = false,
                 canParry = false, hyperArmor = false,
-                // Five short hits. Individually almost nothing, and the whole
-                // point of the stance: pressure that never stops long enough to
-                // be punished, on a body that dies to two mistakes.
+                // Five short hits, the fastest hands in the game. Individually
+                // almost nothing; the pressure never stops long enough to punish.
                 lights = new[]
                 {
                     new AttackRecipe { startup = 3, active = 2, recovery = 7, damage = 6f, poise = 5f, knockbackX = 2f, hitStop = 3 },
@@ -367,6 +384,36 @@ namespace Weizza.EditorTools
                     new AttackRecipe { startup = 6, active = 3, recovery = 14, damage = 12f, poise = 10f, knockbackX = 5f, hitStop = 7, shake = 0.25f },
                 },
                 heavy = new AttackRecipe { startup = 9, active = 3, recovery = 16, damage = 18f, knockbackX = 5f, hitStop = 7, shake = 0.25f },
+            },
+
+            new()
+            {
+                id = StanceId.In,
+                displayName = "In",
+                intent = "Inscription. Fights from range, heals on a kill, climbs walls, made of paper.",
+                tint = new Color(0.298f, 0.478f, 0.588f),
+                maxHealth = 80f, damageTaken = 1.25f, lifesteal = 0f,
+                // The only sustain outside a shrine. Picking enemies off from
+                // range is safe, so the reward is tied to finishing them.
+                healOnKill = 8f,
+                runSpeed = 5.6f, depthSpeed = 3.2f, acceleration = 70f,
+                deceleration = 80f, airControl = 0.7f,
+                canJump = true, jumpHeight = 2.5f, jumpRiseTime = 0.32f,
+                fallGravity = 1.7f,
+                canWallJump = true, canSwing = true,
+                canDash = false, canParry = false, hyperArmor = false,
+                makesRangedKit = true,
+                // Kept for completeness and for any scene with no kit wired.
+                // With a ranged kit on the stance the attack button fires
+                // instead, and these are never swung.
+                lights = new[]
+                {
+                    new AttackRecipe { startup = 5, active = 3, recovery = 10, damage = 9f, hitStop = 4 },
+                    new AttackRecipe { startup = 5, active = 3, recovery = 10, damage = 9f, hitStop = 4 },
+                    new AttackRecipe { startup = 6, active = 3, recovery = 12, damage = 11f, hitStop = 5 },
+                    new AttackRecipe { startup = 8, active = 4, recovery = 16, damage = 14f, knockbackX = 5f, hitStop = 8, shake = 0.25f },
+                },
+                heavy = new AttackRecipe { startup = 12, active = 4, recovery = 20, damage = 26f, knockbackX = 6f, hitStop = 9, shake = 0.3f, lunge = 0.4f },
             },
         };
 
@@ -445,6 +492,12 @@ namespace Weizza.EditorTools
             public bool canParry;
             public bool hyperArmor;
             public float knockbackResistance;
+            public bool isHeavy;
+            public bool poisonImmune;
+            public float healOnKill;
+            public bool canWallJump;
+            public bool canSwing;
+            public bool makesRangedKit;
 
             public AttackRecipe[] lights;
             public AttackRecipe heavy;
@@ -482,6 +535,16 @@ namespace Weizza.EditorTools
                 asset.canParry = canParry;
                 asset.hyperArmor = hyperArmor;
                 asset.knockbackResistance = knockbackResistance;
+                asset.isHeavy = isHeavy;
+                asset.poisonImmune = poisonImmune;
+                asset.healOnKill = healOnKill;
+                asset.canWallJump = canWallJump;
+                asset.canSwing = canSwing;
+
+                // Only a stance that is meant to be ranged gets a kit. Any
+                // other stance has it cleared, so rebuilding after the October
+                // 2026 swap cannot leave a kit on the wrong school.
+                if (!makesRangedKit) asset.rangedKit = null;
 
                 EditorUtility.SetDirty(asset);
             }
