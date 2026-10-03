@@ -33,12 +33,51 @@ namespace Weizza
                  "should read as a wall rather than a body.")]
         [SerializeField] private float knockbackScale = 1f;
 
+        [BoxGroup("Juggle", centerLabel: true)]
+        [InfoBox("A launcher hit throws the target up. While it is in the air, " +
+                 "every hit that breaks through pops it a little higher and gravity " +
+                 "eases off, so a combo can keep it aloft. Absolum keeps this as a " +
+                 "reserved tool; AttackDefinition.launcher is what triggers it.")]
+        [PropertyRange(0f, 20f)]
+        [SerializeField] private float launchSpeed = 9f;
+
+        [BoxGroup("Juggle")]
+        [PropertyRange(0f, 10f)]
+        [Tooltip("Upward speed given by a hit that lands while already airborne.")]
+        [SerializeField] private float airHitPop = 3.5f;
+
+        [BoxGroup("Juggle")]
+        [PropertyRange(0.1f, 1f)]
+        [Tooltip("Gravity multiplier while juggled.")]
+        [SerializeField] private float juggleGravityScale = 0.55f;
+
+        [BoxGroup("Juggle")]
+        [PropertyRange(0, 120)]
+        [Tooltip("Frames the reduced gravity lasts after the last juggling hit.")]
+        [SerializeField] private int juggleFrames = 40;
+
+        /// <summary>Gravity multiplier the owner should apply. Below 1 while juggled.</summary>
+        public float GravityScale => Time.time < _juggleUntil ? juggleGravityScale : 1f;
+
+        public bool Juggled => Time.time < _juggleUntil;
+
+        private float _juggleUntil;
+
         [FoldoutGroup("Live")]
         [ShowInInspector, ReadOnly]
         [Tooltip("True while a hit is still holding this character's actions " +
                  "hostage. Owning controllers should stop reading input while " +
                  "this is true.")]
         public bool InHitstun { get; private set; }
+
+        /// <summary>
+        /// Fraction of knockback removed, on top of the authored scale. Set by
+        /// the player controller from the stance (Than's weight), zero for
+        /// everyone else.
+        /// </summary>
+        [FoldoutGroup("Live")]
+        [ShowInInspector, ReadOnly, PropertyRange(0f, 1f)]
+        public float KnockbackResistance { get; set; }
 
         /// <summary>Raised after the flash/knockback/stun is already applied.</summary>
         public event Action<DamageInfo, HitResult> Reacted;
@@ -88,10 +127,19 @@ namespace Weizza
 
             if (broke)
             {
-                if (motor != null && knockbackScale > 0f)
+                var scale = knockbackScale * (1f - Mathf.Clamp01(KnockbackResistance));
+                if (motor != null && scale > 0f)
                 {
-                    motor.Velocity.x = info.knockback.x * knockbackScale;
-                    motor.Velocity.y = Mathf.Max(motor.Velocity.y, info.knockback.y * knockbackScale);
+                    motor.Velocity.x = info.knockback.x * scale;
+                    motor.Velocity.y = Mathf.Max(motor.Velocity.y, info.knockback.y * scale);
+                }
+
+                if (motor != null && scale > 0f)
+                {
+                    var airborne = !motor.Grounded;
+                    if (info.launcher) motor.Velocity.y = Mathf.Max(motor.Velocity.y, launchSpeed * scale);
+                    else if (airborne && Juggled) motor.Velocity.y = Mathf.Max(motor.Velocity.y, airHitPop * scale);
+                    if (info.launcher || (airborne && Juggled)) _juggleUntil = Time.time + Timing.Frames(juggleFrames);
                 }
 
                 var bonus = _poise != null && _poise.Broken ? _poise.BreakBonusStunFrames : 0;

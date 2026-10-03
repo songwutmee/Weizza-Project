@@ -15,29 +15,44 @@ MonoBehaviour:
   id: 3
   displayName: In
   tint: {r: 0.298, g: 0.478, b: 0.588, a: 1}
-  intent: Inscription. Fastest hands in the game, made of paper.
+  intent: Inscription. Fights from range, heals on a kill, climbs walls, made of
+    paper.
   maxHealth: 80
   damageTaken: 1.25
   lifesteal: 0
-  runSpeed: 6.4
-  depthSpeed: 3.6
-  acceleration: 90
-  deceleration: 100
-  airControl: 0.75
-  canJump: 0
-  jumpHeight: 0
-  jumpRiseTime: 0
-  fallGravityMultiplier: 0
+  healOnKill: 8
+  isHeavy: 0
+  poisonImmune: 0
+  runSpeed: 5.6
+  depthSpeed: 3.2
+  acceleration: 70
+  deceleration: 80
+  airControl: 0.7
+  canJump: 1
+  jumpHeight: 2.5
+  jumpRiseTime: 0.32
+  fallGravityMultiplier: 1.7
   jumpCutMultiplier: 0.45
   coyoteFrames: 6
   jumpBufferFrames: 7
-  canDash: 1
-  dashDistance: 4.2
-  dashFrames: 9
-  iFrameStart: 1
-  iFrameEnd: 7
-  dashCooldownFrames: 22
-  dashIsBlink: 1
+  apexGravityMultiplier: 0.55
+  apexSpeedBand: 1.6
+  canWallJump: 1
+  wallSlideSpeed: 2.2
+  wallCheckDistance: 0.12
+  wallJumpSpeedX: 5.5
+  wallJumpHeight: 2.1
+  wallJumpLockFrames: 9
+  wallCoyoteFrames: 6
+  canSwing: 1
+  rangedKit: {fileID: 11400000, guid: bb78e99d7c45e68499214c24ffe11f76, type: 2}
+  canDash: 0
+  dashDistance: 0
+  dashFrames: 0
+  iFrameStart: 0
+  iFrameEnd: 0
+  dashCooldownFrames: 0
+  dashIsBlink: 0
   canParry: 0
   parryWindowFrames: 8
   parryRecoveryFrames: 18
@@ -49,5 +64,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ed90bc3c843998b4cab41b0d9389d85d, type: 2}
   - {fileID: 11400000, guid: 7fa222b1a4d3c3f4d816e4927d9e264e, type: 2}
   - {fileID: 11400000, guid: 155e6e87ea772a54ab7488963a5b32d2, type: 2}
-  - {fileID: 11400000, guid: 680ea31d6f31c794cbc788bfd50c6108, type: 2}
   heavy: {fileID: 11400000, guid: af425b906429cd5409f4a37d0062087d, type: 2}

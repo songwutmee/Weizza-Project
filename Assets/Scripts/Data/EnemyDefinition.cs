@@ -83,6 +83,61 @@ namespace Weizza
                  "Animation State. Set this to the run clip for a charge.")]
         public string travelClip = "";
 
+        [FoldoutGroup("$id")]
+        [ToggleLeft]
+        [Tooltip("Travels straight at where the target was when the swing " +
+                 "started, height included, instead of along the floor. A diving " +
+                 "moth, a pouncing hopper.")]
+        public bool travelTowardTarget;
+
+        // ---- Ranged -----------------------------------------------------------
+
+        [FoldoutGroup("$id/Ranged")]
+        [Tooltip("Set to make this a ranged move. The attack's frames still " +
+                 "decide the timing; the shot leaves on the first active frame " +
+                 "instead of a hitbox opening.")]
+        public ProjectileDefinition projectile;
+
+        [FoldoutGroup("$id/Ranged")]
+        [ShowIf(nameof(IsRanged))]
+        [PropertyRange(1, 12)]
+        public int shotCount = 1;
+
+        [FoldoutGroup("$id/Ranged")]
+        [ShowIf(nameof(IsRanged))]
+        [PropertyRange(0f, 120f)]
+        [Tooltip("Total fan angle the shots spread across.")]
+        public float spreadDegrees;
+
+        [FoldoutGroup("$id/Ranged")]
+        [ShowIf(nameof(IsRanged))]
+        [ToggleLeft]
+        [Tooltip("Aims where the target will be, not where it is. Off is fairer " +
+                 "and is the right default for a first act.")]
+        public bool leadTarget;
+
+        [FoldoutGroup("$id/Ranged")]
+        [ShowIf(nameof(IsRanged))]
+        [ToggleLeft]
+        [Tooltip("For a projectile with gravity: lob it on the high arc. Slower " +
+                 "and easier to read, which suits a spore puffer.")]
+        public bool highArc = true;
+
+        [FoldoutGroup("$id/Ranged")]
+        [ShowIf(nameof(IsRanged))]
+        [Tooltip("Where shots leave from, relative to the feet, X mirrored by facing.")]
+        public Vector2 muzzle = new(0.4f, 0.8f);
+
+        // ---- Jump -------------------------------------------------------------
+
+        [FoldoutGroup("$id/Jump")]
+        [PropertyRange(0f, 6f)]
+        [Tooltip("Above zero, the move leaps onto the target's position at this " +
+                 "peak height on its first active frame. A seed hopper.")]
+        public float jumpHeight;
+
+        public bool IsRanged => projectile != null;
+
         public float MinRange => range.x;
         public float MaxRange => range.y;
 
@@ -152,6 +207,27 @@ namespace Weizza
                  "walkable in Z, so an enemy that only tracks X stands on the " +
                  "wrong line and swings at nothing.")]
         public float depthSpeed = 1.6f;
+
+        [FoldoutGroup("Movement")]
+        [ToggleLeft]
+        [Tooltip("No gravity. Holds a height above the target and bobs.")]
+        public bool flying;
+
+        [FoldoutGroup("Movement")]
+        [ShowIf(nameof(flying))]
+        [PropertyRange(0f, 6f)]
+        [Tooltip("Height above the target's feet it hovers at while hunting.")]
+        public float hoverHeight = 2.2f;
+
+        [FoldoutGroup("Movement")]
+        [ShowIf(nameof(flying))]
+        [PropertyRange(0f, 1f)]
+        public float bobAmplitude = 0.25f;
+
+        [FoldoutGroup("Movement")]
+        [ShowIf(nameof(flying))]
+        [PropertyRange(0.1f, 3f)]
+        public float bobHz = 0.8f;
 
         // ---- Senses ---------------------------------------------------------
 

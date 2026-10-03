@@ -89,6 +89,39 @@ namespace Weizza
 
         public CharacterController Controller { get; private set; }
 
+        /// <summary>The collider underfoot, or null while airborne.</summary>
+        public Collider GroundCollider { get; private set; }
+
+        /// <summary>
+        /// Raised on landing with the collider landed on and the impact speed.
+        /// Static so a level piece can hear every landing without each body
+        /// being wired to each piece: a plate checks whether the collider is
+        /// its own and ignores the rest.
+        /// </summary>
+        public static event Action<CharacterMotor3D, Collider, float> LandedOn;
+
+        private Vector3 _pendingDisplacement;
+        private Collider _groundCandidate;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => LandedOn = null;
+
+        /// <summary>
+        /// Moves the body this frame on top of its own velocity, without
+        /// touching the velocity. Moving platforms and wind use it, so they
+        /// never fight the owner's movement code for the same number.
+        /// </summary>
+        public void AddDisplacement(Vector3 delta)
+        {
+            delta.z = 0f;
+            _pendingDisplacement += delta;
+        }
+
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            if (hit.normal.y > 0.6f) _groundCandidate = hit.collider;
+        }
+
         private void Awake()
         {
             Controller = GetComponent<CharacterController>();
@@ -139,8 +172,11 @@ namespace Weizza
             // Velocity alone is not enough: a capsule shoved sideways by another
             // capsule slides off the lane without any code having asked it to.
             Velocity.z = 0f;
-            Controller.Move(Velocity * dt);
+            _groundCandidate = null;
+            Controller.Move(Velocity * dt + _pendingDisplacement);
+            _pendingDisplacement = Vector3.zero;
             Grounded = Controller.isGrounded;
+            GroundCollider = Grounded ? _groundCandidate : null;
 
             var position = transform.position;
             var laneZ = Depth;
@@ -151,7 +187,11 @@ namespace Weizza
                 Controller.enabled = true;
             }
 
-            if (!wasGrounded && Grounded) Landed?.Invoke(Mathf.Max(0f, impact));
+            if (!wasGrounded && Grounded)
+            {
+                Landed?.Invoke(Mathf.Max(0f, impact));
+                LandedOn?.Invoke(this, GroundCollider, Mathf.Max(0f, impact));
+            }
         }
 
         /// <summary>

@@ -54,11 +54,16 @@ namespace Weizza
         private InputAction _stanceSe;
         private InputAction _stanceIn;
         private InputAction _stanceCycle;
+        private InputAction _aimStick;
+        private InputAction _aimHold;
+        private InputAction _lockOn;
+        private InputAction _map;
 
         private void Awake()
         {
             _instance = this;
             Build();
+            InputBindings.Load(this);
         }
 
         private void OnEnable()
@@ -125,6 +130,18 @@ namespace Weizza
             _stanceSe = Button("StanceSe", "<Keyboard>/2", "<Gamepad>/dpad/up");
             _stanceIn = Button("StanceIn", "<Keyboard>/3", "<Gamepad>/dpad/right");
             _stanceCycle = Button("StanceCycle", "<Keyboard>/q", "<Gamepad>/dpad/down");
+
+            // Ranged stances aim with the right stick or the mouse. Holding aim
+            // is the right mouse button on purpose: a ranged stance has no
+            // heavy swing, so the button is free to mean "slow down and aim".
+            _aimStick = new InputAction("AimStick", InputActionType.Value, expectedControlType: "Vector2");
+            _aimStick.AddBinding("<Gamepad>/rightStick");
+            _aimHold = Button("AimHold", "<Mouse>/rightButton", "<Gamepad>/leftTrigger");
+            _lockOn = Button("LockOn", "<Keyboard>/tab", "<Gamepad>/rightStickPress");
+
+            // Hollow Knight holds the map on a shoulder. Here the shoulders are
+            // dash and guard, so the right trigger, which nothing else uses.
+            _map = Button("Map", "<Keyboard>/m", "<Gamepad>/rightTrigger");
         }
 
         private static InputAction Button(string name, string keyboard, string gamepad)
@@ -149,6 +166,7 @@ namespace Weizza
         {
             _move, _jump, _light, _heavy, _dash, _guard, _interact, _pause, _log,
             _sprint, _point, _click, _stanceThan, _stanceSe, _stanceIn, _stanceCycle,
+            _aimStick, _aimHold, _lockOn, _map,
         };
 
         // ---- Gameplay queries ---------------------------------------------
@@ -161,6 +179,21 @@ namespace Weizza
         public bool DashPressed => _dash != null && _dash.WasPressedThisFrame();
         public bool GuardPressed => _guard != null && _guard.WasPressedThisFrame();
         public bool GuardHeld => _guard != null && _guard.IsPressed();
+        public bool LightHeld => _light != null && _light.IsPressed();
+        public bool LightReleased => _light != null && _light.WasReleasedThisFrame();
+        public bool DownHeld => MoveValue.y < -0.5f;
+
+        /// <summary>Right stick, zero when there is no pad.</summary>
+        public Vector2 AimStick => _aimStick != null ? _aimStick.ReadValue<Vector2>() : Vector2.zero;
+        public bool AimHeld => _aimHold != null && _aimHold.IsPressed();
+        public bool AimPressed => _aimHold != null && _aimHold.WasPressedThisFrame();
+        public bool AimReleased => _aimHold != null && _aimHold.WasReleasedThisFrame();
+        public bool LockOnPressed => _lockOn != null && _lockOn.WasPressedThisFrame();
+        public bool MapPressed => _map != null && _map.WasPressedThisFrame();
+        public bool MapHeld => _map != null && _map.IsPressed();
+
+        /// <summary>Every action this reader owns, for the rebinding screen.</summary>
+        public InputAction[] Actions => All();
 
         /// <summary>Only the three real schools. Normal is a start state, not a slot to cycle back into.</summary>
         private static readonly StanceId[] RealSchools = { StanceId.Than, StanceId.Se, StanceId.In };
@@ -195,7 +228,7 @@ namespace Weizza
         public bool PausePressed => _pause != null && _pause.WasPressedThisFrame();
         public bool ToggleLogPressed => _log != null && _log.WasPressedThisFrame();
         public Vector2 Move => MoveValue;
-        public Vector2 Look => Vector2.zero;
+        public Vector2 Look => AimStick;
         public bool Jump => JumpHeld;
         public bool Sprint => _sprint != null && _sprint.IsPressed();
         public bool Fire => _light != null && _light.IsPressed();

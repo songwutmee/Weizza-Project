@@ -14,18 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.AttackDefinition
   displayName: Se Light 4
   animationState: Se_Light_4
-  startupFrames: 8
-  activeFrames: 4
-  recoveryFrames: 16
-  damage: 14
-  poiseDamage: 14
+  startupFrames: 4
+  activeFrames: 2
+  recoveryFrames: 9
+  damage: 8
+  poiseDamage: 6
   hitboxOffset: {x: 0.8, y: 0.6}
   hitboxSize: {x: 1.2, y: 1}
   depthTolerance: 0.45
-  knockbackX: 5
+  knockbackX: 3
   knockbackY: 0
-  hitStopFrames: 8
-  screenShake: 0.25
+  hitStopFrames: 4
+  screenShake: 0
   hitStunFrames: 14
   superArmor: 0
   launcher: 0

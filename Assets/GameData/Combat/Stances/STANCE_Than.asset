@@ -19,6 +19,9 @@ MonoBehaviour:
   maxHealth: 150
   damageTaken: 0.7
   lifesteal: 0
+  healOnKill: 0
+  isHeavy: 1
+  poisonImmune: 0
   runSpeed: 4
   depthSpeed: 2.3
   acceleration: 35
@@ -31,6 +34,17 @@ MonoBehaviour:
   jumpCutMultiplier: 0.45
   coyoteFrames: 6
   jumpBufferFrames: 7
+  apexGravityMultiplier: 0.55
+  apexSpeedBand: 1.6
+  canWallJump: 0
+  wallSlideSpeed: 2.2
+  wallCheckDistance: 0.12
+  wallJumpSpeedX: 5.5
+  wallJumpHeight: 2.1
+  wallJumpLockFrames: 9
+  wallCoyoteFrames: 6
+  canSwing: 0
+  rangedKit: {fileID: 0}
   canDash: 0
   dashDistance: 0
   dashFrames: 0
@@ -38,7 +52,7 @@ MonoBehaviour:
   iFrameEnd: 0
   dashCooldownFrames: 0
   dashIsBlink: 0
-  canParry: 1
+  canParry: 0
   parryWindowFrames: 8
   parryRecoveryFrames: 18
   parryStunFrames: 26
