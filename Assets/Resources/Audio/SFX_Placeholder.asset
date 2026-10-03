@@ -1,0 +1,275 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab5fdeaadebd92c49836a5289caa161f, type: 3}
+  m_Name: SFX_Placeholder
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SoundBank
+  entries:
+  - id: step
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 6bc43ec257b6a9d4e8d171c2424e443e, type: 3}
+    - {fileID: 8300000, guid: d21a6edc509a38349b0ba750499010b2, type: 3}
+    - {fileID: 8300000, guid: 6a2a8d696ca9fdf499ff0cc1e2721062, type: 3}
+    - {fileID: 8300000, guid: 9e26a929d881b2c42a7fc11fd3648414, type: 3}
+    volume: 0.45
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: land
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: cb61cd08a4fc3bb49a72139eeda285a3, type: 3}
+    - {fileID: 8300000, guid: 6db6bf50649416949841b41f6bc6eb0c, type: 3}
+    - {fileID: 8300000, guid: 67b9459575fa83c439acd7ebb8831d68, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: move.dash
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: ba3ceabdfc5f03440a90344660fa182c, type: 3}
+    - {fileID: 8300000, guid: f4e832dedd7fe5042bf0e3869b89ff84, type: 3}
+    - {fileID: 8300000, guid: ebf2bd07892efbe4b99f9a8e0f32a7cd, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: move.walljump
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 7ff941693c886de428d8e86de23ebca2, type: 3}
+    - {fileID: 8300000, guid: 158643871221e9e4ea675bc83a76bab9, type: 3}
+    - {fileID: 8300000, guid: f19e0244ce1b5874586a760e570f9cdd, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: hit.light
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 3b30325ac7a6da0409e0e45e414a92ae, type: 3}
+    - {fileID: 8300000, guid: 0c0a1b3ccc5330941b16a99c1ad532f2, type: 3}
+    - {fileID: 8300000, guid: 02a9fd717da23ae4a8a40aff14bfc356, type: 3}
+    - {fileID: 8300000, guid: cf2d6d61b7ffab54594357441ddf36c1, type: 3}
+    volume: 0.75
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: hit.heavy
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 3953d1a02bfd0f441882b438b6a07347, type: 3}
+    - {fileID: 8300000, guid: c44eb23aa6972b641826fc6885c3d5f6, type: 3}
+    - {fileID: 8300000, guid: c7c714dfc18bc7a479b47a7978240c90, type: 3}
+    volume: 0.9
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: hit.armored
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: d8ce47d9043d79945836739f5834341f, type: 3}
+    - {fileID: 8300000, guid: 34c5551036ccb3a458d6eb37ee8d9199, type: 3}
+    - {fileID: 8300000, guid: 3cf0047872397714893c05bea42165f2, type: 3}
+    volume: 0.7
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: hit.ignored
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 1b52f1476c36f0048a9911df6ea67dab, type: 3}
+    - {fileID: 8300000, guid: 6b9a034694bd94a4da72c0da3963c1e1, type: 3}
+    volume: 0.4
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: enemy.kill
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 6d0b862845922704393a1ce521831986, type: 3}
+    - {fileID: 8300000, guid: c0aa7d662ee5eca45993c159b1220408, type: 3}
+    - {fileID: 8300000, guid: 095a77f57a273794ab19394dccd44094, type: 3}
+    volume: 0.7
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: player.hurt
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 66306d8fc997307449d74b20f5d66af3, type: 3}
+    - {fileID: 8300000, guid: 1538ebf31d9df474ea74a8f9a1ad1278, type: 3}
+    - {fileID: 8300000, guid: 8e2b17bcf12917f448c1a767b9f0ea2b, type: 3}
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: shot.fire
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 21c20fa066b6466499954ebf6b4a0235, type: 3}
+    - {fileID: 8300000, guid: 6191067e2018fd140b736600b3a50dd9, type: 3}
+    - {fileID: 8300000, guid: 07426ec1aa72e164c927ae39a9cdb910, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: shot.hit
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: c98dcb72e969185478ce8326a9b6ad8b, type: 3}
+    - {fileID: 8300000, guid: 06ac98747ca835a418cf131c7a5f289c, type: 3}
+    - {fileID: 8300000, guid: 33aa1251ef92cae4381fe2672a80d42d, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: aim.slow.in
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 6a4e22c4894ad6c43839860fa3176b9d, type: 3}
+    volume: 0.5
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: aim.slow.out
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: c6212dd5ba25cb04b88127bfe9cda9e1, type: 3}
+    volume: 0.5
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: stance.switch
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 705543c3e344567418c7bf4b3b1bbbb7, type: 3}
+    - {fileID: 8300000, guid: ccabc79146f7d7c4aa56098ec327f6ee, type: 3}
+    - {fileID: 8300000, guid: 2b4007047e1dc8148b95bebd4346bf4e, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: stance.learned
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: eff699e03cf37604d9a588a253d89de1, type: 3}
+    volume: 0.7
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: ui.denied
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 9c5dc56d319fd2e4b9dc1d794ab63252, type: 3}
+    volume: 0.5
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: player.death
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 2c276ad952b49ae49a28b5debaaf3769, type: 3}
+    volume: 0.75
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.5
+    loop: 0
+  - id: player.revive
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 47b47dedde7cf0345a5a3862b6fa5fb9, type: 3}
+    volume: 0.7
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.5
+    loop: 0
+  - id: player.heal
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: ad993dcdaaaaa2e46a8e50ba309619b7, type: 3}
+    - {fileID: 8300000, guid: afaf24149b4532945ad12e8722975630, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.04
+    loop: 0
+  - id: world.checkpoint
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 5fcc416d8fee81a46ad3d0c4e2d833b4, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.5
+    loop: 0
+  - id: ui.save
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: e2591b424d1595447b0597dd5bc46cea, type: 3}
+    volume: 0.5
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.5
+    loop: 0
+  - id: world.shrine
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 6c72dd0b499ad994296a4f30ff1c36e0, type: 3}
+    volume: 0.6
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 1
+    loop: 0
+  - id: boss.roar
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: e1b8043dc98d93247acb5060d9ea87b5, type: 3}
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 1
+    loop: 0
+  - id: boss.phase
+    category: 0
+    clips:
+    - {fileID: 8300000, guid: 54aa7a464c109a3439768505d7d780f2, type: 3}
+    volume: 0.8
+    pitch: {x: 0.95, y: 1.05}
+    cooldown: 0.5
+    loop: 0
+  - id: amb.forest
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 492d2ef6478463943a8a7ea6cb6e8e96, type: 3}
+    volume: 0.55
+    pitch: {x: 1, y: 1}
+    cooldown: 0
+    loop: 1
+  - id: bgm.forest
+    category: 1
+    clips:
+    - {fileID: 8300000, guid: b0305226a44625a41902a0d5773ad8e0, type: 3}
+    volume: 0.45
+    pitch: {x: 1, y: 1}
+    cooldown: 0
+    loop: 1
+  - id: bgm.combat
+    category: 1
+    clips:
+    - {fileID: 8300000, guid: d5bd1beb74e197a47b00a77fa91a5524, type: 3}
+    volume: 0.5
+    pitch: {x: 1, y: 1}
+    cooldown: 0
+    loop: 1
+  - id: bgm.boss
+    category: 1
+    clips:
+    - {fileID: 8300000, guid: 99ef1d41029dc3a4e9195af848dfa153, type: 3}
+    volume: 0.55
+    pitch: {x: 1, y: 1}
+    cooldown: 0
+    loop: 1
