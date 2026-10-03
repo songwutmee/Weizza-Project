@@ -78,16 +78,21 @@ crashlytics-build.properties
 *.md
 !README.md
 *.html
-Assets/CLAUDE_storykit_section.md.meta
-Assets/weizza.html.meta
-Assets/weizza.md.meta
-Assets/WEIZZA_CODE_PROMPT.md.meta
 
 # Bought Asset Store art kept for study only. Never ships, never commits.
 /[Aa]ssets/_Reference/
 /[Aa]ssets/_Reference.meta
-Assets/weizza_world_map.md.meta
-Assets/weizza_art_brief.md.meta
-Assets/weizza_act0_level_design.md.meta
 Assets/Captures/Test_Strip.png.meta
 Assets/Captures/Test_Strip.png
+
+# Notes and their meta files stay local; only the readme ships.
+*.md.meta
+*.html.meta
+!README.md.meta
+
+# Local tool output and editor helpers
+/[Aa]ssets/[Ss]creenshots/
+/[Aa]ssets/[Ss]creenshots.meta
+
+# IDE solution files
+*.slnx
