@@ -92,22 +92,22 @@ MonoBehaviour:
       type: {class: WaitNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
       data:
         _id: d827a11ca2a842a59e87b7de45df0a0e
-        _title: Breath before walking (Wait)
+        _title: Empty forest a moment (Wait)
         _position: {x: 1064.6666, y: -53.333332}
         _nextNodeIds:
         - aec67f2010064c77a52191bf7b1ab91d
-        _seconds: 2.2
+        _seconds: 1
     - rid: 1603323666853789785
       type: {class: ActorMoveNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
       data:
         _id: aec67f2010064c77a52191bf7b1ab91d
-        _title: Walk a few steps (Actor Move)
+        _title: Walk in from off screen (Actor Move)
         _position: {x: 1235.3334, y: -236.66666}
         _nextNodeIds:
         - a3f90646b0f147d19d755304cf4d6f2f
         _actorId: Player
         _targetId: Wake_Walk
-        _speed: 1.7272726
+        _speed: 2.6
     - rid: 1603323666853789786
       type: {class: LetterboxNode, ns: Weizza, asm: Weizza.Gameplay}
       data:

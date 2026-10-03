@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecc2e5e4604f726448db89f35a4f3a6e, type: 3}
+  m_Name: Act0_Reveal
+  m_EditorClassIdentifier: StoryKit.Runtime::StoryKit.Flow.FlowGraphAsset
+  _entryNodeId: 08ebb007b7f04069a0ac6fd2e546caee
+  _nodes:
+  - rid: 565058894159413337
+  - rid: 565058894159413338
+  - rid: 565058894159413339
+  - rid: 565058894159413340
+  - rid: 565058894159413341
+  - rid: 565058894159413342
+  _schemaVersion: 2
+  references:
+    version: 2
+    RefIds:
+    - rid: 565058894159413337
+      type: {class: LockControlNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: 08ebb007b7f04069a0ac6fd2e546caee
+        _title: Lock player
+        _position: {x: 0, y: 0}
+        _nextNodeIds: []
+        _runningNextId: da0028c94a5a48d2a5fc900652011904
+        _completedNextId: 
+        _reason: Act0_Reveal
+    - rid: 565058894159413338
+      type: {class: LetterboxNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: da0028c94a5a48d2a5fc900652011904
+        _title: Bars in
+        _position: {x: 0, y: 110}
+        _nextNodeIds:
+        - 376279b38a534bfb8da67a142362b618
+        _show: 1
+        _duration: 0.5
+    - rid: 565058894159413339
+      type: {class: WaitNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: 376279b38a534bfb8da67a142362b618
+        _title: Breath
+        _position: {x: 0, y: 220}
+        _nextNodeIds:
+        - 2ba5d91764d2408cab27cc4430e2dd43
+        _seconds: 0.8
+    - rid: 565058894159413340
+      type: {class: PullBackNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: 2ba5d91764d2408cab27cc4430e2dd43
+        _title: Pull back
+        _position: {x: 0, y: 330}
+        _nextNodeIds:
+        - d092d3dacbba453d8e634f64f027969e
+        _targetStageId: player
+        _toSize: 18
+        _rise: 7
+        _seconds: 7
+    - rid: 565058894159413341
+      type: {class: AreaTitleNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: d092d3dacbba453d8e634f64f027969e
+        _title: Logo
+        _position: {x: 0, y: 440}
+        _nextNodeIds:
+        - 13aba4055ea843ebbe760a850982cee2
+        _key: TITLE_WEIZZA
+        _fallback: Weizza
+        _hold: 4
+    - rid: 565058894159413342
+      type: {class: FadeNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: 13aba4055ea843ebbe760a850982cee2
+        _title: Fade to black
+        _position: {x: 0, y: 550}
+        _nextNodeIds: []
+        _toAlpha: 1
+        _duration: 2.5

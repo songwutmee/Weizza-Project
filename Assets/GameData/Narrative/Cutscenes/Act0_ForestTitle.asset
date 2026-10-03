@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecc2e5e4604f726448db89f35a4f3a6e, type: 3}
+  m_Name: Act0_ForestTitle
+  m_EditorClassIdentifier: StoryKit.Runtime::StoryKit.Flow.FlowGraphAsset
+  _entryNodeId: f7f832c002514168ad6524c363945406
+  _nodes:
+  - rid: 565058878302322785
+  - rid: 565058878302322786
+  - rid: 565058878302322787
+  - rid: 565058878302322788
+  - rid: 565058878302322789
+  _schemaVersion: 2
+  references:
+    version: 2
+    RefIds:
+    - rid: 565058878302322785
+      type: {class: LockControlNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: f7f832c002514168ad6524c363945406
+        _title: Lock player
+        _position: {x: 0, y: 0}
+        _nextNodeIds: []
+        _runningNextId: 83827f5207564b1894b37ce7dff86691
+        _completedNextId: 
+        _reason: Act0_ForestTitle
+    - rid: 565058878302322786
+      type: {class: LetterboxNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: 83827f5207564b1894b37ce7dff86691
+        _title: Bars in
+        _position: {x: 0, y: 110}
+        _nextNodeIds:
+        - 328d61ee0370405b86a438f7deb7f255
+        _show: 1
+        _duration: 0.5
+    - rid: 565058878302322787
+      type: {class: AreaTitleNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: 328d61ee0370405b86a438f7deb7f255
+        _title: Area title
+        _position: {x: 0, y: 220}
+        _nextNodeIds:
+        - ca5da1f413c64e8892a1418786df16ed
+        _key: AREA_FOREST
+        _fallback: The Forest
+        _hold: 2.5
+    - rid: 565058878302322788
+      type: {class: LetterboxNode, ns: Weizza, asm: Weizza.Gameplay}
+      data:
+        _id: ca5da1f413c64e8892a1418786df16ed
+        _title: Bars out
+        _position: {x: 0, y: 330}
+        _nextNodeIds:
+        - 772c660a6c5c40f7a4169fd7e243ec28
+        _show: 0
+        _duration: 0.5
+    - rid: 565058878302322789
+      type: {class: CancelNode, ns: StoryKit.Flow, asm: StoryKit.Runtime}
+      data:
+        _id: 772c660a6c5c40f7a4169fd7e243ec28
+        _title: Unlock player
+        _position: {x: 0, y: 440}
+        _nextNodeIds: []
+        _targetNodeId: f7f832c002514168ad6524c363945406
