@@ -1,0 +1,726 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5527808280061675581
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7302570082688796018}
+  - component: {fileID: 6269825300504171993}
+  - component: {fileID: 776200838551154355}
+  - component: {fileID: 1789710901894490699}
+  - component: {fileID: 1731461413484106110}
+  m_Layer: 0
+  m_Name: Sprite
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7302570082688796018
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.13917312, y: -0, z: -0, w: 0.9902681}
+  m_LocalPosition: {x: 0, y: 0.0013781867, z: -0.0048063085}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3300704657778727857}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &6269825300504171993
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 0
+  m_SpriteSortPoint: 0
+--- !u!114 &776200838551154355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82ba87bb3ccdfb14483fab8444b76e33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteFacing
+  followRig: 1
+  artFacesLeft: 0
+  customPitch: 0
+  depthBias: 0.005
+--- !u!114 &1789710901894490699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8eec9c06b6886a4cb54554faef03709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteAnimator
+  target: {fileID: 6269825300504171993}
+  facing: {fileID: 776200838551154355}
+  defaultClip: Armor_Idle
+  fallbackClip: 
+  clips:
+  - name: Armor_Idle
+    fps: 6
+    loop: 1
+    hold: 1
+    frames:
+    - {fileID: 123761140, guid: 3467e275b39bf7f4681e90195e00ed15, type: 3}
+    - {fileID: 1700616378, guid: 3467e275b39bf7f4681e90195e00ed15, type: 3}
+    - {fileID: -512551687, guid: 3467e275b39bf7f4681e90195e00ed15, type: 3}
+    - {fileID: 1370307047, guid: 3467e275b39bf7f4681e90195e00ed15, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Armor_Run
+    fps: 9
+    loop: 1
+    hold: 1
+    frames:
+    - {fileID: 1349289830, guid: 68dc59cb8917eb1419ad465d6c4a39c1, type: 3}
+    - {fileID: 1463321758, guid: 68dc59cb8917eb1419ad465d6c4a39c1, type: 3}
+    - {fileID: 214330272, guid: 68dc59cb8917eb1419ad465d6c4a39c1, type: 3}
+    - {fileID: 1635606344, guid: 68dc59cb8917eb1419ad465d6c4a39c1, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Armor_AttackA
+    fps: 12
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: 1277199349, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: -886836620, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: 987114703, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: 1293575019, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: -1066905535, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: 1797875270, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: -1370795222, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: 19626300, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: -846536809, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: -1604460112, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    - {fileID: 2053562689, guid: 6984c6e7911fc414f8c55bea72a07e1f, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Armor_AttackB
+    fps: 12
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: -2103789326, guid: 1d307c55a86372b4a972be8853cdc5aa, type: 3}
+    - {fileID: -836804201, guid: 1d307c55a86372b4a972be8853cdc5aa, type: 3}
+    - {fileID: 524049451, guid: 1d307c55a86372b4a972be8853cdc5aa, type: 3}
+    - {fileID: -220786995, guid: 1d307c55a86372b4a972be8853cdc5aa, type: 3}
+    - {fileID: -2004577234, guid: 1d307c55a86372b4a972be8853cdc5aa, type: 3}
+    - {fileID: 822129706, guid: 1d307c55a86372b4a972be8853cdc5aa, type: 3}
+    - {fileID: -684033854, guid: 1d307c55a86372b4a972be8853cdc5aa, type: 3}
+    - {fileID: 235055910, guid: 1d307c55a86372b4a972be8853cdc5aa, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Armor_AttackC
+    fps: 12
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: 1452305723, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    - {fileID: 560906449, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    - {fileID: -218140055, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    - {fileID: -1259856142, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    - {fileID: 2066632986, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    - {fileID: 1309201408, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    - {fileID: 1067102342, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    - {fileID: 1667863037, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    - {fileID: 701163303, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    - {fileID: 986234648, guid: e577663f94139b04481b408cf991ac5b, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Armor_Ability
+    fps: 12
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: 2006325868, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: -885721784, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: -28907904, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: 848353982, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: 1359966960, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: 151602883, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: 147467775, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: 925781888, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: -1003170451, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: 920737200, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    - {fileID: 369107281, guid: 93f2ee341900dac439b2e4dffb8ba58c, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: ArmorBreak
+    fps: 8
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: 287815002, guid: c9267a77a8c2285499d31346e621c5a5, type: 3}
+    - {fileID: 1955255957, guid: c9267a77a8c2285499d31346e621c5a5, type: 3}
+    - {fileID: 1972196427, guid: c9267a77a8c2285499d31346e621c5a5, type: 3}
+    - {fileID: -1983612810, guid: c9267a77a8c2285499d31346e621c5a5, type: 3}
+    - {fileID: 1132421482, guid: c9267a77a8c2285499d31346e621c5a5, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Armor_Hit
+    fps: 12
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: 553311946, guid: 952524dfb96834342bb36b28c6b30a80, type: 3}
+    - {fileID: -1756052635, guid: 952524dfb96834342bb36b28c6b30a80, type: 3}
+    - {fileID: -1957748787, guid: 952524dfb96834342bb36b28c6b30a80, type: 3}
+    - {fileID: 1275370652, guid: 952524dfb96834342bb36b28c6b30a80, type: 3}
+    - {fileID: -641871972, guid: 952524dfb96834342bb36b28c6b30a80, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Idle
+    fps: 7
+    loop: 1
+    hold: 1
+    frames:
+    - {fileID: -1032284556, guid: 3ff3f3a141a7d174ab058c432f0aa77d, type: 3}
+    - {fileID: -530546036, guid: 3ff3f3a141a7d174ab058c432f0aa77d, type: 3}
+    - {fileID: -1856015655, guid: 3ff3f3a141a7d174ab058c432f0aa77d, type: 3}
+    - {fileID: -214996845, guid: 3ff3f3a141a7d174ab058c432f0aa77d, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Run
+    fps: 11
+    loop: 1
+    hold: 1
+    frames:
+    - {fileID: -1556060451, guid: 120c563dfe165414cb5d4b4a2d439d1d, type: 3}
+    - {fileID: 531055519, guid: 120c563dfe165414cb5d4b4a2d439d1d, type: 3}
+    - {fileID: -777073351, guid: 120c563dfe165414cb5d4b4a2d439d1d, type: 3}
+    - {fileID: -475675198, guid: 120c563dfe165414cb5d4b4a2d439d1d, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: AttackA
+    fps: 14
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: -752615295, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: 1464499225, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: 726024657, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: 932438173, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: -178665068, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: 821508725, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: 1939325877, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: -1619489435, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: 241512087, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: 552724534, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: -1953357713, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    - {fileID: -483014162, guid: ae48d0052d71159439cc02f6e96d2f36, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: AttackB
+    fps: 14
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: 1208500163, guid: ac06381804dbc75408a9ffdf1ade9982, type: 3}
+    - {fileID: -312768565, guid: ac06381804dbc75408a9ffdf1ade9982, type: 3}
+    - {fileID: 245030133, guid: ac06381804dbc75408a9ffdf1ade9982, type: 3}
+    - {fileID: -1266937487, guid: ac06381804dbc75408a9ffdf1ade9982, type: 3}
+    - {fileID: 904902565, guid: ac06381804dbc75408a9ffdf1ade9982, type: 3}
+    - {fileID: 1834442318, guid: ac06381804dbc75408a9ffdf1ade9982, type: 3}
+    - {fileID: 1626397207, guid: ac06381804dbc75408a9ffdf1ade9982, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: AttackC
+    fps: 14
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: 2039209635, guid: 1486ac76ef5e40d46944128943156f1f, type: 3}
+    - {fileID: 1455651982, guid: 1486ac76ef5e40d46944128943156f1f, type: 3}
+    - {fileID: 1983824934, guid: 1486ac76ef5e40d46944128943156f1f, type: 3}
+    - {fileID: -1402712006, guid: 1486ac76ef5e40d46944128943156f1f, type: 3}
+    - {fileID: 1184584861, guid: 1486ac76ef5e40d46944128943156f1f, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Hit
+    fps: 12
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: 1383040201, guid: 142d0c71206c96840b6067fcaf4c8361, type: 3}
+    - {fileID: -39234130, guid: 142d0c71206c96840b6067fcaf4c8361, type: 3}
+    - {fileID: 157755709, guid: 142d0c71206c96840b6067fcaf4c8361, type: 3}
+    - {fileID: -1576627600, guid: 142d0c71206c96840b6067fcaf4c8361, type: 3}
+    - {fileID: 1207252565, guid: 142d0c71206c96840b6067fcaf4c8361, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Death
+    fps: 10
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: -1041397241, guid: f37cc0f972146d74791b4d3666de21a6, type: 3}
+    - {fileID: -1451348684, guid: f37cc0f972146d74791b4d3666de21a6, type: 3}
+    - {fileID: -1229317327, guid: f37cc0f972146d74791b4d3666de21a6, type: 3}
+    - {fileID: 2096471314, guid: f37cc0f972146d74791b4d3666de21a6, type: 3}
+    - {fileID: -903916741, guid: f37cc0f972146d74791b4d3666de21a6, type: 3}
+    - {fileID: 1129359024, guid: f37cc0f972146d74791b4d3666de21a6, type: 3}
+    - {fileID: 1123240149, guid: f37cc0f972146d74791b4d3666de21a6, type: 3}
+    - {fileID: -789487836, guid: f37cc0f972146d74791b4d3666de21a6, type: 3}
+    - {fileID: 938527717, guid: f37cc0f972146d74791b4d3666de21a6, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Upgrade
+    fps: 10
+    loop: 0
+    hold: 1
+    frames:
+    - {fileID: 411104126, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: 939234077, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: -1942324453, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: 430948299, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: -1995470846, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: -2110884969, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: 1813277195, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: 1609886775, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: -1414406957, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: -1511079459, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    - {fileID: 209450153, guid: 57d5927599e441b49a2ba2c7eb56b9a7, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+--- !u!114 &1731461413484106110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4438033362a3da4b877514ba8726314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteFeel
+  sprite: {fileID: 0}
+  hitTint: {r: 1, g: 1, b: 1, a: 1}
+  flashFrames: 4
+  armorTint: {r: 1, g: 0.85, b: 0.4, a: 1}
+  ignoredTint: {r: 0.5, g: 0.8, b: 1, a: 1}
+  holdPulseHz: 3.5
+  landSquash: 0.22
+  fullSquashSpeed: 14
+  squashFrames: 8
+--- !u!1 &7019507601037716238
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3300704657778727857}
+  - component: {fileID: 5250710810487590439}
+  - component: {fileID: 8922091224443208490}
+  - component: {fileID: 4384444851336382294}
+  - component: {fileID: 4251653616903156777}
+  - component: {fileID: 5678913547746814960}
+  - component: {fileID: 3451185149529824882}
+  - component: {fileID: 704642974478240366}
+  m_Layer: 7
+  m_Name: Golem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3300704657778727857
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7302570082688796018}
+  - {fileID: 8004753819452111437}
+  - {fileID: 226415924727987423}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!143 &5250710810487590439
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 3.2
+  m_Radius: 0.95
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.02
+  m_MinMoveDistance: 0
+  m_Center: {x: 0, y: 1.6, z: 0}
+--- !u!114 &8922091224443208490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb5d8adce5d84bf4fb2317e2ecc6e91f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.CharacterMotor3D
+  art: {fileID: 0}
+  groundStick: 2
+  lane: 0
+  Velocity: {x: 0, y: 0, z: 0}
+--- !u!114 &4384444851336382294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a2b54a3afc355f4ea76369593ddb3c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Vitals
+  maxHealth: 100
+  wings: 0
+--- !u!114 &4251653616903156777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4cc7effc34741c47aa02c87af4296b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.HitReactor
+  motor: {fileID: 0}
+  spriteFeel: {fileID: 0}
+  knockbackScale: 0.15
+  launchSpeed: 9
+  airHitPop: 3.5
+  juggleGravityScale: 0.55
+  juggleFrames: 40
+--- !u!114 &5678913547746814960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75e15363b3978eb4ba970bb9f080d109, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Poise
+  maxPoise: 20
+  recoveryPerSecond: 12
+  recoveryDelay: 1.2
+  breakBonusStunFrames: 24
+  refillAfterBreak: 1
+--- !u!114 &3451185149529824882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cddcae64c3390948b4fe3590d425755, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.EnemyController
+  data: {fileID: 11400000, guid: 80e75af4e3a1ac44ea30f604a0792716, type: 2}
+  animator: {fileID: 1789710901894490699}
+  hitbox: {fileID: 5118097397038422726}
+  spriteFeel: {fileID: 1731461413484106110}
+  target: {fileID: 0}
+  separationRadius: 0.9
+  separationStrength: 2.5
+  reachHeight: 1.2
+  autoBrain: 1
+  idleClip: Armor_Idle
+  walkClip: Armor_Run
+  runClip: Armor_Run
+  hurtClip: Armor_Hit
+  deathClip: Death
+  despawnDelay: 0.6
+--- !u!114 &704642974478240366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec2a6d2c27df3734bbc2c568aaebfbdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.MiniBossBrain
+  bossName: Stone Golem
+  phases:
+  - {fileID: 11400000, guid: 6fe65cafd74116943a03bf346a0220d1, type: 2}
+  - {fileID: 11400000, guid: e7e85caf32b55604f9f0403d04698cd6, type: 2}
+  wakeRange: 8
+  wakeByRange: 1
+  preferredRange: 2.2
+  forcedDeath: 1
+  finisherAtHealth: 0.3
+  finisherAfterSeconds: 120
+  finisherMoveId: finisher
+  leaveAfterFinisher: 1
+  finisherAsStoryBeat: 1
+  wakeSomewhereElse: 0
+  wakePoint: {x: 0, y: 0, z: 0}
+--- !u!1 &8636941700367203061
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8004753819452111437}
+  - component: {fileID: 112217850627345884}
+  - component: {fileID: 4547799404418872394}
+  m_Layer: 0
+  m_Name: Shadow
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8004753819452111437
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8636941700367203061}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3300704657778727857}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &112217850627345884
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8636941700367203061}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.45}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 0
+  m_SpriteSortPoint: 0
+--- !u!114 &4547799404418872394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8636941700367203061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a62d88b61e74574e864155900dfdd17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.GroundShadow
+  owner: {fileID: 3300704657778727857}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  maxDrop: 12
+  rayStartHeight: 2
+  size: 3
+  lift: 0.02
+  tint: {r: 0, g: 0, b: 0, a: 0.45}
+  shrinkPerMetre: 0.14
+  fadePerMetre: 0.1
+--- !u!1 &9117742497355136862
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 226415924727987423}
+  - component: {fileID: 5118097397038422726}
+  m_Layer: 9
+  m_Name: Hitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &226415924727987423
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9117742497355136862}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.6, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3300704657778727857}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5118097397038422726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9117742497355136862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93662a51e009d254cac8883afed21195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.HitboxEmitter
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 64
+  origin: {fileID: 3300704657778727857}

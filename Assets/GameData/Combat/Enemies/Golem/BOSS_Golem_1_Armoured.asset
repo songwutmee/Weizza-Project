@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a4cdd0df59a4c7409424520cd635f18, type: 3}
+  m_Name: BOSS_Golem_1_Armoured
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.BossPhase
+  startsAtHealth: 1
+  entryMoveId: 
+  moves:
+  - moveId: slam
+    weight: 1
+    noRepeat: 1
+  - moveId: sweep
+    weight: 1
+    noRepeat: 1
+  - moveId: charge
+    weight: 0.6
+    noRepeat: 1
+  restBetweenMoves: {x: 1, y: 1.8}
+  poise: 70
+  tempo: 1.1
+  phaseTint: {r: 1, g: 1, b: 1, a: 1}
+  idleClip: Armor_Idle
+  runClip: Armor_Run
+  hurtClip: Armor_Hit
