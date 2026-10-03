@@ -1,0 +1,195 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9e58b47f9346574da562e775256e1ce, type: 3}
+  m_Name: ENEMY_Golem
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.EnemyDefinition
+  displayName: Stone Golem
+  intent: Act 0 mini boss. Armoured and slow, then fast without the armour. Kills
+    the player by design at 30 percent.
+  maxHealth: 360
+  poise: 70
+  poiseRecoveryPerSecond: 12
+  knockbackScale: 0.15
+  walkSpeed: 1.1
+  chaseSpeed: 2.2
+  depthSpeed: 1.6
+  flying: 0
+  hoverHeight: 2.2
+  bobAmplitude: 0.25
+  bobHz: 0.8
+  aggroRange: 14
+  loseAggroRange: 30
+  depthTolerance: 0.6
+  decisionInterval: 0.2
+  moves:
+  - id: slam
+    attack: {fileID: 11400000, guid: b37b0845840ee5e46b3dfef3be7cf22f, type: 2}
+    weight: 1
+    range: {x: 0, y: 3.096}
+    cooldown: 1.2
+    telegraphFrames: 32
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Armor_Idle
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+  - id: sweep
+    attack: {fileID: 11400000, guid: 351357e154c95474087437afe2424203, type: 2}
+    weight: 1
+    range: {x: 0, y: 3.6119998}
+    cooldown: 1.2
+    telegraphFrames: 26
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Armor_Idle
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+  - id: charge
+    attack: {fileID: 11400000, guid: 0fe17b3a5f9b8b543b9f46f9a7884de5, type: 2}
+    weight: 1
+    range: {x: 3.87, y: 12.9}
+    cooldown: 3
+    telegraphFrames: 36
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Armor_Idle
+    travelSpeed: 7
+    travelClip: Armor_Run
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+  - id: armor_break
+    attack: {fileID: 11400000, guid: c8d59f9474d77e948a7776d9707fa81b, type: 2}
+    weight: 1
+    range: {x: 0, y: 40}
+    cooldown: 0
+    telegraphFrames: 0
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Armor_Idle
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+  - id: slam2
+    attack: {fileID: 11400000, guid: 84843d6c3b95b9e429edf219979b43e3, type: 2}
+    weight: 1
+    range: {x: 0, y: 3.096}
+    cooldown: 0.9
+    telegraphFrames: 22
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Idle
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+  - id: sweep2
+    attack: {fileID: 11400000, guid: 83144b16bae23a94eb2c417e459e1803, type: 2}
+    weight: 1
+    range: {x: 0, y: 3.6119998}
+    cooldown: 0.9
+    telegraphFrames: 18
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Idle
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+  - id: smash
+    attack: {fileID: 11400000, guid: 53c0d9b7b3fb8434daa30cda46d099fb, type: 2}
+    weight: 1
+    range: {x: 0, y: 3.87}
+    cooldown: 1.6
+    telegraphFrames: 24
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Idle
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+  - id: charge2
+    attack: {fileID: 11400000, guid: 2eafe9856ee9f554fb784edb7c95ee6b, type: 2}
+    weight: 1
+    range: {x: 3.87, y: 12.9}
+    cooldown: 2.4
+    telegraphFrames: 26
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Idle
+    travelSpeed: 9
+    travelClip: Run
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+  - id: finisher
+    attack: {fileID: 11400000, guid: 84ab7f658fe629e44aa21ce72292726b, type: 2}
+    weight: 1
+    range: {x: 0, y: 40}
+    cooldown: 0
+    telegraphFrames: 20
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Idle
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0

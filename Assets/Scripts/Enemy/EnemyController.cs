@@ -39,7 +39,11 @@ namespace Weizza
         private static readonly List<EnemyController> Live = new(16);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => Live.Clear();
+        private static void ResetStatics()
+        {
+            Live.Clear();
+            _groundMask = -1;
+        }
 
         [BoxGroup("Setup")]
         [Required]
@@ -89,6 +93,16 @@ namespace Weizza
         [ToggleLeft]
         [SerializeField] private bool autoBrain = true;
 
+        [BoxGroup("Brain")]
+        [ToggleLeft]
+        [Tooltip("Stops at the edge of any drop deeper than Ledge Drop instead of walking off it.")]
+        [SerializeField] private bool stopsAtLedges = true;
+
+        [BoxGroup("Brain")]
+        [PropertyRange(0.3f, 4f)]
+        [Tooltip("Drops shallower than this are stepped down, deeper ones stop the walk.")]
+        [SerializeField] private float ledgeDrop = 1.4f;
+
         [BoxGroup("Animation", centerLabel: true)]
         [SerializeField] private string idleClip = "Idle";
 
@@ -135,6 +149,48 @@ namespace Weizza
 
         public bool IsAlive => _vitals != null && _vitals.IsAlive;
 
+        public EnemyDefinition Data => data;
+
+        /// <summary>Off hands every decision to an outside driver such as MiniBossBrain.</summary>
+        public bool AutoBrain
+        {
+            get => autoBrain;
+            set => autoBrain = value;
+        }
+
+        /// <summary>
+        /// With the auto brain off, the direction to walk while idle: -1, 0 or 1,
+        /// at walk speed. The driver decides where to go; the body still does
+        /// the walking, so collision, facing and animation stay in one place.
+        /// </summary>
+        public float DirectedWalk { get; set; }
+
+        /// <summary>
+        /// With the auto brain off, face the way the body walks instead of toward
+        /// the target. A patrol wants this; a boss circling the player does not.
+        /// </summary>
+        public bool FaceWalkDirection { get; set; }
+
+        /// <summary>True while a move is winding up or swinging.</summary>
+        public bool Busy => Current is State.Telegraph or State.Commit;
+
+        /// <summary>
+        /// Swaps the idle, walk, run and flinch drawings, for a body that changes
+        /// mid fight (a golem losing its armour). Empty or null keeps the current one.
+        /// </summary>
+        public void SetLocomotionClips(string idle, string walk, string run, string hurt)
+        {
+            if (!string.IsNullOrEmpty(idle)) idleClip = idle;
+            if (!string.IsNullOrEmpty(walk)) walkClip = walk;
+            if (!string.IsNullOrEmpty(run)) runClip = run;
+            if (!string.IsNullOrEmpty(hurt)) hurtClip = hurt;
+        }
+
+        /// <summary>True on the active frames of the move being swung.</summary>
+        public bool CurrentMoveActive => Current == State.Commit && _move != null && _move.attack != null &&
+                                         _stateTimer >= _move.attack.StartupSeconds &&
+                                         _stateTimer < _move.attack.StartupSeconds + _move.attack.ActiveSeconds;
+
         /// <summary>
         /// Whether the target is close enough in Z to be fought at all.
         ///
@@ -144,7 +200,7 @@ namespace Weizza
         /// wall. Shifting away is meant to buy the player a few seconds, and
         /// this is the whole of what makes that true.
         /// </summary>
-        private bool TargetOnSameLane
+        public bool TargetOnSameLane
         {
             get
             {
@@ -166,6 +222,10 @@ namespace Weizza
         private float _stateTimer;
         private float _decideAt;
         private bool _hitboxOpen;
+        private bool _fired;
+        private bool _leapt;
+        private Vector2 _travelDirection = Vector2.right;
+        private float _homeY;
 
         private void Awake()
         {
@@ -173,6 +233,10 @@ namespace Weizza
             _vitals = GetComponent<Vitals>();
             _reactor = GetComponent<HitReactor>();
             _poise = GetComponent<Poise>();
+
+            // Aimable from the moment it exists, so placing an enemy never
+            // needs a second step for In to be able to lock onto it.
+            if (GetComponent<Targetable>() == null) gameObject.AddComponent<Targetable>();
 
             if (animator == null) animator = GetComponentInChildren<SpriteAnimator>();
             if (hitbox == null) hitbox = GetComponentInChildren<HitboxEmitter>();
@@ -191,11 +255,24 @@ namespace Weizza
             }
 
             _vitals.SetMaxHealth(data.maxHealth, refill: true);
+            _homeY = transform.position.y;
             if (_poise != null) _poise.SetMax(data.poise, refill: true);
         }
 
         private void OnEnable()
         {
+            // A pooled enemy comes back from the dead (M2.8): the same object, a new
+            // fight. Everything a death left behind is put back the way Awake set it.
+            if (Current == State.Dead && data != null)
+            {
+                _vitals.SetMaxHealth(data.maxHealth, refill: true);
+                if (_poise != null) _poise.SetMax(data.poise, refill: true);
+                _motor.Velocity = Vector3.zero;
+                _homeY = transform.position.y;
+                spriteFeel?.ReleaseTint();
+                Enter(State.Idle);
+            }
+
             if (!Live.Contains(this)) Live.Add(this);
             _vitals.Died += OnDied;
             _reactor.Staggered += OnStaggered;
@@ -230,10 +307,37 @@ namespace Weizza
             }
 
             ApplySeparation();
+            GuardLedge();
             ApplyGravity(dt);
             _motor.Step(dt);
             if (_hitboxOpen && hitbox != null) hitbox.Sweep();
             PushAnimation();
+        }
+
+        // ---- Ledges ---------------------------------------------------------
+
+        private static int _groundMask = -1;
+
+        /// <summary>
+        /// Stops a walking body at the lip of a drop deeper than a step, so chasing
+        /// never carries an enemy off a ledge (M2.9). One short ray ahead of the feet
+        /// per frame, only while walking on the ground. EnemyWall boxes still work and
+        /// are still the way to stop one at a lip that is shallow on purpose.
+        /// Stagger is left alone: being knocked off a ledge by a hit is fair play.
+        /// </summary>
+        private void GuardLedge()
+        {
+            if (!stopsAtLedges || data.flying || !_motor.Grounded) return;
+            if (Current == State.Stagger || Mathf.Abs(_motor.Velocity.x) < 0.01f) return;
+
+            if (_groundMask == -1)
+                _groundMask = ~LayerMask.GetMask(Layers.Player, Layers.Enemy, Layers.EnemyHitbox, "Ignore Raycast", "EnemyWall");
+
+            var dir = Mathf.Sign(_motor.Velocity.x);
+            var radius = _motor.Controller != null ? _motor.Controller.radius : 0.3f;
+            var probe = transform.position + new Vector3(dir * (radius + 0.35f), 0.4f, 0f);
+            if (!Physics.Raycast(probe, Vector3.down, ledgeDrop + 0.4f, _groundMask, QueryTriggerInteraction.Ignore))
+                _motor.Velocity.x = 0f;
         }
 
         // ---- Deciding --------------------------------------------------------
@@ -241,7 +345,17 @@ namespace Weizza
         private void TickIdle()
         {
             Brake();
-            if (!autoBrain || target == null) return;
+            if (!autoBrain)
+            {
+                if (Mathf.Abs(DirectedWalk) > 0.01f)
+                {
+                    _motor.Velocity.x = Mathf.Clamp(DirectedWalk, -1f, 1f) * data.walkSpeed;
+                    if (FaceWalkDirection) _motor.FaceMovement(DirectedWalk);
+                    else if (target != null) _motor.FaceMovement(target.position.x - transform.position.x);
+                }
+                return;
+            }
+            if (target == null) return;
             if (Time.time < _decideAt) return;
             _decideAt = Time.time + data.decisionInterval;
 
@@ -480,6 +594,13 @@ namespace Weizza
 
             spriteFeel?.ReleaseTint();
             Enter(State.Commit);
+            _fired = false;
+            _leapt = false;
+            if (target != null)
+            {
+                Vector2 to = target.position + Vector3.up * 0.6f - transform.position;
+                _travelDirection = to.sqrMagnitude > 0.0001f ? to.normalized : new Vector2(_motor.Facing.Sign(), 0f);
+            }
 
             var clip = string.IsNullOrEmpty(_move.travelClip)
                 ? _move.attack.animationState
@@ -501,11 +622,35 @@ namespace Weizza
                              _stateTimer >= attack.StartupSeconds &&
                              _stateTimer < activeEnd;
 
-            _motor.Velocity.x = travelling
-                ? _motor.Facing.Sign() * _move.travelSpeed
-                : Mathf.MoveTowards(_motor.Velocity.x, 0f, 40f * Time.deltaTime);
+            if (travelling && _move.travelTowardTarget)
+            {
+                _motor.Velocity.x = _travelDirection.x * _move.travelSpeed;
+                if (data.flying) _motor.Velocity.y = _travelDirection.y * _move.travelSpeed;
+            }
+            else if (!_leapt || _motor.Grounded)
+            {
+                _motor.Velocity.x = travelling
+                    ? _motor.Facing.Sign() * _move.travelSpeed
+                    : Mathf.MoveTowards(_motor.Velocity.x, 0f, 40f * Time.deltaTime);
+            }
 
-            if (!_hitboxOpen && _stateTimer >= attack.StartupSeconds && _stateTimer < activeEnd)
+            var active = _stateTimer >= attack.StartupSeconds && _stateTimer < activeEnd;
+
+            if (active && _move.jumpHeight > 0f && !_leapt)
+            {
+                _leapt = true;
+                Leap();
+            }
+
+            if (active && _move.IsRanged)
+            {
+                if (!_fired)
+                {
+                    _fired = true;
+                    FireMove();
+                }
+            }
+            else if (!_hitboxOpen && active && hitbox != null)
             {
                 _hitboxOpen = true;
                 hitbox.Begin(attack, _motor.Facing, gameObject, damageScale: 1f, lifesteal: 0f);
@@ -524,6 +669,65 @@ namespace Weizza
             // enemy own the encounter's only attack slot while doing nothing.
             ReleaseClaim();
             Enter(State.Recover);
+        }
+
+        /// <summary>
+        /// Fires the move's projectile at the target. A projectile with gravity
+        /// is solved onto the target's feet on the high or low arc, so a lobbed
+        /// spore lands where the player is standing rather than flying past.
+        /// </summary>
+        private void FireMove()
+        {
+            var def = _move.projectile;
+            var facing = _motor.Facing.Sign();
+            var origin = transform.position + new Vector3(_move.muzzle.x * facing, _move.muzzle.y, 0f);
+            origin.z = _motor.Depth;
+
+            Vector3 aim = target != null ? target.position + Vector3.up * 0.8f : origin + Vector3.right * facing * 5f;
+
+            if (_move.leadTarget && target != null)
+            {
+                var targetMotor = target.GetComponent<CharacterMotor3D>();
+                if (targetMotor != null)
+                {
+                    var flight = Vector2.Distance(origin, aim) / Mathf.Max(1f, def.speed);
+                    aim += new Vector3(targetMotor.Velocity.x, 0f, 0f) * flight;
+                }
+            }
+
+            Vector2 delta = aim - origin;
+            Ballistics.SolveLaunch(delta, def.speed, def.gravity, _move.highArc, out var direction);
+
+            var count = Mathf.Max(1, _move.shotCount);
+            for (var i = 0; i < count; i++)
+            {
+                var t = count == 1 ? 0.5f : i / (float)(count - 1);
+                var angle = (t - 0.5f) * _move.spreadDegrees;
+                var shotDirection = (Vector2)(Quaternion.Euler(0f, 0f, angle) * direction);
+
+                Projectile.Fire(new ShotSpec
+                {
+                    definition = def,
+                    origin = origin,
+                    velocity = shotDirection * def.speed,
+                    owner = gameObject,
+                    targetMask = LayerMask.GetMask("Player"),
+                    worldMask = LayerMask.GetMask("Default"),
+                    damageScale = 1f,
+                    onConnected = OnHitConnected,
+                });
+            }
+        }
+
+        /// <summary>Jumps onto the target's current position at the move's peak height.</summary>
+        private void Leap()
+        {
+            var gravity = Mathf.Abs(Physics.gravity.y);
+            var up = Mathf.Sqrt(2f * gravity * _move.jumpHeight);
+            var airTime = up / gravity * 2f;
+            var dx = target != null ? target.position.x - transform.position.x : _motor.Facing.Sign() * 2f;
+            _motor.Velocity.y = up;
+            _motor.Velocity.x = dx / Mathf.Max(0.2f, airTime);
         }
 
         private void TickRecover()
@@ -613,10 +817,34 @@ namespace Weizza
             _motor.Velocity.x += push * separationStrength;
         }
 
+        /// <summary>
+        /// Flying bodies have no gravity. They ease toward a height above the
+        /// target while hunting and their own starting height otherwise, with
+        /// a slow bob so they never sit dead still in the air.
+        /// </summary>
+        private void Hover()
+        {
+            // A dive owns its own vertical speed for as long as it travels.
+            if (Current == State.Commit && _move != null && _move.travelTowardTarget &&
+                _stateTimer >= _move.attack.StartupSeconds &&
+                _stateTimer < _move.attack.StartupSeconds + _move.attack.ActiveSeconds) return;
+
+            var hunting = Current is State.Chase or State.Telegraph && target != null;
+            var height = hunting ? target.position.y + data.hoverHeight : _homeY;
+            height += Mathf.Sin(Time.time * data.bobHz * Mathf.PI * 2f) * data.bobAmplitude;
+            _motor.Velocity.y = (height - transform.position.y) * 3f;
+        }
+
         private void ApplyGravity(float dt)
         {
+            if (data.flying)
+            {
+                Hover();
+                return;
+            }
+
             if (_motor.Grounded && _motor.Velocity.y <= 0f) return;
-            _motor.Velocity.y += Physics.gravity.y * dt;
+            _motor.Velocity.y += Physics.gravity.y * _reactor.GravityScale * dt;
         }
 
         private void PushAnimation()
@@ -658,6 +886,7 @@ namespace Weizza
 
         private void OnHitConnected(IDamageable victim, HitResult result, DamageInfo info)
         {
+            CombatSignals.Report(victim, result, info, byPlayer: false, ranged: false);
             HitStop.Freeze(info.hitStopFrames);
             CameraFeel.Instance?.Shake(info.screenShake, new Vector2(info.knockback.x, 0f));
             HitSpark.Play(info.point, info.knockback, info.hitStopFrames * 0.12f,
@@ -675,7 +904,9 @@ namespace Weizza
             _motor.Velocity = Vector3.zero;
 
             if (animator != null) animator.Play(deathClip, restart: true);
-            if (despawnDelay > 0f) Destroy(gameObject, despawnDelay);
+            // Pooled enemies (spawned by an EncounterRoom) go back to their pool after
+            // the death drawing; hand placed ones are destroyed as before.
+            if (despawnDelay > 0f) PrefabPool.DespawnAfter(gameObject, despawnDelay);
         }
     }
 }
