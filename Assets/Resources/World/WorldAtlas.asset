@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ef0ebd245aaaa149a42cf8e177f0f17, type: 3}
+  m_Name: WorldAtlas
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.WorldAtlas
+  coreScene: Act0_Core
+  startRoom: forest_01
+  linear: 1
+  loadAheadMetres: 45
+  keepBehindMetres: 25
+  keepLoadedDepth: 1
+  activationBudgetMs: 1.5
+  unloadDelay: 4
+  rooms:
+  - {fileID: 11400000, guid: fd4c279ad8dde494fbeedb1d34db0ff1, type: 2}
+  - {fileID: 11400000, guid: 20764459699ed1c4eb22769d9a0112b8, type: 2}
+  - {fileID: 11400000, guid: 97e4013c2ea0bc74abf1d36f009ed212, type: 2}
+  - {fileID: 11400000, guid: 841a9a61528e16a4e866c7540680bc45, type: 2}
+  - {fileID: 11400000, guid: 69d42ee370ce6394c8c7cb7559705a53, type: 2}
+  - {fileID: 11400000, guid: 2c71c24559b9b9240a2cb050002e9512, type: 2}
+  - {fileID: 11400000, guid: 21d06c81750733a4aba0f1b30df69137, type: 2}
+  - {fileID: 11400000, guid: 4d39749073ff64946b97f3cef11fbbbd, type: 2}
