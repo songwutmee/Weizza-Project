@@ -321,9 +321,110 @@ namespace Weizza.EditorTools
 
         private static bool HasWorld => ChunkPainting.Atlas != null;
 
+        // ---- Chunks ---------------------------------------------------------
+
+        [TitleGroup("Chunks", "Every stretch of the map, left to right", TitleAlignments.Centered, Order = -10)]
+        [ShowIf(nameof(HasWorld))]
+        [InfoBox("$ChunkVerdict", InfoMessageType.Info)]
+        [ShowInInspector, HideLabel]
+        [TableList(IsReadOnly = true, AlwaysExpanded = true, HideToolbar = true)]
+        private List<ChunkRow> chunks = new();
+
+        [TitleGroup("Chunks")]
+        [ShowIf(nameof(HasWorld))]
+        [HorizontalGroup("Chunks/Buttons")]
+        [Button("Show every chunk", ButtonSizes.Medium), GUIColor(0.55f, 0.75f, 0.95f)]
+        private void ShowEveryChunk()
+        {
+            soloChunk = "";
+            var svm = SceneVisibilityManager.instance;
+            foreach (var root in LoadedChunkRoots()) svm.Show(root.gameObject.scene.GetRootGameObjects(), true);
+            SceneView.RepaintAll();
+            Repaint();
+        }
+
+        [HorizontalGroup("Chunks/Buttons")]
+        [Button("Refresh list", ButtonSizes.Medium)]
+        private void RefreshChunkRows()
+        {
+            chunks.Clear();
+            var atlas = ChunkPainting.Atlas;
+            if (atlas == null) return;
+
+            var ordered = new List<RoomDefinition>();
+            foreach (var room in atlas.rooms) if (room != null) ordered.Add(room);
+            ordered.Sort((a, b) => a.worldRect.xMin.CompareTo(b.worldRect.xMin));
+
+            foreach (var def in ordered)
+            {
+                var root = ChunkPainting.FindLoaded(def);
+                var count = root != null ? root.GetComponentsInChildren<SpriteRenderer>(true).Length : -1;
+                chunks.Add(new ChunkRow(def, count, this));
+            }
+            Repaint();
+        }
+
+        // Kept in the window's own state so a recompile does not forget which
+        // chunk was soloed. The hiding itself is Unity's Scene Visibility (the eye
+        // in the Hierarchy), which never touches the scene files, so a forgotten
+        // solo can never ship.
+        [SerializeField, HideInInspector] private string soloChunk = "";
+
+        private string ChunkVerdict => string.IsNullOrEmpty(soloChunk)
+            ? "Edit jumps the Scene view to a chunk and paints into it. Solo hides every other chunk, the way Solo does for a layer."
+            : $"Only {soloChunk} is showing. Press Show every chunk, or Unsolo on its row, to bring the rest back.";
+
+        private static List<RoomRoot> LoadedChunkRoots()
+        {
+            var roots = new List<RoomRoot>();
+            var atlas = ChunkPainting.Atlas;
+            if (atlas == null) return roots;
+            foreach (var def in atlas.rooms)
+            {
+                if (def == null) continue;
+                var root = ChunkPainting.FindLoaded(def);
+                if (root != null) roots.Add(root);
+            }
+            return roots;
+        }
+
+        private void SoloChunk(RoomDefinition def)
+        {
+            var target = ChunkPainting.FindLoaded(def);
+            if (target == null)
+            {
+                var opened = ChunkPainting.ChunkAt(def.worldRect.center.x, openIfClosed: true);
+                if (opened == null) return;
+                target = opened;
+            }
+
+            var svm = SceneVisibilityManager.instance;
+            foreach (var root in LoadedChunkRoots())
+            {
+                var roots = root.gameObject.scene.GetRootGameObjects();
+                if (root == target) svm.Show(roots, true);
+                else svm.Hide(roots, true);
+            }
+            soloChunk = def.id;
+            EditChunk(def);
+        }
+
+        private void EditChunk(RoomDefinition def)
+        {
+            var root = ChunkPainting.FindLoaded(def) ?? ChunkPainting.ChunkAt(def.worldRect.center.x, openIfClosed: true);
+            if (root == null) return;
+
+            paintIntoChunks = true;
+            Selection.activeGameObject = root.gameObject;
+            var r = def.worldRect;
+            SceneView.lastActiveSceneView?.Frame(new Bounds(new Vector3(r.center.x, 3f, 0f), new Vector3(r.width, 12f, 1f)), false);
+            SceneView.RepaintAll();
+            Repaint();
+        }
+
         // ---- World ----------------------------------------------------------
 
-        [TitleGroup("World", "The map is a line of chunk scenes the game streams", TitleAlignments.Centered)]
+        [TitleGroup("World", "The map is a line of chunk scenes the game streams", TitleAlignments.Centered, Order = -20)]
         [ShowIf(nameof(HasWorld))]
         [InfoBox("Every chunk is its own scene, opened together here so the whole map shows. " +
                  "Paint anywhere and the piece goes into the chunk under the cursor. " +
@@ -337,9 +438,18 @@ namespace Weizza.EditorTools
 
         [TitleGroup("World")]
         [ShowIf(nameof(HasWorld))]
-        [Button("Add chunk at the end of the line", ButtonSizes.Large), GUIColor(0.5f, 0.85f, 0.55f)]
+        [Button("$NewChunkLabel", ButtonSizes.Gigantic), GUIColor(0.5f, 0.85f, 0.55f)]
         private void AddChunk()
         {
+            // Finishing a chunk and starting the next is one press: the one just
+            // painted is saved, so nothing is lost if Unity closes, and the new
+            // one is ready to paint into straight away.
+            var trimmed = FitLastChunkToDrawing();
+            EditorSceneManager.SaveOpenScenes();
+            paintIntoChunks = true;
+            painting = true;
+            if (trimmed != null) Debug.Log("[Map Painter] " + trimmed);
+
             var def = WorldMapWindow.AppendChunk(newChunkArea, newChunkWidth);
             if (def == null)
             {
@@ -352,6 +462,98 @@ namespace Weizza.EditorTools
             if (root != null) Selection.activeGameObject = root.gameObject;
             SceneView.lastActiveSceneView?.Frame(new Bounds(new Vector3(def.worldRect.center.x, 3f, 0f), new Vector3(def.worldRect.width, 12f, 1f)), false);
             Debug.Log($"[Map Painter] Added chunk {def.id} at x {def.worldRect.xMin:0} to {def.worldRect.xMax:0}. Paint into it.");
+            RefreshChunkRows();
+        }
+
+        /// <summary>
+        /// A new chunk opens at the default width so there is room to paint, but
+        /// the chunk should end where its drawing ends. Runs after every change in
+        /// the Hierarchy (paint, erase, undo), so the last chunk grows and shrinks
+        /// with what is drawn in it. Never below 2 m, and an empty chunk is left
+        /// alone. Only the last chunk: one in the middle shares both edges with
+        /// its neighbours, and moving an edge would open a gap or an overlap.
+        /// </summary>
+        private static string FitLastChunkToDrawing()
+        {
+            var atlas = ChunkPainting.Atlas;
+            if (atlas == null) return null;
+            RoomDefinition last = null;
+            foreach (var room in atlas.rooms)
+                if (room != null && (last == null || room.worldRect.xMax > last.worldRect.xMax)) last = room;
+            if (last == null) return null;
+
+            var root = ChunkPainting.FindLoaded(last);
+            if (root == null) return null;
+
+            var drawnEnd = float.MinValue;
+            foreach (var r in root.GetComponentsInChildren<Renderer>()) drawnEnd = Mathf.Max(drawnEnd, r.bounds.max.x);
+            foreach (var c in root.GetComponentsInChildren<Collider>())
+                if (c.gameObject != root.gameObject && !c.isTrigger) drawnEnd = Mathf.Max(drawnEnd, c.bounds.max.x);
+            if (drawnEnd == float.MinValue) return null;
+
+            var r0 = last.worldRect;
+            var width = Mathf.Max(2f, Mathf.Ceil(drawnEnd - r0.xMin));
+            if (Mathf.Abs(width - r0.width) < 0.5f) return null;
+
+            last.worldRect = new Rect(r0.xMin, r0.yMin, width, r0.height);
+            EditorUtility.SetDirty(last);
+
+            var box = root.GetComponent<BoxCollider>();
+            box.size = new Vector3(width + 1f, box.size.y, box.size.z);
+            box.center = new Vector3(width * 0.5f, box.center.y, box.center.z);
+            EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
+            return $"{last.id} fitted to its drawing: x {r0.xMin:0} to {r0.xMin + width:0} ({width:0} m).";
+        }
+
+        /// <summary>
+        /// Painting just past the end of the line keeps going into the last chunk,
+        /// which stretches to fit, so the chunk being worked on is never "full".
+        /// It is only the start of the next chunk (New chunk) that ends this one,
+        /// and FitLastChunkToDrawing then trims it back to what was drawn.
+        /// Painting before the start of the line still drafts.
+        /// </summary>
+        private static RoomRoot GrowLastChunkTo(float x)
+        {
+            var atlas = ChunkPainting.Atlas;
+            if (atlas == null) return null;
+            RoomDefinition last = null;
+            foreach (var room in atlas.rooms)
+                if (room != null && (last == null || room.worldRect.xMax > last.worldRect.xMax)) last = room;
+            if (last == null || x < last.worldRect.xMax) return null;
+
+            var root = ChunkPainting.FindLoaded(last);
+            if (root == null) return null;
+
+            var r0 = last.worldRect;
+            var width = Mathf.Ceil(x + 10f - r0.xMin);
+            Undo.RecordObject(last, "Grow chunk");
+            last.worldRect = new Rect(r0.xMin, r0.yMin, width, r0.height);
+            EditorUtility.SetDirty(last);
+
+            var box = root.GetComponent<BoxCollider>();
+            Undo.RecordObject(box, "Grow chunk");
+            box.size = new Vector3(width + 1f, box.size.y, box.size.z);
+            box.center = new Vector3(width * 0.5f, box.center.y, box.center.z);
+            EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
+            return root;
+        }
+
+        private void OnHierarchyChanged()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            FitLastChunkToDrawing();
+            RefreshChunkRows();
+        }
+
+        private string NewChunkLabel
+        {
+            get
+            {
+                var atlas = ChunkPainting.Atlas;
+                if (atlas == null) return "New chunk";
+                var area = string.IsNullOrWhiteSpace(newChunkArea) ? "chunk" : newChunkArea.Trim().Replace(' ', '_');
+                return $"New chunk  ({WorldMapWindow.NextChunkId(atlas, area)})";
+            }
         }
 
         // ---- Draft ----------------------------------------------------------
@@ -369,7 +571,7 @@ namespace Weizza.EditorTools
         [Tooltip("On: the drawing slides along X so it starts where the map currently ends, so a draft drawn " +
                  "anywhere (even at x 0 in an empty scene) becomes the next stretch of the walk. Off: pieces keep " +
                  "their X and go into whatever chunk is already there.")]
-        private bool draftToLineEnd = true;
+        private bool slideDraftToLineEnd;
 
         [TitleGroup("World")]
         [ShowIf(nameof(HasWorld))]
@@ -383,7 +585,7 @@ namespace Weizza.EditorTools
                 Debug.LogWarning("[Map Painter] No draft to bake. Turn off \"Paint straight into chunks\" and paint first.");
                 return;
             }
-            Debug.Log("[Map Painter] " + DraftBaker.Bake(pieces, newChunkArea, newChunkWidth, oneChunkForDraft, draftToLineEnd));
+            Debug.Log("[Map Painter] " + DraftBaker.Bake(pieces, newChunkArea, newChunkWidth, oneChunkForDraft, slideDraftToLineEnd));
             SceneView.RepaintAll();
         }
 
@@ -810,10 +1012,13 @@ namespace Weizza.EditorTools
             else if (dimmed.Count > 0) RestoreColours();
 
             RefreshLayerRows();
+            RefreshChunkRows();
+            EditorApplication.hierarchyChanged += OnHierarchyChanged;
         }
 
         private void OnDisable()
         {
+            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
             SceneView.duringSceneGui -= OnScene;
             SceneView.duringSceneGui -= DrawWalkIssues;
 
@@ -1427,7 +1632,7 @@ namespace Weizza.EditorTools
             var path = FolderFor(role).Split('/');
             if (paintIntoChunks && HasWorld)
             {
-                var chunk = ChunkPainting.ChunkAt(x, openIfClosed: true);
+                var chunk = ChunkPainting.ChunkAt(x, openIfClosed: true) ?? GrowLastChunkTo(x);
                 _lastChunk = chunk != null && chunk.Definition != null ? chunk.Definition.id : "past the end of the line: painting into Draft";
                 if (chunk != null)
                 {
@@ -1515,6 +1720,65 @@ namespace Weizza.EditorTools
                 : new Color(0.72f, 0.72f, 0.74f);
 
             private Color IsolateColour() => owner.isolating && owner.isolatedRole == row
+                ? new Color(0.95f, 0.8f, 0.35f)
+                : new Color(0.72f, 0.72f, 0.74f);
+        }
+
+        // ---- Chunk row ------------------------------------------------------
+
+        private sealed class ChunkRow
+        {
+            private readonly RoomDefinition def;
+            private readonly int count;
+            private readonly MapPainterWindow owner;
+
+            public ChunkRow(RoomDefinition def, int count, MapPainterWindow owner)
+            {
+                this.def = def;
+                this.count = count;
+                this.owner = owner;
+            }
+
+            private bool IsSolo => owner.soloChunk == def.id;
+
+            [ShowInInspector, DisplayAsString(EnableRichText = true), HideLabel]
+            public string Chunk => IsSolo ? $"<color=#e8c860><b>{def.id}</b></color>" : def.id;
+
+            [TableColumnWidth(110, Resizable = false)]
+            [ShowInInspector, DisplayAsString, HideLabel]
+            public string Span => $"x {def.worldRect.xMin:0} to {def.worldRect.xMax:0}";
+
+            [TableColumnWidth(70, Resizable = false)]
+            [ShowInInspector, DisplayAsString, HideLabel]
+            public string Pieces => count < 0 ? "closed" : $"{count} pcs";
+
+            [TableColumnWidth(60, Resizable = false)]
+            [Button("Edit")]
+            public void Edit() => owner.EditChunk(def);
+
+            [TableColumnWidth(70, Resizable = false)]
+            [Button("$SoloLabel"), GUIColor("SoloColour")]
+            public void ToggleSolo()
+            {
+                if (IsSolo) owner.ShowEveryChunk();
+                else owner.SoloChunk(def);
+            }
+
+            private string SoloLabel => IsSolo ? "Unsolo" : "Solo";
+
+            [TableColumnWidth(70, Resizable = false)]
+            [Button("Delete"), GUIColor(1f, 0.55f, 0.5f)]
+            public void Delete()
+            {
+                if (!EditorUtility.DisplayDialog("Delete chunk",
+                        $"Delete {def.id} and everything painted in it? Its scene file and room are removed. Deleting the last chunk frees its number for the next one.",
+                        "Delete", "Keep")) return;
+                if (owner.soloChunk == def.id) owner.ShowEveryChunk();
+                WorldMapWindow.DeleteChunk(def);
+                owner.RefreshChunkRows();
+            }
+
+            private Color SoloColour() => IsSolo
                 ? new Color(0.95f, 0.8f, 0.35f)
                 : new Color(0.72f, 0.72f, 0.74f);
         }

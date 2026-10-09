@@ -315,9 +315,8 @@ namespace Weizza.EditorTools
             foreach (var room in atlas.rooms)
                 if (room != null && (last == null || room.worldRect.xMax > last.worldRect.xMax)) last = room;
 
-            var n = atlas.rooms.Length + 1;
-            string id;
-            do id = $"{area}_{n++:00}"; while (atlas.Find(id) != null);
+            area = string.IsNullOrWhiteSpace(area) ? "chunk" : area.Trim().Replace(' ', '_');
+            var id = NextChunkId(atlas, area);
 
             Directory.CreateDirectory(RoomFolder);
             Directory.CreateDirectory(SceneFolder);
@@ -480,9 +479,67 @@ namespace Weizza.EditorTools
             return false;
         }
 
+        /// <summary>
+        /// The number after the highest one on the line, not the count of rooms.
+        /// Counting meant a deleted chunk, or a stale atlas entry, pushed the next
+        /// name up by one (forest_10 deleted, the next came out forest_12).
+        /// </summary>
+        public static string NextChunkId(WorldAtlas atlas, string area)
+        {
+            var highest = 0;
+            foreach (var room in atlas.rooms)
+            {
+                if (room == null || string.IsNullOrEmpty(room.id)) continue;
+                var cut = room.id.LastIndexOf('_');
+                if (cut >= 0 && int.TryParse(room.id.Substring(cut + 1), out var n)) highest = Mathf.Max(highest, n);
+            }
+            var next = highest + 1;
+            string id;
+            do id = $"{area}_{next++:00}"; while (atlas.Find(id) != null || FindScenePath(ToSceneName(id)) != null);
+            return id;
+        }
+
+        /// <summary>
+        /// Removes a chunk completely: atlas entry, links from its neighbours, room
+        /// asset, scene file and its place in the build list. Deleting only the scene
+        /// file left the room in the atlas, which kept counting and kept streaming a
+        /// scene that no longer existed.
+        /// </summary>
+        public static void DeleteChunk(RoomDefinition def)
+        {
+            var atlas = AssetDatabase.LoadAssetAtPath<WorldAtlas>(AtlasPath);
+            if (atlas == null || def == null) return;
+
+            var scenePath = FindScenePath(def.sceneName);
+            if (scenePath != null)
+            {
+                var scene = SceneManager.GetSceneByPath(scenePath);
+                if (scene.IsValid() && scene.isLoaded) EditorSceneManager.CloseScene(scene, true);
+            }
+
+            foreach (var room in atlas.rooms)
+            {
+                if (room == null || room == def || room.neighbours == null) continue;
+                var kept = room.neighbours.Where(n => n == null || n.roomId != def.id).ToArray();
+                if (kept.Length == room.neighbours.Length) continue;
+                room.neighbours = kept;
+                EditorUtility.SetDirty(room);
+            }
+
+            atlas.rooms = atlas.rooms.Where(r => r != null && r != def).ToArray();
+            EditorUtility.SetDirty(atlas);
+
+            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(def));
+            if (scenePath != null) AssetDatabase.DeleteAsset(scenePath);
+            AssetDatabase.SaveAssets();
+            FixBuildSettings(atlas);
+        }
+
         private static void FixBuildSettings(WorldAtlas atlas)
         {
-            var list = EditorBuildSettings.scenes.ToList();
+            // Drop scenes whose file is gone first, so a deleted chunk does not
+            // stay in the build list as a missing entry.
+            var list = EditorBuildSettings.scenes.Where(s => File.Exists(s.path)).ToList();
             void Add(string sceneName)
             {
                 if (string.IsNullOrEmpty(sceneName)) return;
