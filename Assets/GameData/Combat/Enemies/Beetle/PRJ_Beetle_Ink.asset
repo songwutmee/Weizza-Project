@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f1415cd24411864ab2626dcefeb19ef, type: 3}
+  m_Name: PRJ_Beetle_Ink
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.ProjectileDefinition
+  displayName: Ink Glob
+  speed: 10
+  gravity: 16
+  lifetime: 3
+  radius: 0.28
+  pierce: 0
+  bounces: 0
+  bounceDamping: 0.6
+  homingDegreesPerSecond: 0
+  homingRange: 5
+  damage: 6
+  poiseDamage: 8
+  knockbackX: 2
+  knockbackY: 2
+  hitStopFrames: 5
+  hitStunFrames: 16
+  screenShake: 0.15
+  defendable: 1
+  sprite: {fileID: 0}
+  tint: {r: 0.08, g: 0.06, b: 0.1, a: 1}
+  size: 0.6
+  faceVelocity: 0
+  spinDegreesPerSecond: 0
+  trailSeconds: 0.18

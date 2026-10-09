@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26199b53bebaff04db9488ab8469d5dc, type: 3}
+  m_Name: ATK_Beetle_Spit
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.AttackDefinition
+  displayName: Ink Spit
+  animationState: Spit
+  startupFrames: 14
+  activeFrames: 4
+  recoveryFrames: 24
+  damage: 0
+  poiseDamage: 0
+  hitboxOffset: {x: 0, y: 0}
+  hitboxSize: {x: 1, y: 1}
+  depthTolerance: 0.6
+  knockbackX: 0
+  knockbackY: 0
+  hitStopFrames: 0
+  screenShake: 0.1
+  hitStunFrames: 0
+  superArmor: 1
+  launcher: 0
+  fullDepth: 0
+  lungeDistance: 0

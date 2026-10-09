@@ -1,0 +1,612 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5527808280061675581
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7302570082688796018}
+  - component: {fileID: 6269825300504171993}
+  - component: {fileID: 776200838551154355}
+  - component: {fileID: 1789710901894490699}
+  - component: {fileID: 1731461413484106110}
+  m_Layer: 0
+  m_Name: Sprite
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7302570082688796018
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.13917312, y: -0, z: -0, w: 0.9902681}
+  m_LocalPosition: {x: 0, y: 0.0013781867, z: -0.0048063085}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3300704657778727857}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &6269825300504171993
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 21300000, guid: a81f4c8b3cf16224d971f5524be6db87, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 5, y: 3.75}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_SpriteSortPoint: 0
+--- !u!114 &776200838551154355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82ba87bb3ccdfb14483fab8444b76e33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteFacing
+  followRig: 1
+  artFacesLeft: 0
+  customPitch: 0
+  depthBias: 0.005
+--- !u!114 &1789710901894490699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8eec9c06b6886a4cb54554faef03709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteAnimator
+  target: {fileID: 6269825300504171993}
+  facing: {fileID: 776200838551154355}
+  defaultClip: Idle
+  fallbackClip: Idle
+  clips:
+  - name: Idle
+    fps: 3
+    loop: 1
+    hold: 0
+    frames:
+    - {fileID: 21300000, guid: a81f4c8b3cf16224d971f5524be6db87, type: 3}
+    - {fileID: 21300000, guid: e9ac1f71b39de2b4aaf4368df5d6eae9, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Clamp_Open
+    fps: 6
+    loop: 1
+    hold: 0
+    frames:
+    - {fileID: 21300000, guid: fed3fff864d462d428477f9f541adb1f, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Clamp
+    fps: 12
+    loop: 0
+    hold: 0
+    frames:
+    - {fileID: 21300000, guid: fed3fff864d462d428477f9f541adb1f, type: 3}
+    - {fileID: 21300000, guid: fed3fff864d462d428477f9f541adb1f, type: 3}
+    - {fileID: 21300000, guid: 568e2764a799d434e9db20b199e0d8df, type: 3}
+    - {fileID: 21300000, guid: 568e2764a799d434e9db20b199e0d8df, type: 3}
+    - {fileID: 21300000, guid: 568e2764a799d434e9db20b199e0d8df, type: 3}
+    - {fileID: 21300000, guid: a81f4c8b3cf16224d971f5524be6db87, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Spit_Ready
+    fps: 6
+    loop: 1
+    hold: 0
+    frames:
+    - {fileID: 21300000, guid: 0a681c5142d1e794294b983f82b8704a, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Spit
+    fps: 12
+    loop: 0
+    hold: 0
+    frames:
+    - {fileID: 21300000, guid: 0a681c5142d1e794294b983f82b8704a, type: 3}
+    - {fileID: 21300000, guid: 236803c615d3f304f8676f5097f43d83, type: 3}
+    - {fileID: 21300000, guid: 236803c615d3f304f8676f5097f43d83, type: 3}
+    - {fileID: 21300000, guid: a81f4c8b3cf16224d971f5524be6db87, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+  - name: Hop
+    fps: 6
+    loop: 1
+    hold: 0
+    frames:
+    - {fileID: 21300000, guid: ffb121670160a704a8be045607d336f0, type: 3}
+    artOffset: {x: 0, y: 0}
+    eventFrames: 
+--- !u!114 &1731461413484106110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5527808280061675581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4438033362a3da4b877514ba8726314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteFeel
+  sprite: {fileID: 0}
+  hitTint: {r: 1, g: 1, b: 1, a: 1}
+  flashFrames: 4
+  armorTint: {r: 1, g: 0.85, b: 0.4, a: 1}
+  ignoredTint: {r: 0.5, g: 0.8, b: 1, a: 1}
+  holdPulseHz: 3.5
+  landSquash: 0.22
+  fullSquashSpeed: 14
+  squashFrames: 8
+--- !u!1 &7019507601037716238
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3300704657778727857}
+  - component: {fileID: 5250710810487590439}
+  - component: {fileID: 8922091224443208490}
+  - component: {fileID: 4384444851336382294}
+  - component: {fileID: 4251653616903156777}
+  - component: {fileID: 5678913547746814960}
+  - component: {fileID: 3451185149529824882}
+  - component: {fileID: 704642974478240366}
+  - component: {fileID: 5561583686604739771}
+  - component: {fileID: 8388004611458676952}
+  m_Layer: 7
+  m_Name: Beetle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3300704657778727857
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7302570082688796018}
+  - {fileID: 8004753819452111437}
+  - {fileID: 226415924727987423}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!143 &5250710810487590439
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 1.7
+  m_Radius: 0.95
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.02
+  m_MinMoveDistance: 0
+  m_Center: {x: 0.1, y: 0.9, z: 0}
+--- !u!114 &8922091224443208490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb5d8adce5d84bf4fb2317e2ecc6e91f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.CharacterMotor3D
+  art: {fileID: 0}
+  groundStick: 2
+  lane: 0
+  Velocity: {x: 0, y: 0, z: 0}
+--- !u!114 &4384444851336382294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a2b54a3afc355f4ea76369593ddb3c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Vitals
+  maxHealth: 100
+  wings: 0
+--- !u!114 &4251653616903156777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4cc7effc34741c47aa02c87af4296b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.HitReactor
+  motor: {fileID: 0}
+  spriteFeel: {fileID: 0}
+  knockbackScale: 0.15
+  launchSpeed: 9
+  airHitPop: 3.5
+  juggleGravityScale: 0.55
+  juggleFrames: 40
+--- !u!114 &5678913547746814960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75e15363b3978eb4ba970bb9f080d109, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Poise
+  maxPoise: 20
+  recoveryPerSecond: 12
+  recoveryDelay: 1.2
+  breakBonusStunFrames: 24
+  refillAfterBreak: 1
+--- !u!114 &3451185149529824882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cddcae64c3390948b4fe3590d425755, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.EnemyController
+  data: {fileID: 11400000, guid: c77713601f4fb1846930b0d308544a14, type: 2}
+  animator: {fileID: 1789710901894490699}
+  hitbox: {fileID: 5118097397038422726}
+  spriteFeel: {fileID: 1731461413484106110}
+  target: {fileID: 0}
+  separationRadius: 0.9
+  separationStrength: 2.5
+  reachHeight: 1.2
+  autoBrain: 0
+  stopsAtLedges: 1
+  ledgeDrop: 1.4
+  idleClip: Idle
+  walkClip: Idle
+  runClip: Idle
+  hurtClip: Idle
+  deathClip: Idle
+  despawnDelay: 0.6
+--- !u!114 &704642974478240366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec2a6d2c27df3734bbc2c568aaebfbdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.MiniBossBrain
+  bossName: Bloom Beetle
+  phases:
+  - {fileID: 11400000, guid: 2252821ad3f5c3b47873d8a68212520a, type: 2}
+  - {fileID: 11400000, guid: b98265072d96c1841952cebcfc6452a6, type: 2}
+  wakeRange: 7
+  wakeByRange: 1
+  preferredRange: 2.2
+  approachBetweenMoves: 0
+  forcedDeath: 1
+  finisherAtHealth: 0.3
+  finisherAfterSeconds: 120
+  finisherMoveId: finisher
+  leaveAfterFinisher: 1
+  finisherAsStoryBeat: 1
+  wakeSomewhereElse: 0
+  wakePoint: {x: 0, y: 0, z: 0}
+--- !u!114 &5561583686604739771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fda88da44cb843245b1b1de1ceab5714, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.FlowerDisguise
+  flowerCount: 9
+  clumpSize: {x: 2.6, y: 1.6}
+  petalColours:
+  - {r: 0.86, g: 0.22, b: 0.2, a: 1}
+  - {r: 0.95, g: 0.7, b: 0.25, a: 1}
+  - {r: 0.92, g: 0.45, b: 0.55, a: 1}
+  - {r: 0.98, g: 0.85, b: 0.7, a: 1}
+  stemColour: {r: 0.22, g: 0.42, b: 0.24, a: 1}
+  burstSeconds: 0.7
+--- !u!114 &8388004611458676952
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d5b40595b20ffc4780235e2e911bba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.InkStormSkill
+  skillId: ink_storm
+  cooldown: 11
+  crouchSeconds: 0.55
+  leapSeconds: 0.35
+  loomScale: 3.2
+  loomTint: {r: 0.07, g: 0.06, b: 0.08, a: 0.96}
+  blotCount: 11
+  spraySeconds: 1.1
+  inkLingers: 3.5
+  inkOpacity: 0.86
+  stabCount: {x: 3, y: 4}
+  ringWarning: 0.8
+  stabRadius: 0.85
+  stabDamage: 12
+  ringTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 1
+--- !u!1 &8636941700367203061
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8004753819452111437}
+  - component: {fileID: 112217850627345884}
+  - component: {fileID: 4547799404418872394}
+  m_Layer: 0
+  m_Name: Shadow
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8004753819452111437
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8636941700367203061}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.4, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3300704657778727857}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &112217850627345884
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8636941700367203061}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.45}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 0
+  m_SpriteSortPoint: 0
+--- !u!114 &4547799404418872394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8636941700367203061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a62d88b61e74574e864155900dfdd17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.GroundShadow
+  owner: {fileID: 3300704657778727857}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  maxDrop: 12
+  rayStartHeight: 2
+  size: 3
+  lift: 0.02
+  tint: {r: 0, g: 0, b: 0, a: 0.45}
+  shrinkPerMetre: 0.14
+  fadePerMetre: 0.1
+--- !u!1 &9117742497355136862
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 226415924727987423}
+  - component: {fileID: 5118097397038422726}
+  m_Layer: 9
+  m_Name: Hitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &226415924727987423
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9117742497355136862}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.8, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3300704657778727857}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5118097397038422726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9117742497355136862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93662a51e009d254cac8883afed21195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.HitboxEmitter
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 64
+  origin: {fileID: 3300704657778727857}

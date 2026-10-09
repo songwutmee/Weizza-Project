@@ -1,0 +1,133 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9e58b47f9346574da562e775256e1ce, type: 3}
+  m_Name: ENEMY_Beetle
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.EnemyDefinition
+  displayName: Bloom Beetle
+  intent: Act 0 mini boss. Armoured and slow, then fast without the armour. Kills
+    the player by design at 30 percent.
+  maxHealth: 300
+  poise: 50
+  poiseRecoveryPerSecond: 12
+  knockbackScale: 0.15
+  walkSpeed: 1.6
+  chaseSpeed: 2.4
+  depthSpeed: 1.6
+  flying: 0
+  hoverHeight: 2.2
+  bobAmplitude: 0.25
+  bobHz: 0.8
+  aggroRange: 14
+  loseAggroRange: 30
+  depthTolerance: 0.6
+  decisionInterval: 0.2
+  moves:
+  - id: clamp
+    attack: {fileID: 11400000, guid: def48b631ae67314296134b7e7915986, type: 2}
+    weight: 1
+    range: {x: 0, y: 3.2}
+    cooldown: 1
+    telegraphFrames: 20
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Clamp_Open
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+    leapAwayDistance: 0
+    harmless: 0
+  - id: spit
+    attack: {fileID: 11400000, guid: 134d037be56a5e045989dfd358fe76d7, type: 2}
+    weight: 1
+    range: {x: 0, y: 40}
+    cooldown: 2.6
+    telegraphFrames: 18
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Spit_Ready
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 11400000, guid: 2cdf4aaadf92ca744ba810569231dbf5, type: 2}
+    shotCount: 3
+    spreadDegrees: 14
+    leadTarget: 1
+    highArc: 1
+    muzzle: {x: 0.4, y: 2.2}
+    jumpHeight: 0
+    leapAwayDistance: 0
+    harmless: 0
+  - id: spit_wide
+    attack: {fileID: 11400000, guid: 134d037be56a5e045989dfd358fe76d7, type: 2}
+    weight: 1
+    range: {x: 0, y: 40}
+    cooldown: 2.6
+    telegraphFrames: 16
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Spit_Ready
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 11400000, guid: 2cdf4aaadf92ca744ba810569231dbf5, type: 2}
+    shotCount: 5
+    spreadDegrees: 30
+    leadTarget: 1
+    highArc: 1
+    muzzle: {x: 0.4, y: 2.2}
+    jumpHeight: 0
+    leapAwayDistance: 0
+    harmless: 0
+  - id: hop
+    attack: {fileID: 11400000, guid: a2bcc655c7ae6dd4287a45fb191ff0f1, type: 2}
+    weight: 1
+    range: {x: 0, y: 40}
+    cooldown: 2
+    telegraphFrames: 6
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Hop
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 1.6
+    leapAwayDistance: 5.5
+    harmless: 1
+  - id: finisher
+    attack: {fileID: 11400000, guid: 9e87d61e8e001ab4fba7ef5d5fd75c2c, type: 2}
+    weight: 1
+    range: {x: 0, y: 40}
+    cooldown: 0
+    telegraphFrames: 20
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Clamp_Open
+    travelSpeed: 0
+    travelClip: 
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+    leapAwayDistance: 0
+    harmless: 0
