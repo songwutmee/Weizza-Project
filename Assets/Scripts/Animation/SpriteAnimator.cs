@@ -334,6 +334,24 @@ namespace Weizza
         /// </summary>
         public SpriteClip GetClip(string clipName) => Find(clipName);
 
+        /// <summary>The first drawing of the idle clip (or of the first clip), for the Edit mode preview.</summary>
+        public Sprite FirstIdleFrame
+        {
+            get
+            {
+                SpriteClip pick = null;
+                foreach (var clip in clips)
+                {
+                    if (clip == null || clip.Length == 0) continue;
+                    if (pick == null) pick = clip;
+                    if (clip.name.IndexOf("Idle", System.StringComparison.OrdinalIgnoreCase) >= 0) { pick = clip; break; }
+                }
+                return pick?.frames[0];
+            }
+        }
+
+        public SpriteRenderer Target => target != null ? target : GetComponent<SpriteRenderer>();
+
         /// <summary>
         /// Finds a clip, or the stand in, and says so once either way.
         ///
