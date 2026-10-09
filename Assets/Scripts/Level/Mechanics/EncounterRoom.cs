@@ -271,6 +271,9 @@ namespace Weizza
         }
 
 #if UNITY_EDITOR
+        /// <summary>For the Scene view preview, which draws who will appear where.</summary>
+        public IReadOnlyList<EncounterWave> Waves => waves;
+
         protected override Color GizmoColour => Cleared ? new Color(0.5f, 0.85f, 0.55f, 0.08f) : new Color(0.9f, 0.5f, 0.35f, 0.08f);
 
         private void OnDrawGizmosSelected()
