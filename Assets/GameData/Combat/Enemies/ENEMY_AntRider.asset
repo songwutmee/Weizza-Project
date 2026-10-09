@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9e58b47f9346574da562e775256e1ce, type: 3}
+  m_Name: ENEMY_AntRider
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.EnemyDefinition
+  displayName: Ant Rider
+  intent: Shrugs off single hits. Has to be committed to, not poked.
+  maxHealth: 30
+  poise: 0
+  poiseRecoveryPerSecond: 6
+  knockbackScale: 1
+  walkSpeed: 1.3
+  chaseSpeed: 2.2
+  depthSpeed: 2.08
+  flying: 0
+  hoverHeight: 2.2
+  bobAmplitude: 0.25
+  bobHz: 0.8
+  aggroRange: 7
+  loseAggroRange: 11
+  depthTolerance: 0.5
+  decisionInterval: 0.08
+  moves:
+  - id: swipe
+    attack: {fileID: 11400000, guid: 8b431377a55c543468833e65a3c456fb, type: 2}
+    weight: 1
+    range: {x: 0.3, y: 1.7}
+    cooldown: 1
+    telegraphFrames: 0
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Idle
+    travelSpeed: 0
+    travelClip: Attack
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
