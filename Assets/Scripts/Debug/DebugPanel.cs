@@ -235,7 +235,14 @@ namespace Weizza
                 GUILayout.EndHorizontal();
 
                 GUILayout.Space(2f);
-                vitals.GodMode = GUILayout.Toggle(vitals.GodMode, " God mode", _toggle);
+                // Only on a click: writing it every frame overrode "onehit" typed
+                // in the console while this panel was open.
+                var god = GUILayout.Toggle(vitals.GodMode, " God mode (one hit kill)", _toggle);
+                if (god != vitals.GodMode)
+                {
+                    vitals.GodMode = god;
+                    Vitals.PlayerOneHitKill = god;
+                }
             });
         }
 
@@ -254,7 +261,10 @@ namespace Weizza
                 hitStopFrames = heavy ? 10 : 4,
                 hitStunFrames = heavy ? 28 : 16,
                 screenShake = heavy ? 0.35f : 0.15f,
-                defendable = true,
+                // Not defendable, so a test hit always lands. The player's mercy
+                // frames after losing a wing made every press inside 1.1 s count
+                // as dodged, and the button read as "knockback is gone".
+                defendable = false,
             });
         }
 

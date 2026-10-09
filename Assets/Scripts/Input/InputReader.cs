@@ -110,6 +110,7 @@ namespace Weizza
             _light = Button("Light", "<Mouse>/leftButton", "<Gamepad>/buttonWest");
             _heavy = Button("Heavy", "<Mouse>/rightButton", "<Gamepad>/buttonNorth");
             _dash = Button("Dash", "<Keyboard>/leftShift", "<Gamepad>/rightShoulder");
+            _dash.AddBinding("<Keyboard>/rightShift");
             _guard = Button("Guard", "<Keyboard>/f", "<Gamepad>/leftShoulder");
             _interact = Button("Interact", "<Keyboard>/e", "<Gamepad>/buttonEast");
             _pause = Button("Pause", "<Keyboard>/escape", "<Gamepad>/start");
