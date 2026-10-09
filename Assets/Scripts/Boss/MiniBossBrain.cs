@@ -59,6 +59,12 @@ namespace Weizza
         [Tooltip("Between moves, walk toward the player while further than this.")]
         [SerializeField] private float preferredRange = 2.5f;
 
+        [BoxGroup("Fight")]
+        [ToggleLeft]
+        [Tooltip("Off holds its ground between moves and never chases (the beetle): it lets the player come, " +
+                 "and answers distance with a ranged move and crowding with a hop away.")]
+        [SerializeField] private bool approachBetweenMoves = true;
+
         [BoxGroup("Forced death", centerLabel: true)]
         [InfoBox("Act 0's mini boss kills the player by design. When the " +
                  "condition below is met, the boss stops taking damage, plays the " +
@@ -178,6 +184,10 @@ namespace Weizza
         {
             _vitals.Died += OnDied;
             if (_poise != null) _poise.Broke += OnPoiseBroke;
+            // A boss scripted to win never drops below its finisher point, so a hit
+            // that would kill it (a one hit kill while testing) starts the finisher
+            // and its scene rather than skipping them.
+            _vitals.HealthFloor = forcedDeath ? _vitals.Max * finisherAtHealth : 0f;
             _playerDied = StoryEvents.Subscribe(GameEvents.PlayerDied, _ => OnPlayerDied());
         }
 
@@ -187,6 +197,7 @@ namespace Weizza
             if (_poise != null) _poise.Broke -= OnPoiseBroke;
             _playerDied?.Dispose();
             _playerDied = null;
+            AbortSkill();
             ReleaseFinisherHolds();
             if (Active == this) Active = null;
         }
@@ -197,6 +208,7 @@ namespace Weizza
         private void OnPlayerDied()
         {
             if (State is Phase.Dormant or Phase.Finisher or Phase.Defeated) return;
+            AbortSkill();
             _vitals.SetHealth(_vitals.Max);
             PhaseIndex = 0;
             ApplyPhase(0);
@@ -271,6 +283,7 @@ namespace Weizza
 
             // Waiting for the body to finish what it was told to do. The body
             // drops through Recover back to Idle on its own; that is the signal.
+            if (SkillRunning) return;
             if (_body.Busy) return;
             if (_body.Current == EnemyController.State.Stagger) return;
             if (_stateTimer < 0.1f) return;
@@ -300,7 +313,9 @@ namespace Weizza
             if (player != null)
             {
                 var dx = player.transform.position.x - transform.position.x;
-                _body.DirectedWalk = Mathf.Abs(dx) > preferredRange ? Mathf.Sign(dx) : 0f;
+                // A boss that holds its ground still turns to watch: a tiny step toward the player.
+                _body.DirectedWalk = !approachBetweenMoves ? Mathf.Sign(dx) * 0.01f
+                    : Mathf.Abs(dx) > preferredRange ? Mathf.Sign(dx) : 0f;
             }
 
             if (_stateTimer >= _restFor) Enter(Phase.Choose);
@@ -351,13 +366,22 @@ namespace Weizza
 
             _candidates.Clear();
             var total = 0f;
+            var player = PlayerLocator.Player;
+            var distance = player != null ? Mathf.Abs(player.transform.position.x - transform.position.x) : 0f;
+            // Two passes: what can be used from here at all, then drop a repeat only
+            // when something else is left. Dropping it first left a boss with one
+            // move for this distance standing idle forever after using it once.
             foreach (var choice in phase.moves)
             {
                 if (choice == null || choice.weight <= 0f) continue;
-                if (choice.noRepeat && choice.moveId == LastMove && phase.moves.Count > 1) continue;
+                if (!choice.InDistance(distance)) continue;
+                var skill = FindSkill(choice.moveId);
+                if (skill != null && !skill.CanStart(this)) continue;
                 _candidates.Add(choice);
-                total += choice.weight;
             }
+            if (_candidates.Count > 1)
+                _candidates.RemoveAll(c => c.noRepeat && c.moveId == LastMove);
+            foreach (var choice in _candidates) total += choice.weight;
 
             if (_candidates.Count == 0) return null;
             var roll = UnityEngine.Random.value * total;
@@ -371,9 +395,79 @@ namespace Weizza
 
         private bool TryPerform(string moveId)
         {
-            if (string.IsNullOrEmpty(moveId) || _body.Data == null || _body.Data.FindMove(moveId) == null) return false;
+            if (string.IsNullOrEmpty(moveId)) return false;
+
+            var skill = FindSkill(moveId);
+            if (skill != null)
+            {
+                RunSkill(skill).Forget();
+                _startedMove = true;
+                return true;
+            }
+
+            if (_body.Data == null || _body.Data.FindMove(moveId) == null) return false;
             _startedMove = _body.PerformMove(moveId);
             return _startedMove;
+        }
+
+        // ---- Skills ---------------------------------------------------------------------
+
+        private BossSkill[] _skills;
+        private BossSkill _runningSkill;
+        private System.Threading.CancellationTokenSource _skillLife;
+
+        /// <summary>True while a skill is running. The brain waits it out like a move.</summary>
+        public bool SkillRunning => _runningSkill != null;
+
+        private BossSkill FindSkill(string id)
+        {
+            _skills ??= GetComponents<BossSkill>();
+            foreach (var skill in _skills)
+                if (skill != null && skill.enabled && skill.Id == id) return skill;
+            return null;
+        }
+
+        private async UniTaskVoid RunSkill(BossSkill skill)
+        {
+            _skillLife?.Cancel();
+            _skillLife?.Dispose();
+            _skillLife = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+            _runningSkill = skill;
+            try { await skill.Run(this, _skillLife.Token); }
+            catch (OperationCanceledException) { }
+            finally
+            {
+                if (_runningSkill == skill) _runningSkill = null;
+            }
+        }
+
+        private void AbortSkill()
+        {
+            if (_runningSkill == null) return;
+            var skill = _runningSkill;
+            _runningSkill = null;
+            _skillLife?.Cancel();
+            skill.Abort();
+        }
+
+        /// <summary>
+        /// Test helper (dev console "boss"): forget that the fight was won, wake the
+        /// body if it was put away, refill health and go back to sleep, ready to start.
+        /// </summary>
+        public void ResetForTest()
+        {
+            AbortSkill();
+            ReleaseFinisherHolds();
+            StoryState.Global.Set(DoneKey, false);
+            gameObject.SetActive(true);
+            _vitals.SetHealth(_vitals.Max);
+            PhaseIndex = 0;
+            ApplyPhase(0);
+            _fightTime = 0f;
+            _finisherKilled = false;
+            LastMove = "-";
+            _body.DirectedWalk = 0f;
+            Enter(Phase.Dormant);
         }
 
         // ---- Forced death ---------------------------------------------------------------
@@ -474,6 +568,7 @@ namespace Weizza
 
         private void OnDied()
         {
+            AbortSkill();
             ReleaseFinisherHolds();
             Enter(Phase.Defeated);
             if (Active == this) Active = null;

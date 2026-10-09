@@ -166,6 +166,13 @@ namespace Weizza
         public float DirectedWalk { get; set; }
 
         /// <summary>
+        /// True while a boss skill carries the body itself (off the ground, out of
+        /// view). No movement, gravity, hitbox or animation runs here meanwhile.
+        /// The skill must give it back.
+        /// </summary>
+        public bool Held { get; set; }
+
+        /// <summary>
         /// With the auto brain off, face the way the body walks instead of toward
         /// the target. A patrol wants this; a boss circling the player does not.
         /// </summary>
@@ -293,6 +300,9 @@ namespace Weizza
         private void Update()
         {
             if (data == null || Current == State.Dead) return;
+            // A boss skill has lifted the body off the ground (clinging to the top
+            // of the screen) and places it by hand until it lets go.
+            if (Held) return;
             var dt = Time.deltaTime;
             _stateTimer += dt;
 
@@ -367,6 +377,10 @@ namespace Weizza
             if (!autoBrain || target == null)
             {
                 Brake();
+                // Back to Idle, the one state where an outside driver's
+                // DirectedWalk moves the body. Left in Chase, a brain that turns
+                // the auto brain off mid chase could not move it at all.
+                if (!autoBrain) Enter(State.Idle);
                 return;
             }
 
@@ -650,7 +664,7 @@ namespace Weizza
                     FireMove();
                 }
             }
-            else if (!_hitboxOpen && active && hitbox != null)
+            else if (!_hitboxOpen && active && hitbox != null && !_move.harmless)
             {
                 _hitboxOpen = true;
                 hitbox.Begin(attack, _motor.Facing, gameObject, damageScale: 1f, lifesteal: 0f);
@@ -719,6 +733,22 @@ namespace Weizza
             }
         }
 
+        /// <summary>
+        /// How far a dodge can go without landing off the edge: walks the wanted
+        /// distance back in half metre steps until there is floor under the landing.
+        /// </summary>
+        private float SafeLeapDistance(float dir, float wanted)
+        {
+            if (_groundMask == -1)
+                _groundMask = ~LayerMask.GetMask(Layers.Player, Layers.Enemy, Layers.EnemyHitbox, "Ignore Raycast", "EnemyWall");
+            for (var d = wanted; d > 0.5f; d -= 0.5f)
+            {
+                var landing = transform.position + new Vector3(dir * d, 1.5f, 0f);
+                if (Physics.Raycast(landing, Vector3.down, 3.5f, _groundMask, QueryTriggerInteraction.Ignore)) return d;
+            }
+            return 0f;
+        }
+
         /// <summary>Jumps onto the target's current position at the move's peak height.</summary>
         private void Leap()
         {
@@ -726,6 +756,12 @@ namespace Weizza
             var up = Mathf.Sqrt(2f * gravity * _move.jumpHeight);
             var airTime = up / gravity * 2f;
             var dx = target != null ? target.position.x - transform.position.x : _motor.Facing.Sign() * 2f;
+            if (_move.leapAwayDistance > 0f)
+            {
+                // A dodge: the same arc, aimed the other way, and stopped short of a ledge.
+                var away = dx == 0f ? -_motor.Facing.Sign() : -Mathf.Sign(dx);
+                dx = away * SafeLeapDistance(away, _move.leapAwayDistance);
+            }
             _motor.Velocity.y = up;
             _motor.Velocity.x = dx / Mathf.Max(0.2f, airTime);
         }

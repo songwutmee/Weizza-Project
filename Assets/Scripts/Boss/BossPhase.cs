@@ -17,6 +17,13 @@ namespace Weizza
 
         [Tooltip("Never picked twice in a row. Stops a big move becoming the only move.")]
         public bool noRepeat = true;
+
+        [Tooltip("Only picked while the player is between these distances (metres, sideways). " +
+                 "Zero for both means any distance. A clamp up close, a spit from afar, a hop when crowded.")]
+        public Vector2 playerDistance;
+
+        public bool InDistance(float distance) =>
+            playerDistance == Vector2.zero || (distance >= playerDistance.x && distance <= playerDistance.y);
     }
 
     /// <summary>
