@@ -16,6 +16,12 @@ namespace Weizza
     [AddComponentMenu("Weizza/Vitals")]
     public sealed class Vitals : MonoBehaviour, IDamageable
     {
+        /// <summary>Dev console "onehit": anything the player hits dies in one hit, bosses included.</summary>
+        public static bool PlayerOneHitKill;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => PlayerOneHitKill = false;
+
         [BoxGroup("Health", centerLabel: true)]
         [HorizontalGroup("Health/Row")]
         [LabelWidth(60)]
@@ -65,6 +71,13 @@ namespace Weizza
         [ShowInInspector]
         [Tooltip("Debug window only. Nothing in gameplay sets this.")]
         public bool GodMode { get; set; }
+
+        /// <summary>
+        /// Hits never take health below this. A boss whose death is a story beat sets
+        /// it to its finisher point, so even a one hit kill lands on the finisher and
+        /// plays the scene instead of skipping it. Kill() still ignores it.
+        /// </summary>
+        public float HealthFloor { get; set; }
 
         /// <summary>Number of wings, 0 when this body uses ordinary health.</summary>
         public int Wings
@@ -179,9 +192,13 @@ namespace Weizza
                     var lost = Mathf.Max(1, Mathf.RoundToInt(scale));
                     Current = Mathf.Max(0f, Current - lost * WingSize);
                 }
+                else if (PlayerOneHitKill && info.source != null && info.source.GetComponentInParent<PlayerController>() != null)
+                {
+                    Current = Mathf.Min(Current, HealthFloor);
+                }
                 else
                 {
-                    Current = Mathf.Max(0f, Current - info.amount * scale);
+                    Current = Mathf.Max(Mathf.Min(Current, HealthFloor), Current - info.amount * scale);
                 }
             }
 

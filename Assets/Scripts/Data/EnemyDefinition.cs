@@ -136,6 +136,18 @@ namespace Weizza
                  "peak height on its first active frame. A seed hopper.")]
         public float jumpHeight;
 
+        [FoldoutGroup("$id/Jump")]
+        [ShowIf("@jumpHeight > 0f")]
+        [PropertyRange(0f, 12f)]
+        [Tooltip("Above zero, the leap goes this many metres AWAY from the target instead of onto it. " +
+                 "A dodge: the beetle boss hops clear when the player crowds it.")]
+        public float leapAwayDistance;
+
+        [FoldoutGroup("$id/Jump")]
+        [ToggleLeft]
+        [Tooltip("No hitbox opens. For a move that only moves the body (a dodge, a reposition).")]
+        public bool harmless;
+
         public bool IsRanged => projectile != null;
 
         public float MinRange => range.x;

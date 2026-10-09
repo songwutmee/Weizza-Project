@@ -8,9 +8,9 @@ namespace Weizza
     /// at all is still a threat you have to jump over, which is what makes simple
     /// enemies worth placing.
     ///
-    /// Player and enemy capsules do not collide (the layer matrix keeps them apart
-    /// so bodies never shove each other), so this measures the overlap itself
-    /// each frame instead of waiting for a collision event that never comes.
+    /// CharacterController raises no collision event against another body, so this
+    /// measures the touch itself each frame. The Player and Enemy layers do collide,
+    /// which stops the two capsules at each other's surface, hence the reach.
     /// </summary>
     [AddComponentMenu("Weizza/Enemy/Body Contact Damage")]
     [RequireComponent(typeof(Vitals))]
@@ -34,9 +34,11 @@ namespace Weizza
         [SerializeField] private bool harmlessWhenStaggered = true;
 
         [BoxGroup("Hurt")]
-        [PropertyRange(0f, 0.3f)]
-        [Tooltip("Shrinks the touch area, so grazing an edge does not count. Hollow Knight hitboxes are smaller than the drawing.")]
-        [SerializeField] private float forgiveness = 0.08f;
+        [PropertyRange(-0.3f, 0.3f)]
+        [Tooltip("Grows (positive) or shrinks (negative) the touch area. The Player and Enemy layers collide, so " +
+                 "the two capsules stop at each other's surface and never overlap: a touch has to reach a little " +
+                 "past the body to count at all.")]
+        [SerializeField] private float touchReach = 0.1f;
 
         private Vitals _vitals;
         private EnemyController _enemy;
@@ -71,7 +73,7 @@ namespace Weizza
             if (playerBody == null) return;
 
             var mine = _body.bounds;
-            mine.Expand(-forgiveness * 2f);
+            mine.Expand(touchReach * 2f);
             if (!mine.Intersects(playerBody.bounds)) return;
 
             _readyAt = Time.time + repeatDelay;
