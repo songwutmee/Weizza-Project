@@ -108,7 +108,26 @@ namespace Weizza
             transform.localPosition = offset - forward * depthBias;
         }
 
-        public void SetFacing(Facing facing) =>
-            FlippedX = artFacesLeft ? facing == Facing.Right : facing == Facing.Left;
+        private Facing _facing = Facing.Right;
+        private bool _clipMirror;
+
+        /// <summary>Set by the animator when a clip is drawn facing the opposite way.</summary>
+        public bool ClipMirror
+        {
+            get => _clipMirror;
+            set
+            {
+                if (_clipMirror == value) return;
+                _clipMirror = value;
+                SetFacing(_facing);
+            }
+        }
+
+        public void SetFacing(Facing facing)
+        {
+            _facing = facing;
+            var flip = artFacesLeft ? facing == Facing.Right : facing == Facing.Left;
+            FlippedX = flip ^ _clipMirror;
+        }
     }
 }

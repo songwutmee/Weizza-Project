@@ -126,6 +126,9 @@ namespace Weizza
         {
             Controller = GetComponent<CharacterController>();
             if (art == null) art = GetComponentInChildren<SpriteFacing>();
+            // The drawing starts however the prefab was saved. Until the first move input it would
+            // face one way while this says another, and a swing from standing still went the other way.
+            if (art != null && GetComponent<PlayerController>() != null) art.SetFacing(Facing);
         }
 
         private void OnEnable() => CombatGizmos.RegisterBody(Controller);
