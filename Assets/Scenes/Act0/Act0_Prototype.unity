@@ -802,6 +802,7 @@ Transform:
   - {fileID: 1970068523}
   - {fileID: 1970794319}
   - {fileID: 1825205682}
+  - {fileID: 1338067722}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &410087039
@@ -1600,6 +1601,11 @@ MonoBehaviour:
   groundReach: 0.3
   worldBrightness: {x: 0.9, y: 0.68}
   worldRange: {x: 0, y: 160}
+  brightZones:
+  - from: 163
+    to: 199
+    multiplier: 1.5
+    fade: 6
   sunPosition: {x: 0.82, y: 0.82}
   sunRadius: 0.5
   sunColour: {r: 1, g: 0.92, b: 0.62, a: 1}
@@ -1977,7 +1983,7 @@ SpriteRenderer:
   m_SortingOrder: -2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
-  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.62}
+  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.6014}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -12660,6 +12666,61 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
+--- !u!1 &1338067721
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1338067722}
+  - component: {fileID: 1338067723}
+  m_Layer: 0
+  m_Name: Foreground Wipe
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1338067722
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338067721}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 401068744}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1338067723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338067721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dcebb121d8fd1445af4853a1e115bbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.ForegroundWipe
+  curtains:
+  - {fileID: 21300000, guid: 2f7b9abcd241b1641bd4d25f51077f17, type: 3}
+  - {fileID: 21300000, guid: cdd881051fa15cd4d9379b79e94fc49a, type: 3}
+  - {fileID: 21300000, guid: 698b832adfcee3549b6e6baf7346732a, type: 3}
+  bands:
+  - {fileID: 21300000, guid: b2630b2776584b444b4a5f434315917c, type: 3}
+  - {fileID: 21300000, guid: d68592fd4137e2045ae2508c2be991e7, type: 3}
+  - {fileID: 21300000, guid: 61132dfb31dc27e439923c4452f32338, type: 3}
+  colour: {r: 0.015, g: 0.025, b: 0.02, a: 1}
+  coverSeconds: 1.1
+  clearSeconds: 1.2
 --- !u!1 &1355808098
 GameObject:
   m_ObjectHideFlags: 0
