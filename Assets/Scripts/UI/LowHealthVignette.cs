@@ -53,6 +53,24 @@ namespace Weizza
             _volume.weight = 0f;
         }
 
+        private float _sceneVignette = -1f;
+
+        // This volume sits above the scene grade, so whatever it says replaces the grade's
+        // own vignette. Starting from zero made low health brighten the frame instead of
+        // closing it in. The grade's vignette is the floor this one darkens from.
+        private float SceneVignette()
+        {
+            if (_sceneVignette >= 0f) return _sceneVignette;
+            _sceneVignette = 0f;
+            foreach (var v in FindObjectsByType<Volume>(FindObjectsSortMode.None))
+            {
+                if (v == _volume || !v.isGlobal || v.sharedProfile == null) continue;
+                if (v.sharedProfile.TryGet<Vignette>(out var other) && other.intensity.overrideState)
+                    _sceneVignette = Mathf.Max(_sceneVignette, other.intensity.value);
+            }
+            return _sceneVignette;
+        }
+
         private void OnDestroy()
         {
             if (_profile != null) Destroy(_profile);
@@ -65,7 +83,7 @@ namespace Weizza
             var danger = Mathf.Clamp01(1f - health / Mathf.Max(0.01f, threshold));
 
             var beat = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * pulseHz * Mathf.PI * 2f);
-            _vignette.intensity.Override(danger * maxIntensity * beat);
+            _vignette.intensity.Override(Mathf.Max(SceneVignette(), danger * maxIntensity * beat));
             _volume.weight = danger > 0f ? 1f : 0f;
         }
     }
