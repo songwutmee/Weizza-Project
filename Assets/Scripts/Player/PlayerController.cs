@@ -1148,7 +1148,8 @@ namespace Weizza
             // idle/run/jump logic below would stomp it the instant it started.
             if (State == PlayerState.Attack) return;
 
-            if (State == PlayerState.Hurt)
+            // Iron never flinches, so Than keeps its normal pose through a hit and plays no hurt drawing.
+            if (State == PlayerState.Hurt && !(CurrentStance != null && CurrentStance.hyperArmor))
             {
                 animator.Play(hurtClip);
                 return;
