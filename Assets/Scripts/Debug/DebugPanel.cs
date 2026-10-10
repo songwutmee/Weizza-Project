@@ -599,7 +599,17 @@ namespace Weizza
 
         private void EnsureStyles()
         {
-            if (_h1 != null) return;
+            // A texture Unity destroyed (scene streaming, a reload) leaves its style looking
+            // fine while it draws nothing, so the panel lost its background until the next Play.
+            // Check the textures themselves and rebuild everything when one is gone.
+            if (_h1 != null && _button.normal.background != null
+                && (_panelStyle == null || _panelStyle.normal.background != null)
+                && (_cardStyle == null || _cardStyle.normal.background != null)) return;
+            _panelStyle = null;
+            _cardStyle = null;
+            _chipLabel = null;
+            _tintedButtons.Clear();
+            _white = Texture2D.whiteTexture;
 
             var font = GUI.skin.font;
 
