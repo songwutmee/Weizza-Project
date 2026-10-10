@@ -8,10 +8,10 @@ namespace Weizza
     /// <summary>
     /// The beetle's idle: it sleeps inside a flower bed and its shell blends in, so
     /// while it is dormant all the player sees is a clump of the forest's own
-    /// animated plants. When the fight wakes it the plants are torn up and thrown
+    /// bushes. When the fight wakes it the plants are torn up and thrown
     /// aside and the beetle is there.
     ///
-    /// The plants are the same Plant Animations the rest of the forest uses, so the
+    /// The bushes are the forest pack's own fern clusters, swaying like the rest, so the
     /// clump does not stand out by style. What gives it away is the light: a warm
     /// glow sits under it and spores drift up out of it, the way Ori's forest marks
     /// something alive. A player who looks twice can tell this one bush is breathing.
@@ -20,18 +20,13 @@ namespace Weizza
     [RequireComponent(typeof(MiniBossBrain))]
     public sealed class FlowerDisguise : MonoBehaviour
     {
-        [Serializable]
-        public sealed class PlantClip
-        {
-            [HideLabel] public string name = "Plant";
-            public Sprite[] frames = Array.Empty<Sprite>();
-            [PropertyRange(4f, 30f)] public float fps = 18f;
-        }
-
         [BoxGroup("Plants", centerLabel: true)]
-        [InfoBox("Filled from Main_Mock/Plant Animations by the button below. Every plant in the clump picks one of these at random.")]
-        [ListDrawerSettings(ShowFoldout = true, DefaultExpandedState = false)]
-        [SerializeField] private List<PlantClip> plants = new();
+        [InfoBox("Bush drawings from the Forest Silhouette pack (the fern clusters). The Fill button below loads them.")]
+        [SerializeField] private Sprite[] bushes = Array.Empty<Sprite>();
+
+        [BoxGroup("Plants")]
+        [Tooltip("Weizza/SpriteSway material, so the bushes sway in the wind like the rest of the forest.")]
+        [SerializeField] private Material swayMaterial;
 
         [BoxGroup("Plants")]
         [PropertyRange(3, 16)]
@@ -43,7 +38,7 @@ namespace Weizza
 
         [BoxGroup("Plants")]
         [Tooltip("Smallest and largest plant, as a scale of the art.")]
-        [SerializeField] private Vector2 plantScale = new(0.8f, 1.35f);
+        [SerializeField] private Vector2 plantScale = new(0.5f, 0.85f);
 
         [BoxGroup("Light", centerLabel: true)]
         [SerializeField] private Color glowColour = new(1f, 0.78f, 0.55f);
@@ -62,8 +57,7 @@ namespace Weizza
         private sealed class Plant
         {
             public SpriteRenderer sr;
-            public PlantClip clip;
-            public float time, fps, scale;
+            public float scale;
             public Vector2 home, fling;
             public float spin;
         }
@@ -119,8 +113,6 @@ namespace Weizza
         private void TickAlive(float t)
         {
             var dt = Time.deltaTime;
-            foreach (var p in _plants) Animate(p, dt);
-
             for (var i = 0; i < _glows.Count; i++)
             {
                 // The light under the clump breathes slowly, each pool on its own beat.
@@ -148,7 +140,6 @@ namespace Weizza
             foreach (var p in _plants)
             {
                 // Torn up and thrown aside, spinning, shrinking as it goes.
-                Animate(p, dt);
                 p.fling.y -= 14f * dt;
                 p.sr.transform.localPosition += (Vector3)(p.fling * dt);
                 p.sr.transform.Rotate(0f, 0f, p.spin * dt);
@@ -170,13 +161,6 @@ namespace Weizza
             }
 
             if (k >= 1f) Clear();
-        }
-
-        private static void Animate(Plant p, float dt)
-        {
-            if (p.clip.frames.Length == 0) return;
-            p.time += dt * p.fps;
-            p.sr.sprite = p.clip.frames[(int)p.time % p.clip.frames.Length];
         }
 
         private void Hide(bool hide)
@@ -232,27 +216,28 @@ namespace Weizza
                 _glows.Add(glow);
             }
 
-            var usable = new List<PlantClip>();
-            foreach (var clip in plants) if (clip != null && clip.frames != null && clip.frames.Length > 0) usable.Add(clip);
-
-            for (var i = 0; usable.Count > 0 && i < plantCount; i++)
+            for (var i = 0; bushes.Length > 0 && i < plantCount; i++)
             {
-                var clip = usable[_rng.Next(usable.Count)];
+                var sprite = bushes[_rng.Next(bushes.Length)];
+                if (sprite == null) continue;
                 // Taller plants toward the middle, so the clump has a crown like a real bush.
                 var spread = (i + Range(0.2f, 0.8f)) / plantCount - 0.5f;
                 var middle = 1f - Mathf.Abs(spread) * 1.4f;
                 var p = new Plant
                 {
-                    clip = clip,
-                    fps = clip.fps * Range(0.8f, 1.2f),
-                    time = Range(0f, clip.frames.Length),
                     scale = Mathf.Lerp(plantScale.x, plantScale.y, Mathf.Clamp01(middle + Range(-0.2f, 0.2f))),
-                    sr = Make("Plant", _clump, clip.frames[0], layer, order + _rng.Next(3)),
+                    sr = Make("Bush", _clump, sprite, layer, order + _rng.Next(3)),
                 };
-                p.home = new Vector2(spread * clumpWidth, GroundOffset(clip.frames[0]) * p.scale);
+                p.home = new Vector2(spread * clumpWidth, GroundOffset(sprite) * p.scale);
                 p.sr.transform.localPosition = p.home;
                 p.sr.transform.localScale = Vector3.one * p.scale;
                 p.sr.flipX = _rng.NextDouble() < 0.5;
+                // Sways in the same wind as the rest of the forest, so it hides in plain sight.
+                if (swayMaterial != null)
+                {
+                    p.sr.sharedMaterial = swayMaterial;
+                    p.sr.gameObject.AddComponent<SpriteSway>().Configure(false, 0.14f);
+                }
                 _plants.Add(p);
             }
 
@@ -302,31 +287,21 @@ namespace Weizza
         private static Color WithAlpha(Color c, float a) => new(c.r, c.g, c.b, a);
 
 #if UNITY_EDITOR
-        private const string PlantFolder = "Assets/Mock_Asset/Main_Mock/Plant Animations";
-
-        // The poison and jump plants are left out on purpose: their names promise
-        // mechanics, and a disguise must not look like a hazard.
-        private static readonly string[] PlantNames =
-            { "BlueFlower1", "BlueFlower2", "Plant 1", "Plant 2", "Plant 3", "Plant 4", "Plant 5", "Plant 6", "Plant 7", "Plant Wind 1" };
+        private const string PackFolder = "Assets/Mock_Asset/Forest_Silhouette_01/Lv4 nearBG/";
+        private const string SwayMaterialPath = "Assets/GameData/Atmosphere/SpriteSway.mat";
 
         [BoxGroup("Plants")]
-        [Button("Load plants from Plant Animations", ButtonSizes.Large), GUIColor(0.55f, 0.85f, 0.55f)]
-        public void LoadPlants()
+        [Button("Fill from the Forest Silhouette ferns", ButtonSizes.Large), GUIColor(0.55f, 0.85f, 0.55f)]
+        public void LoadBushes()
         {
-            plants.Clear();
-            foreach (var plantName in PlantNames)
+            var list = new List<Sprite>();
+            for (var i = 1; i <= 7; i++)
             {
-                var folder = $"{PlantFolder}/{plantName}";
-                if (!UnityEditor.AssetDatabase.IsValidFolder(folder)) continue;
-                var frames = new List<Sprite>();
-                foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:Sprite", new[] { folder }))
-                {
-                    var sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
-                    if (sprite != null) frames.Add(sprite);
-                }
-                frames.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
-                if (frames.Count > 0) plants.Add(new PlantClip { name = plantName, frames = frames.ToArray() });
+                var sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(PackFolder + "L4_fernCluster" + i + ".png");
+                if (sprite != null) list.Add(sprite);
             }
+            bushes = list.ToArray();
+            swayMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>(SwayMaterialPath);
             UnityEditor.EditorUtility.SetDirty(this);
         }
 #endif
