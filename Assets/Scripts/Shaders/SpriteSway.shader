@@ -66,6 +66,8 @@ Shader "Weizza/SpriteSway"
                 float _Hanging;
             CBUFFER_END
 
+            float4 _WindA;   // set by WindField.cs, outside the material buffer on purpose
+
             Varyings Vert(Attributes input)
             {
                 SetUpSpriteInstanceProperties();
@@ -83,9 +85,24 @@ Shader "Weizza/SpriteSway"
                 float t = _Time.y * _Speed;
                 float wave = sin(t + phase) * 0.7 + sin(t * 2.3 + phase * 1.7) * 0.3;
 
+                // Shared wind from WindField.cs. Without one in the scene these globals
+                // are zero, so fall back to a mild default instead of a dead forest.
+                // x gust speed (m/s), y gust amount, z gust length (m), w direction (+1 right).
+                float4 wind = _WindA.z > 0.01 ? _WindA : float4(3.0, 0.7, 16.0, 1.0);
+                float travel = (origin.x - _Time.y * wind.x) / wind.z * 6.2831;
+                // A gust is a slow bump that rolls along the level: plants lean one after
+                // another as it passes, then ease back. Two lengths so it is never regular.
+                float g1 = pow(saturate(0.5 + 0.5 * sin(travel)), 2.0);
+                float g2 = 0.65 + 0.35 * sin(travel * 0.43 + 1.3);
+                float gust = g1 * g2 * wind.y;
+                // The wind leans a plant one way, the shake rides on top of the lean.
+                float lean = (0.18 + gust) * wind.w;
+                float flutter = wave * (0.22 + gust * 0.5);
+                float tipFlutter = sin(_Time.y * 6.3 + phase * 3.1) * along * along * along * gust * 0.18;
+
                 // Strength is in metres, so undo the object's own scale.
                 float scaleX = max(length(GetObjectToWorldMatrix()._m00_m10_m20), 1e-4);
-                input.positionOS.x += wave * bend * _Strength / scaleX;
+                input.positionOS.x += (lean + flutter + tipFlutter) * bend * _Strength / scaleX;
 
                 Varyings o = CommonUnlitVertex(input);
                 o.color = input.color * _Color * unity_SpriteColor;
