@@ -1599,7 +1599,7 @@ MonoBehaviour:
   groundReach: 0.3
   worldBrightness: {x: 0.85, y: 1.1}
   worldRange: {x: 0, y: 160}
-  sunPosition: {x: 0.82, y: 0.82}
+  sunPosition: {x: 0.78, y: 0.74}
   sunRadius: 0.5
   sunColour: {r: 1, g: 0.92, b: 0.62, a: 1}
   sunIntensity: 1.2
@@ -1609,6 +1609,11 @@ MonoBehaviour:
   beamDrift: 0.12
   lightBreath: 0.14
   shimmer: 0
+  rayReach: 0.9
+  shadeDepth: 0.22
+  skyWindow: {x: 0.36, y: 0.68}
+  rayBlur: 1
+  sunShade: 0.2
   glareZones:
   - from: 52
     to: 66
@@ -1957,7 +1962,7 @@ SpriteRenderer:
   m_SortingOrder: -2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
-  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.6014}
+  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.62}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
