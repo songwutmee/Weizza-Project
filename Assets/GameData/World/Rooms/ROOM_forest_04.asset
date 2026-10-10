@@ -18,12 +18,14 @@ MonoBehaviour:
   displayNameKey: ROOM_FOREST_04
   worldRect:
     serializedVersion: 2
-    x: 114
+    x: 120
     y: -14
     width: 40
     height: 40
-  neighbours: []
-  mapColour: {r: 0.55, g: 0.72, b: 0.58, a: 1}
+  neighbours:
+  - roomId: forest_03
+    link: 0
+  mapColour: {r: 0.4875, g: 0.75, b: 0.65812504, a: 1}
   hiddenUntilVisited: 1
   pins: []
   musicId: 

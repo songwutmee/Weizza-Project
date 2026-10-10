@@ -18,13 +18,15 @@ MonoBehaviour:
   displayNameKey: ROOM_FOREST_01
   worldRect:
     serializedVersion: 2
-    x: -6
+    x: 0
     y: -14
     width: 40
     height: 40
-  neighbours: []
+  neighbours:
+  - roomId: forest_02
+    link: 0
   mapColour: {r: 0.4875, g: 0.75, b: 0.65812504, a: 1}
   hiddenUntilVisited: 1
   pins: []
   musicId: 
-  ambienceId: amb.forest
+  ambienceId: 

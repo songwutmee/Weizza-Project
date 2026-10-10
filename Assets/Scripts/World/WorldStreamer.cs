@@ -78,7 +78,20 @@ namespace Weizza
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void EnsureExists()
         {
-            if (Instance != null || WorldAtlas.Load() == null) return;
+            var atlas = WorldAtlas.Load();
+            if (Instance != null || atlas == null) return;
+
+            // Only stream when the world is in use: its core scene or one of its rooms
+            // is open. A scene of its own (a prototype, a test map) must not have the
+            // atlas's rooms pulled in around its player.
+            var inUse = false;
+            for (var i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var open = SceneManager.GetSceneAt(i).name;
+                if (open == atlas.coreScene || atlas.FindByScene(open) != null) inUse = true;
+            }
+            if (!inUse) return;
+
             var go = new GameObject("World Streamer");
             DontDestroyOnLoad(go);
             go.AddComponent<WorldStreamer>();
