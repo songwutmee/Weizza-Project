@@ -654,7 +654,7 @@ namespace Weizza.EditorTools
         // A thicket of the forest's own trees, ferns and bushes pulled into the foreground and
         // tinted black. Dense in the middle and thinning at the ends, so it reads as growth,
         // not a wall. The player walks through it before the room opens up.
-        private static void Thicket(RoomRoot chunk, float xFrom, float xTo)
+        private static void Thicket(RoomRoot chunk, float xFrom, float xTo, float thin = 1f)
         {
             var fg = Scenery(chunk, "4 Foreground Silhouette");
             var ferns = new SpriteRenderer[7];
@@ -666,7 +666,7 @@ namespace Weizza.EditorTools
 
             // Big dark trunks standing in front of the player, the way Neva shows its forest
             // edge: full height, near black, each a little different so they do not read as a fence.
-            for (var x = xFrom; x <= xTo; x += R(1.7f, 2.9f), n++)
+            for (var x = xFrom; x <= xTo; x += R(1.7f, 2.9f) / thin, n++)
             {
                 var tpl = Tpl("L1_TrunkFar" + (1 + _rng.Next(7)));
                 var go = Foreground(tpl, chunk, fg, x, R(1.15f, 1.55f), -1.0f, R(0.015f, 0.07f), 6 + n % 6);
@@ -676,7 +676,7 @@ namespace Weizza.EditorTools
             // Bushes and ferns around the feet, thicker toward the middle.
             for (var x = xFrom; x <= xTo; x += 0.6f)
             {
-                var density = 1f - Mathf.Abs(x - mid) / half * 0.7f;
+                var density = (1f - Mathf.Abs(x - mid) / half * 0.7f) * thin;
                 if (_rng.NextDouble() > density) continue;
                 if (_rng.NextDouble() < 0.7)
                 {
@@ -793,6 +793,118 @@ namespace Weizza.EditorTools
             Physics.SyncTransforms();
             EditorSceneManager.SaveOpenScenes();
             ColliderTable(118f, 240f);
+            File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
+        }
+
+        // ---- Polish pass: the new sketch frames, save lights, thinner boss thickets ----
+
+        private const string SketchRoot = "Assets/Mock_Asset/Sketch_Character/";
+
+        // The new frames are imported like the cleaned idle ones, so they stand the same size
+        // on the same foot point.
+        private static void ImportSketchFolder(string folder)
+        {
+            var reference = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Mock_Asset/Sketch_Character_Clean/Idle_Sketch/In_Idle_0001.png");
+            var refImporter = (TextureImporter)AssetImporter.GetAtPath("Assets/Mock_Asset/Sketch_Character_Clean/Idle_Sketch/In_Idle_0001.png");
+            var settings = new TextureImporterSettings();
+            refImporter.ReadTextureSettings(settings);
+            foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { SketchRoot + folder }))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.SetTextureSettings(settings);
+                importer.spritePixelsPerUnit = refImporter.spritePixelsPerUnit;
+                importer.spritePivot = refImporter.spritePivot;
+                importer.filterMode = refImporter.filterMode;
+                importer.mipmapEnabled = false;
+                importer.SaveAndReimport();
+            }
+            if (reference == null) Report.AppendLine("no reference idle frame");
+        }
+
+        [MenuItem("Weizza/Act 0/Polish Pass")]
+        public static void PolishPass()
+        {
+            Report.Clear();
+            Templates.Clear();
+            _rng = new System.Random(61);
+            for (var x = 20f; x < 400f; x += 40f) ChunkPainting.ChunkAt(x, true);
+            CacheTemplates();
+
+            // 1. New player frames: hurt, death, and the wake up.
+            foreach (var folder in new[] { "Hurt_Sketch", "Death_Sketch", "Respawn_Sketch" }) ImportSketchFolder(folder);
+            var player = Object.FindFirstObjectByType<PlayerController>();
+            var animator = player.GetComponentInChildren<SpriteAnimator>();
+            animator.AddClipFromFolder(SketchRoot + "Hurt_Sketch", "Hurt", 9f, false);
+            animator.AddClipFromFolder(SketchRoot + "Death_Sketch", "Common_Death", 14f, false);
+            // A slow wake: each of the two drawings holds a long beat.
+            animator.AddClipFromFolder(SketchRoot + "Respawn_Sketch", "Common_Revive", 0.6f, false);
+            EditorUtility.SetDirty(animator);
+            EditorSceneManager.MarkSceneDirty(animator.gameObject.scene);
+
+            // 2. The opening: wake up in the two drawings, idle a moment, walk a little, then play.
+            var field = typeof(CutsceneDirector).GetField("beats", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            foreach (var cd in Object.FindObjectsByType<CutsceneDirector>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (cd.name != "Cutscene Wake") continue;
+                CutsceneBeat B(CutsceneBeatKind k) => new CutsceneBeat { kind = k };
+                var beats = new List<CutsceneBeat>();
+                var lockBeat = B(CutsceneBeatKind.LockInput); lockBeat.lockReason = "wake"; beats.Add(lockBeat);
+                var hudOff = B(CutsceneBeatKind.HudVisible); hudOff.hudShow = false; beats.Add(hudOff);
+                var barsOn = B(CutsceneBeatKind.Letterbox); barsOn.letterboxShow = true; barsOn.seconds = 0.5f; beats.Add(barsOn);
+                var revive = B(CutsceneBeatKind.PlayAnimation); revive.actorId = "Player"; revive.animationName = "Common_Revive"; revive.waitForEnd = true; beats.Add(revive);
+                var idle = B(CutsceneBeatKind.PlayAnimation); idle.actorId = "Player"; idle.animationName = "Idle"; idle.waitForEnd = false; beats.Add(idle);
+                var rest = B(CutsceneBeatKind.Wait); rest.seconds = 1.6f; beats.Add(rest);
+                var walk = B(CutsceneBeatKind.MoveActor); walk.actorId = "Player"; walk.targetStageId = "Wake_Walk"; walk.moveSpeed = 1.5f; beats.Add(walk);
+                var barsOff = B(CutsceneBeatKind.Letterbox); barsOff.letterboxShow = false; barsOff.seconds = 0.5f; beats.Add(barsOff);
+                beats.Add(B(CutsceneBeatKind.UnlockInput));
+                var hudOn = B(CutsceneBeatKind.HudVisible); hudOn.hudShow = true; beats.Add(hudOn);
+                field.SetValue(cd, beats.ToArray());
+                EditorUtility.SetDirty(cd);
+                EditorSceneManager.MarkSceneDirty(cd.gameObject.scene);
+                Report.AppendLine("wake cutscene beats " + beats.Count);
+            }
+            foreach (var s in Object.FindObjectsByType<StoryKit.Bridge.StoryStageId>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (s.Id != "Wake_Walk") continue;
+                s.transform.position = new Vector3(5.2f, GroundY(5.2f), 0f);
+                EditorSceneManager.MarkSceneDirty(s.gameObject.scene);
+            }
+            var motor = player.GetComponent<CharacterController>();
+            motor.enabled = false;
+            player.transform.position = new Vector3(2.2f, 0.3f, 0f);
+            motor.enabled = true;
+            EditorSceneManager.MarkSceneDirty(player.gameObject.scene);
+
+            // 3. The beetle can simply be beaten: no forced death on the placed one either.
+            foreach (var brain in Object.FindObjectsByType<MiniBossBrain>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var so = new SerializedObject(brain);
+                so.FindProperty("forcedDeath").boolValue = false;
+                so.ApplyModifiedProperties();
+                EditorSceneManager.MarkSceneDirty(brain.gameObject.scene);
+                Report.AppendLine("beetle forcedDeath " + so.FindProperty("forcedDeath").boolValue);
+            }
+
+            // 4. Lighter thickets around the boss room.
+            RemoveOldThickets();
+            Thicket(ChunkPainting.ChunkAt(170f, true), 164f, 174f, 0.6f);
+            Thicket(ChunkPainting.ChunkAt(227f, true), 222f, 232f, 0.6f);
+
+            // 5. Every checkpoint becomes a light to rest at.
+            var saves = 0;
+            foreach (var cp in Object.FindObjectsByType<Checkpoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (cp.GetComponent<SavePoint>() == null) cp.gameObject.AddComponent<SavePoint>();
+                EditorSceneManager.MarkSceneDirty(cp.gameObject.scene);
+                saves++;
+            }
+            Report.AppendLine("save points " + saves);
+
+            EditorSceneManager.SaveOpenScenes();
+            AssetDatabase.SaveAssets();
             File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
         }
 
