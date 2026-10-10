@@ -1198,7 +1198,7 @@ Transform:
   m_GameObject: {fileID: 613209668}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 34, y: 15.043333, z: 0}
+  m_LocalPosition: {x: 36.39, y: 15.043333, z: 0}
   m_LocalScale: {x: 0.6, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1854,7 +1854,6 @@ GameObject:
   - component: {fileID: 1038700543}
   - component: {fileID: 1038700545}
   - component: {fileID: 1038700544}
-  - component: {fileID: 1038700546}
   m_Layer: 2
   m_Name: Checkpoint 3
   m_TagString: Untagged
@@ -1912,21 +1911,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.5, y: 3, z: 2}
   m_Center: {x: 0, y: 1.5, z: 0}
---- !u!114 &1038700546
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1038700542}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f2000015cbf3e7458d87ca201da975f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SavePoint
-  range: 2.4
-  tint: {r: 1, g: 0.86, b: 0.5, a: 1}
-  motes: 5
 --- !u!1 &1038949384
 GameObject:
   m_ObjectHideFlags: 0
