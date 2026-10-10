@@ -64,6 +64,14 @@ namespace Weizza
         public Vector2 artOffset;
 
         [FoldoutGroup("Frames and offsets")]
+        [ToggleLeft]
+        [Tooltip("This clip is drawn facing the other way from the character's other clips, " +
+                 "so it is mirrored. Sheets drawn by different people disagree about " +
+                 "which way is forward, and the swing, the hitbox and the slash all follow " +
+                 "the real facing, so a clip that looks the wrong way reads as a bug.")]
+        public bool mirror;
+
+        [FoldoutGroup("Frames and offsets")]
         [Tooltip("Frames that raise FrameEvent. Footsteps, dust, a shout. " +
                  "Gameplay timing does not come from here, the attack data owns that.")]
         public int[] eventFrames;
@@ -302,7 +310,11 @@ namespace Weizza
             Finished = false;
             _lastEventFrame = -1;
 
-            if (facing != null) facing.ArtOffset = clip.artOffset;
+            if (facing != null)
+            {
+                facing.ArtOffset = clip.artOffset;
+                facing.ClipMirror = clip.mirror;
+            }
             SetFrame(0);
         }
 

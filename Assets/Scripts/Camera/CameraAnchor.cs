@@ -38,6 +38,13 @@ namespace Weizza
                  "into a pit leaves the camera looking at the ledge.")]
         [SerializeField] private float followFallAfter = 3f;
 
+        [TitleGroup("Height")]
+        [PropertyRange(0f, 6f)]
+        [Tooltip("A floor this much higher or lower than the one the camera is on does not move it. " +
+                 "Hopping onto a rock or a stump should not drag the whole frame up and down; " +
+                 "only a real change of level, a cliff or a hill, should.")]
+        [SerializeField] private float stepIgnoreHeight = 3f;
+
         private float _floorY;
         private float _velocity;
         private bool _started;
@@ -62,7 +69,7 @@ namespace Weizza
             // Falling past the threshold counts as a new floor even in mid air.
             // A long drop is the one case where the player genuinely needs to
             // see where they are going before they get there.
-            if (grounded || here.y < _floorY - followFallAfter)
+            if ((grounded && Mathf.Abs(here.y - _floorY) > stepIgnoreHeight) || here.y < _floorY - followFallAfter)
             {
                 _floorY = here.y;
             }
