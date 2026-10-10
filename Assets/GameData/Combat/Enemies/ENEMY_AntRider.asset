@@ -34,11 +34,29 @@ MonoBehaviour:
     attack: {fileID: 11400000, guid: 8b431377a55c543468833e65a3c456fb, type: 2}
     weight: 1
     range: {x: 0.3, y: 1.7}
-    cooldown: 1
+    cooldown: 0.7
     telegraphFrames: 0
     telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
     telegraphClip: Idle
     travelSpeed: 0
+    travelClip: Attack
+    travelTowardTarget: 0
+    projectile: {fileID: 0}
+    shotCount: 1
+    spreadDegrees: 0
+    leadTarget: 0
+    highArc: 1
+    muzzle: {x: 0.4, y: 0.8}
+    jumpHeight: 0
+  - id: lunge
+    attack: {fileID: 11400000, guid: 8b431377a55c543468833e65a3c456fb, type: 2}
+    weight: 1
+    range: {x: 2, y: 3.6}
+    cooldown: 3.5
+    telegraphFrames: 0
+    telegraphTint: {r: 1, g: 0.93, b: 0.5, a: 1}
+    telegraphClip: Idle
+    travelSpeed: 9
     travelClip: Attack
     travelTowardTarget: 0
     projectile: {fileID: 0}
