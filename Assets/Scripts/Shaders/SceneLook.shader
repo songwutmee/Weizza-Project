@@ -40,8 +40,6 @@ Shader "Weizza/SceneLook"
             float4 _LookTintLeft, _LookTintRight;
             float _LookContrast, _LookSaturation, _LookShimmer, _LookBreath;
             float4 _LookRay;         // x reach toward the sun, y z sky brightness window, w shade depth
-            float _LookRayBlur;      // width of the soft tap spread along each ray, 0 is razor sharp
-            float _LookSunShade;     // how far the frame dims and cools when the sun is covered
 
             half Luma(half3 c) { return dot(c, half3(0.299, 0.587, 0.114)); }
 
@@ -104,62 +102,31 @@ Shader "Weizza/SceneLook"
                 float breath = 1.0 + _LookBreath * (sin(t * 0.7) * 0.6 + sin(t * 1.9 + 1.3) * 0.4);
                 float reach = exp(-length(toSun * float2(aspect, 1.0)) * 1.1);
 
-                // Is the sun itself showing? Three rings of taps around it, wide enough that a
-                // single leaf gap never decides the answer, then eased with a smoothstep. A
-                // crown or a trunk drifting across the sun is the biggest shadow there is: the
-                // sun and its beams fade and the frame cools a little, then it all comes back.
-                float sunSeen = 0.0;
-                float sunWeight = 0.0;
-                [unroll] for (int ring = 0; ring < 3; ring++)
-                {
-                    float ringRadius = 0.035 + 0.05 * ring;
-                    [unroll] for (int k = 0; k < 8; k++)
-                    {
-                        float a = k * 0.785398 + ring * 0.39;
-                        float2 o = float2(cos(a) / aspect, sin(a)) * ringRadius;
-                        half ss = Luma(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, _LookSunPos.xy + o).rgb);
-                        float w = ring == 0 ? 1.5 : 1.0;
-                        sunSeen += smoothstep(_LookRay.y, _LookRay.z, ss) * w;
-                        sunWeight += w;
-                    }
-                }
-                sunSeen = smoothstep(0.2, 0.85, sunSeen / sunWeight);
-
                 // Light that trees really block. March from this pixel toward the sun and
                 // count how much open sky it passes over: a trunk or a crown in the way
                 // cuts the light, so rays only reach pixels with clear sky between them
                 // and the sun, and every tree throws a shadow streak away from the sun.
                 // The art is dark silhouettes on bright sky, so brightness is the occluder.
-                float2 toSunUv = _LookSunPos.xy - uv;
-                float2 step = toSunUv * (_LookRay.x / 20.0);
-                float2 sideA = normalize(float2(-toSunUv.y, toSunUv.x * aspect * aspect) + 1e-5);
-                float2 side = float2(sideA.x / aspect, sideA.y);
+                float2 step = (_LookSunPos.xy - uv) * (_LookRay.x / 28.0);
                 float openSky = 0.0;
                 float weight = 0.0;
                 float decay = 1.0;
-                [loop] for (int i = 1; i <= 20; i++)
+                [loop] for (int i = 1; i <= 28; i++)
                 {
-                    // Three taps spread across the ray, wider the further out, so one leaf edge
-                    // sliding past never flips a whole ray on and off. That was the flicker.
-                    float spread = _LookRayBlur * (0.006 + 0.024 * (i / 20.0));
                     float2 p = uv + step * i;
-                    half s0 = Luma(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, p).rgb);
-                    half s1 = Luma(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, p + side * spread).rgb);
-                    half s2 = Luma(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, p - side * spread).rgb);
-                    half s = s0 * 0.5 + (s1 + s2) * 0.25;
+                    half s = Luma(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, p).rgb);
                     openSky += smoothstep(_LookRay.y, _LookRay.z, s) * decay;
                     weight += decay;
-                    decay *= 0.95;
+                    decay *= 0.965;
                 }
                 openSky /= max(0.001, weight);
 
                 // Moving light on top of the real shadows, so the beams drift and swell.
                 half haze = saturate(L * 1.6 + 0.15);
                 float shaft = openSky * openSky * (0.45 + 0.55 * saturate(beams));
-                col += _LookSunColor.rgb * shaft * reach * _LookShaft.x * haze * breath * 2.2 * (0.3 + 0.7 * sunSeen);
+                col += _LookSunColor.rgb * shaft * reach * _LookShaft.x * haze * breath * 2.2;
                 // And the shade itself: where the sun is blocked the frame sits a little darker.
                 col *= lerp(1.0 - _LookRay.w, 1.0, saturate(openSky * 1.3));
-                col *= lerp(1.0 - _LookSunShade, 1.0, sunSeen) * lerp(float3(0.92, 0.98, 1.0), float3(1, 1, 1), sunSeen);
 
                 // 4. The sun itself: a hot core and a wide glow, past 1 so bloom blows it out.
                 float2 d = (uv - _LookSunPos.xy) * float2(aspect, 1.0);
@@ -167,7 +134,7 @@ Shader "Weizza/SceneLook"
                 float rad = max(0.01, _LookSunPos.z);
                 float core = exp(-r2 / (rad * rad * 0.08));
                 float glow = exp(-r2 / (rad * rad));
-                col += _LookSunColor.rgb * _LookSunColor.a * (core * 2.5 + glow * 0.22) * (0.35 + L) * breath * (0.3 + 0.7 * sunSeen);
+                col += _LookSunColor.rgb * _LookSunColor.a * (core * 2.5 + glow * 0.22) * (0.35 + L) * breath;
 
                 return half4(col, src.a);
             }
