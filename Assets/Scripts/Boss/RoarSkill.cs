@@ -64,6 +64,8 @@ namespace Weizza
             // The player watches the roar, then gets the fight. Released in Abort, which
             // always runs, so a cancelled roar can never leave the player frozen.
             _lock = StoryKit.StoryControl.Lock("Boss roar");
+            // Nothing on screen but the roar. The HUD returns with the name card.
+            HudScreen.Instance?.SetVisible(false);
             try
             {
                 if (_body != null) _body.Held = true;
@@ -96,6 +98,7 @@ namespace Weizza
                 // appears, and the boss only watches until the name has gone, so the first
                 // swing never lands on someone who has not had a chance to move yet.
                 _rig?.HoldPose(null, 0f);
+                HudScreen.Instance?.SetVisible(true);
                 HudScreen.Instance?.TitleCard(brain.BossName, cardSeconds);
                 _lock?.Dispose();
                 _lock = null;
@@ -109,6 +112,7 @@ namespace Weizza
 
         public override void Abort()
         {
+            HudScreen.Instance?.SetVisible(true);
             _lock?.Dispose();
             _lock = null;
             foreach (var go in _spawned) if (go != null) Destroy(go);
