@@ -19,6 +19,8 @@ namespace Weizza
         PlayAnimation,
         LookAt,
         Wait,
+        HudVisible,
+        Dialogue,
     }
 
     /// <summary>
@@ -73,6 +75,14 @@ namespace Weizza
         [ShowIf("@kind == CutsceneBeatKind.LookAt")]
         [Tooltip("A StoryStageId placed in the scene to face toward.")]
         public string lookAtStageId;
+
+        [ShowIf("@kind == CutsceneBeatKind.HudVisible")]
+        [ToggleLeft, LabelText("Show HUD")]
+        public bool hudShow;
+
+        [ShowIf("@kind == CutsceneBeatKind.Dialogue")]
+        [Tooltip("Plays this conversation and waits until it ends.")]
+        public Narrative.Conversation conversation;
 
         private Color KindColour() => kind switch
         {
@@ -219,6 +229,20 @@ namespace Weizza
                     var looker = StoryServices.Get<IActorService>()?.Find(beat.actorId);
                     var lookTarget = StoryStageId.FindTransform(beat.lookAtStageId);
                     if (looker != null && lookTarget != null) looker.LookAt(lookTarget.position);
+                    break;
+
+                case CutsceneBeatKind.HudVisible:
+                    HudScreen.Instance?.SetVisible(beat.hudShow);
+                    break;
+
+                case CutsceneBeatKind.Dialogue:
+                    if (beat.conversation != null && Narrative.DialogueDirector.Instance != null)
+                    {
+                        Narrative.DialogueDirector.Instance.Play(beat.conversation);
+                        // Talking turns true on the next frame, so wait one before watching it.
+                        await UniTask.Yield(PlayerLoopTiming.Update, ct);
+                        while (Narrative.DialogueDirector.Talking) await UniTask.Yield(PlayerLoopTiming.Update, ct);
+                    }
                     break;
 
                 case CutsceneBeatKind.Wait:

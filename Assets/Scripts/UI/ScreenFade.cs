@@ -141,6 +141,10 @@ namespace Weizza
 
         void IScreenUI.SetHudVisible(bool visible)
         {
+            // The runtime HUD is UI Toolkit now, not an object that can be switched off.
+            var hud = HudScreen.Instance;
+            if (hud != null) hud.SetVisible(visible);
+
             if (hudRoot != null)
             {
                 hudRoot.SetActive(visible);
