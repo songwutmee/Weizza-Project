@@ -846,6 +846,7 @@ GameObject:
   - component: {fileID: 404911704}
   - component: {fileID: 404911703}
   - component: {fileID: 404911702}
+  - component: {fileID: 404911705}
   m_Layer: 0
   m_Name: L4_trunkWithPod2
   m_TagString: Untagged
@@ -921,7 +922,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -954,6 +955,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &404911705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 404911700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.16
 --- !u!1 &448025159
 GameObject:
   m_ObjectHideFlags: 0
@@ -1198,198 +1213,6 @@ SpriteRenderer:
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 7.1222224, y: 12}
-  m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
-  m_SpriteSortPoint: 0
---- !u!1 &552875805
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 552875806}
-  - component: {fileID: 552875809}
-  - component: {fileID: 552875808}
-  - component: {fileID: 552875807}
-  m_Layer: 0
-  m_Name: Plant Plant 4
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &552875806
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 552875805}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 33.5307, y: 17.232908, z: 0.12}
-  m_LocalScale: {x: 0.8492368, y: 0.8492368, z: 0.8492368}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1329770981}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &552875807
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 552875805}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b068de0a87a8d7541af000ae94c90a13, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.PaintedPiece
-  role: 0
-  source: 
---- !u!114 &552875808
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 552875805}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8eec9c06b6886a4cb54554faef03709, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteAnimator
-  target: {fileID: 552875809}
-  facing: {fileID: 0}
-  defaultClip: Idle
-  fallbackClip: 
-  clips:
-  - name: Idle
-    fps: 15.390842
-    loop: 1
-    hold: 1
-    frames:
-    - {fileID: 21300000, guid: 38151572b5ab69b448df96f439740d9f, type: 3}
-    - {fileID: 21300000, guid: 4568ff98daa241043b62863aab8ec450, type: 3}
-    - {fileID: 21300000, guid: 4d29dcd43589b5c45974694100d3e453, type: 3}
-    - {fileID: 21300000, guid: 7008db9242ce3c04da56595849c00b94, type: 3}
-    - {fileID: 21300000, guid: 9a9823ae8ddce804e8bbdb9d8357b3ce, type: 3}
-    - {fileID: 21300000, guid: 30e45ed281be40041bbc038efb107aa6, type: 3}
-    - {fileID: 21300000, guid: 5f81f89325f9d48409864d7cc3bdf62b, type: 3}
-    - {fileID: 21300000, guid: 1547357693f28d54cb1fd5daf5b0f1a7, type: 3}
-    - {fileID: 21300000, guid: 56b2d4e1960f49749aab03d45295dc86, type: 3}
-    - {fileID: 21300000, guid: 90aeda3590070f647af038c491c8e121, type: 3}
-    - {fileID: 21300000, guid: 94e8bc7f501517b4782ea2630cbd892a, type: 3}
-    - {fileID: 21300000, guid: 0a573596c0b1704419a626eab8682526, type: 3}
-    - {fileID: 21300000, guid: eb01c0cf42609914ead91639d03de486, type: 3}
-    - {fileID: 21300000, guid: a9716eff5a66a284585e71a6138b2adf, type: 3}
-    - {fileID: 21300000, guid: 53fbc7215c034164bb0ea2e7fe500a83, type: 3}
-    - {fileID: 21300000, guid: 08cb76c7eed218e47a45f57d411fe632, type: 3}
-    - {fileID: 21300000, guid: 79ac84a5f7eda7f40a5680a001030847, type: 3}
-    - {fileID: 21300000, guid: 837d9c51a8761e042a4a46e7920e7945, type: 3}
-    - {fileID: 21300000, guid: 2822ad969339ce2428e21e75da0ea63c, type: 3}
-    - {fileID: 21300000, guid: 57de8a0c78ab7944486d85cfcebe66e3, type: 3}
-    - {fileID: 21300000, guid: f4548709a03d45c4d825df7a5e112a93, type: 3}
-    - {fileID: 21300000, guid: 5d7db0bd68a4e4048b720d6337b18840, type: 3}
-    - {fileID: 21300000, guid: c9a101a5ec0dbed409e1219368a22781, type: 3}
-    - {fileID: 21300000, guid: 7b6dde27563a2ef45ab516f61c37d77e, type: 3}
-    - {fileID: 21300000, guid: db55d0d20bf9201498f42e0ebfede042, type: 3}
-    - {fileID: 21300000, guid: 425554783719c8440a1e96eea3c8b57f, type: 3}
-    - {fileID: 21300000, guid: 3e304df79f545904fa52eb6c2c3a6a14, type: 3}
-    - {fileID: 21300000, guid: ae1d691592607e9438423301d2596e95, type: 3}
-    - {fileID: 21300000, guid: 65bdcf0049236de49a2facf824dd61cf, type: 3}
-    - {fileID: 21300000, guid: a96e6105fa97c94479e9cfc78f03a610, type: 3}
-    - {fileID: 21300000, guid: 9e87e1d41b1bfd842b1629681599c147, type: 3}
-    - {fileID: 21300000, guid: 283a519db74d52243bb04871522388d5, type: 3}
-    - {fileID: 21300000, guid: 6d590dcdfc6f8e94893d27bc90dab1ef, type: 3}
-    - {fileID: 21300000, guid: 02f25b46565c62a49b0ff918cea97248, type: 3}
-    - {fileID: 21300000, guid: a73eef078ccf5e543ad23d507f437487, type: 3}
-    - {fileID: 21300000, guid: 0e9e30e8203fa044ca454f1ff5d1b687, type: 3}
-    - {fileID: 21300000, guid: 2eccc3d2f03cb2c468e0f517e1490520, type: 3}
-    - {fileID: 21300000, guid: 99833deb18380024e9a0db5fe0f55d3a, type: 3}
-    - {fileID: 21300000, guid: 94c34a900ba0c2049a3cbcaf8d1fdc04, type: 3}
-    - {fileID: 21300000, guid: 0550b5d8f95a1144681e7408a882c42a, type: 3}
-    - {fileID: 21300000, guid: 1abec9ec2edd398418104f504066c6eb, type: 3}
-    - {fileID: 21300000, guid: 06f3abb9313299d448bb74ef5f5e0847, type: 3}
-    - {fileID: 21300000, guid: d12140d861c13d940ac20dfc453f8fa9, type: 3}
-    - {fileID: 21300000, guid: e6dd9c3fac66b2747be17702198b1c72, type: 3}
-    - {fileID: 21300000, guid: 715ed13203795924b9bad87b7d17ab51, type: 3}
-    - {fileID: 21300000, guid: 2dd1203c51e9edd42954f11a4c3218c7, type: 3}
-    - {fileID: 21300000, guid: 7486dca4a72c3724bbefe626be2e17b1, type: 3}
-    - {fileID: 21300000, guid: b5a2bd09df037cb4f88612b83a73fbdc, type: 3}
-    - {fileID: 21300000, guid: 9bc57507296b0a9409fbc350481878ae, type: 3}
-    - {fileID: 21300000, guid: 4371005ebf8042a4ebbd08672de24ca0, type: 3}
-    - {fileID: 21300000, guid: 4aa7999dbe3e52045b85771fd8d3ac54, type: 3}
-    - {fileID: 21300000, guid: 6b13338bb43de8540952e4b30c6e10ae, type: 3}
-    - {fileID: 21300000, guid: 597505beccb45f94fa909acdf05c0da1, type: 3}
-    - {fileID: 21300000, guid: ff982f23cd6d345498f4ab24c066f347, type: 3}
-    - {fileID: 21300000, guid: c2972579a4bdcc942acf14bf9e91304a, type: 3}
-    - {fileID: 21300000, guid: 670d3fbeb2f99354d8d206eebb680097, type: 3}
-    - {fileID: 21300000, guid: ab2803228ce81144da656d5f387d73ce, type: 3}
-    - {fileID: 21300000, guid: 810f5f9f2fc8dfb4cb972008157dbafe, type: 3}
-    - {fileID: 21300000, guid: ad6580cc109e4a8458bc104dc4bd2772, type: 3}
-    - {fileID: 21300000, guid: 375cd5591bddc064db1c10f78ee43157, type: 3}
-    artOffset: {x: 0, y: 0}
-    mirror: 0
-    eventFrames: 
---- !u!212 &552875809
-SpriteRenderer:
-  serializedVersion: 2
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 552875805}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: -2
-  m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 38151572b5ab69b448df96f439740d9f, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
-  m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 3.4133334, y: 3.4133334}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -1775,6 +1598,7 @@ GameObject:
   - component: {fileID: 730397854}
   - component: {fileID: 730397853}
   - component: {fileID: 730397852}
+  - component: {fileID: 730397855}
   m_Layer: 0
   m_Name: L4_trunkWithPod
   m_TagString: Untagged
@@ -1850,7 +1674,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1883,198 +1707,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!1 &769027545
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 769027546}
-  - component: {fileID: 769027549}
-  - component: {fileID: 769027548}
-  - component: {fileID: 769027547}
-  m_Layer: 0
-  m_Name: Plant BlueFlower1
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &769027546
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 769027545}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15.149661, y: 16.098747, z: 0.12}
-  m_LocalScale: {x: 0.8549395, y: 0.8549395, z: 0.8549395}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1329770981}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &769027547
+--- !u!114 &730397855
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 769027545}
+  m_GameObject: {fileID: 730397850}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b068de0a87a8d7541af000ae94c90a13, type: 3}
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.PaintedPiece
-  role: 0
-  source: 
---- !u!114 &769027548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 769027545}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8eec9c06b6886a4cb54554faef03709, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteAnimator
-  target: {fileID: 769027549}
-  facing: {fileID: 0}
-  defaultClip: Idle
-  fallbackClip: 
-  clips:
-  - name: Idle
-    fps: 7.4703555
-    loop: 1
-    hold: 1
-    frames:
-    - {fileID: 21300000, guid: 08caaba67fbd6054dbb8c133e7e67716, type: 3}
-    - {fileID: 21300000, guid: 31283e6812bffd74e8e8c62951ef5758, type: 3}
-    - {fileID: 21300000, guid: 9ce6d26aaeb24f34bab3bbf417514617, type: 3}
-    - {fileID: 21300000, guid: 9a8a8ca4bf5da7243b436a76af8f0804, type: 3}
-    - {fileID: 21300000, guid: 391808f1c3b04884cb572c6de4554283, type: 3}
-    - {fileID: 21300000, guid: 5641ccd7407ad1547b39c2a594f01662, type: 3}
-    - {fileID: 21300000, guid: 457c4d1c7ce366447835484f28897946, type: 3}
-    - {fileID: 21300000, guid: 58f813eef322a7a468a8803b48f1eb81, type: 3}
-    - {fileID: 21300000, guid: 4776cd00e042f204a9065a3e48c652ea, type: 3}
-    - {fileID: 21300000, guid: 0bca8897d1cb811488cae62655a10a93, type: 3}
-    - {fileID: 21300000, guid: e78d972fe61cf64418625df2f234b206, type: 3}
-    - {fileID: 21300000, guid: 1000a05eedfd9df41b7d1afa5f957970, type: 3}
-    - {fileID: 21300000, guid: 24c79651e9faa9c409eba52e84079b6b, type: 3}
-    - {fileID: 21300000, guid: 377912cd39cc76645b44f5054fd7a27f, type: 3}
-    - {fileID: 21300000, guid: e0efd036b36118643899e9b5d9bffbb2, type: 3}
-    - {fileID: 21300000, guid: 2d2461335334a6142b2c994f2272fc82, type: 3}
-    - {fileID: 21300000, guid: 15f6128fc8c6425448a8ada1c1d91693, type: 3}
-    - {fileID: 21300000, guid: 11f7e3647e2049e478760aea51b8eb7e, type: 3}
-    - {fileID: 21300000, guid: d89d882765c48154b96922e867c73adc, type: 3}
-    - {fileID: 21300000, guid: c055fed8848ebbf45ba83c1265482641, type: 3}
-    - {fileID: 21300000, guid: 4af0414b83a91ca4fa19be13c7e960a5, type: 3}
-    - {fileID: 21300000, guid: 65d37df3d27f88e4e94960b9a3869e22, type: 3}
-    - {fileID: 21300000, guid: 16cdd78a8a6f2e740810fa2143ef1caa, type: 3}
-    - {fileID: 21300000, guid: 58a768856da583943b15a2327f505c90, type: 3}
-    - {fileID: 21300000, guid: 23cda58eb4e6b0042815ebee512a08fa, type: 3}
-    - {fileID: 21300000, guid: e6ba47cb739b1bd4ebc1d5ecc95c7904, type: 3}
-    - {fileID: 21300000, guid: 782dc39c904e75042b0c3aa5bd3cc846, type: 3}
-    - {fileID: 21300000, guid: 1bfbf5ca10f6c7e409ead4fa1158694f, type: 3}
-    - {fileID: 21300000, guid: 32cf86a4c1553dd49bf4c1f092342f3e, type: 3}
-    - {fileID: 21300000, guid: 2e78c5d2299f39a48852c64da59a9c4a, type: 3}
-    - {fileID: 21300000, guid: 4e6d6b5b169132b4c8d62af5fc4079e2, type: 3}
-    - {fileID: 21300000, guid: 994433d6c8f46df44bb7b6209a332c76, type: 3}
-    - {fileID: 21300000, guid: f41d0c501f900b445a09799d89afb909, type: 3}
-    - {fileID: 21300000, guid: 25ba235c21795414a8b841c3e3669edc, type: 3}
-    - {fileID: 21300000, guid: 5c725b40c6c2fee43af8e71f1ed64e4c, type: 3}
-    - {fileID: 21300000, guid: dd2fa823b69e7054ab300b487a35203e, type: 3}
-    - {fileID: 21300000, guid: 24edae9bd3e2ed245be0bd904c812efa, type: 3}
-    - {fileID: 21300000, guid: d67182ab0eb254e4fb0d282cb9eef568, type: 3}
-    - {fileID: 21300000, guid: 1b254b7e0256f0148a6a030dc385860e, type: 3}
-    - {fileID: 21300000, guid: c20c583583cd69f4bb6c668f2676037b, type: 3}
-    - {fileID: 21300000, guid: 5dcabe8fae2127643b977ec1e41dd777, type: 3}
-    - {fileID: 21300000, guid: 5ebc3a025a078e641a710bc6dc95d1a8, type: 3}
-    - {fileID: 21300000, guid: 8a0e24c70068085479378a9c995bc82e, type: 3}
-    - {fileID: 21300000, guid: a3752ff1d67df394bb29c6a92bc36d28, type: 3}
-    - {fileID: 21300000, guid: b51d7bdf1a6032641a9a6ac797889055, type: 3}
-    - {fileID: 21300000, guid: 781ee896828f6d84ca93ffba587576e3, type: 3}
-    - {fileID: 21300000, guid: 0cd26239984ac34429bce60b680f400b, type: 3}
-    - {fileID: 21300000, guid: a033042dfe11f574b8e0c11f15a4c58f, type: 3}
-    - {fileID: 21300000, guid: 302052d61f2ee4d4da568869f9aae60e, type: 3}
-    - {fileID: 21300000, guid: 56881e58bd4ac6a43bbcb4e568fabae9, type: 3}
-    - {fileID: 21300000, guid: aa34f63ea442c1f478cd1d8de1d29f40, type: 3}
-    - {fileID: 21300000, guid: 08c2a6d89a1065543bfa12e68503cef9, type: 3}
-    - {fileID: 21300000, guid: 59e495a7d21380f4da2ee729de0a8644, type: 3}
-    - {fileID: 21300000, guid: 60510d89c465738479ed78a5dc484912, type: 3}
-    - {fileID: 21300000, guid: 98705b4dbaef7fd47b5c0bb60e2c427b, type: 3}
-    - {fileID: 21300000, guid: 21e9741937808bc429ddbf022b1a4f75, type: 3}
-    - {fileID: 21300000, guid: 6117d80f84aff5f4a81105c27febed16, type: 3}
-    - {fileID: 21300000, guid: 8bc3b720b01782741874b245c26d340d, type: 3}
-    - {fileID: 21300000, guid: c3744ae932385ef4ba0f2a18bc764380, type: 3}
-    - {fileID: 21300000, guid: 4c9caeda73cf7224ab84ca5b20099173, type: 3}
-    artOffset: {x: 0, y: 0}
-    mirror: 0
-    eventFrames: 
---- !u!212 &769027549
-SpriteRenderer:
-  serializedVersion: 2
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 769027545}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: -2
-  m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 08caaba67fbd6054dbb8c133e7e67716, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 1
-  m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 5.12, y: 5.12}
-  m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
-  m_SpriteSortPoint: 0
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.16
 --- !u!1 &827684465
 GameObject:
   m_ObjectHideFlags: 0
@@ -2222,6 +1868,7 @@ GameObject:
   - component: {fileID: 957985671}
   - component: {fileID: 957985670}
   - component: {fileID: 957985669}
+  - component: {fileID: 957985672}
   m_Layer: 0
   m_Name: L4_trunkWithPod
   m_TagString: Untagged
@@ -2297,7 +1944,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2330,6 +1977,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &957985672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 957985667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.16
 --- !u!1 &993497405
 GameObject:
   m_ObjectHideFlags: 0
@@ -2497,6 +2158,7 @@ GameObject:
   - component: {fileID: 1113604771}
   - component: {fileID: 1113604770}
   - component: {fileID: 1113604769}
+  - component: {fileID: 1113604772}
   m_Layer: 0
   m_Name: L4_trunkWithPod3
   m_TagString: Untagged
@@ -2572,7 +2234,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2605,6 +2267,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1113604772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1113604767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.16
 --- !u!1 &1146079104
 GameObject:
   m_ObjectHideFlags: 0
@@ -2648,6 +2324,7 @@ GameObject:
   - component: {fileID: 1209623642}
   - component: {fileID: 1209623641}
   - component: {fileID: 1209623640}
+  - component: {fileID: 1209623643}
   m_Layer: 0
   m_Name: L4_trunkWithPod2
   m_TagString: Untagged
@@ -2723,7 +2400,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2756,6 +2433,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1209623643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209623638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.16
 --- !u!1 &1256314523
 GameObject:
   m_ObjectHideFlags: 0
@@ -2896,6 +2587,7 @@ GameObject:
   - component: {fileID: 1301027506}
   - component: {fileID: 1301027505}
   - component: {fileID: 1301027504}
+  - component: {fileID: 1301027507}
   m_Layer: 0
   m_Name: L4_trunkWithPod3
   m_TagString: Untagged
@@ -2971,7 +2663,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3004,6 +2696,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1301027507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1301027502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.16
 --- !u!1 &1324255951
 GameObject:
   m_ObjectHideFlags: 0
@@ -3132,40 +2838,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!1 &1329770980
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1329770981}
-  m_Layer: 0
-  m_Name: 7 Animated Plants
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1329770981
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1329770980}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 769027546}
-  - {fileID: 1744010431}
-  - {fileID: 552875806}
-  m_Father: {fileID: 2081823931}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1374963430
 GameObject:
   m_ObjectHideFlags: 0
@@ -3178,6 +2850,7 @@ GameObject:
   - component: {fileID: 1374963434}
   - component: {fileID: 1374963433}
   - component: {fileID: 1374963432}
+  - component: {fileID: 1374963435}
   m_Layer: 0
   m_Name: L4_trunkWithPod
   m_TagString: Untagged
@@ -3253,7 +2926,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3286,6 +2959,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1374963435
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1374963430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.16
 --- !u!1 &1479286902
 GameObject:
   m_ObjectHideFlags: 0
@@ -3681,6 +3368,7 @@ GameObject:
   - component: {fileID: 1601256523}
   - component: {fileID: 1601256525}
   - component: {fileID: 1601256524}
+  - component: {fileID: 1601256526}
   m_Layer: 0
   m_Name: L6_canopy
   m_TagString: Untagged
@@ -3743,7 +3431,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3776,6 +3464,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1601256526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601256522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 1
+  strength: 0.22
 --- !u!1 &1693514330
 GameObject:
   m_ObjectHideFlags: 0
@@ -3907,6 +3609,7 @@ GameObject:
   - component: {fileID: 1733811414}
   - component: {fileID: 1733811416}
   - component: {fileID: 1733811415}
+  - component: {fileID: 1733811417}
   m_Layer: 0
   m_Name: L6_canopy
   m_TagString: Untagged
@@ -3969,7 +3672,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4002,228 +3705,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!1 &1744010430
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1744010431}
-  - component: {fileID: 1744010434}
-  - component: {fileID: 1744010433}
-  - component: {fileID: 1744010432}
-  m_Layer: 0
-  m_Name: Plant Plant 1
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1744010431
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1744010430}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 23.5993, y: 14.846791, z: 0.12}
-  m_LocalScale: {x: 0.7866593, y: 0.7866593, z: 0.7866593}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1329770981}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1744010432
+--- !u!114 &1733811417
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1744010430}
+  m_GameObject: {fileID: 1733811413}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b068de0a87a8d7541af000ae94c90a13, type: 3}
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.PaintedPiece
-  role: 0
-  source: 
---- !u!114 &1744010433
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1744010430}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8eec9c06b6886a4cb54554faef03709, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteAnimator
-  target: {fileID: 1744010434}
-  facing: {fileID: 0}
-  defaultClip: Idle
-  fallbackClip: 
-  clips:
-  - name: Idle
-    fps: 15.585718
-    loop: 1
-    hold: 1
-    frames:
-    - {fileID: 21300000, guid: a40fb93ed9822fb43a7336d7fef641b6, type: 3}
-    - {fileID: 21300000, guid: 2b0822286d77e9b46bfe500f6138c630, type: 3}
-    - {fileID: 21300000, guid: b139ce3f36a541948871747b1a9038a8, type: 3}
-    - {fileID: 21300000, guid: d109f79622a5ebe49acedd6dd92f5f4b, type: 3}
-    - {fileID: 21300000, guid: 9876678f627284f43bc56c3ec3714bb8, type: 3}
-    - {fileID: 21300000, guid: 80810591e012c4f438b5d93765b5d96a, type: 3}
-    - {fileID: 21300000, guid: 1526a57de1a4cd4448d7c0a1e0a9f9f9, type: 3}
-    - {fileID: 21300000, guid: 9c2ede121d701454186c5c7f60b1a90e, type: 3}
-    - {fileID: 21300000, guid: baeeed88f0b10f24cb8e02c5de3052ca, type: 3}
-    - {fileID: 21300000, guid: 9698c8e33e3472242821c9cf96d93f14, type: 3}
-    - {fileID: 21300000, guid: 4a02d1b63377d2b4fa7220f589280432, type: 3}
-    - {fileID: 21300000, guid: 3fb222945636f8a41b00ddc0bda99ac5, type: 3}
-    - {fileID: 21300000, guid: a88bde67298774142b8794a823603456, type: 3}
-    - {fileID: 21300000, guid: 421a9ddb436a4744896d3e4a17093206, type: 3}
-    - {fileID: 21300000, guid: 3668cb7c43e8e544a8ea4c6babb0f10c, type: 3}
-    - {fileID: 21300000, guid: 0da40b666c138e447a0ecc95bc9c7058, type: 3}
-    - {fileID: 21300000, guid: 1a23b2124220c944fa14d86790c329af, type: 3}
-    - {fileID: 21300000, guid: 737ae05e1f511214593c4687dbdb5c10, type: 3}
-    - {fileID: 21300000, guid: 247d86b5427c3104b8948ce02d98d83b, type: 3}
-    - {fileID: 21300000, guid: 8b04be2d626fc5f4b8dc90f16cac3dff, type: 3}
-    - {fileID: 21300000, guid: b82bf9271dd1a264c9772cf483b3f846, type: 3}
-    - {fileID: 21300000, guid: 5935cd7dbf695754b88efd46451645d1, type: 3}
-    - {fileID: 21300000, guid: b0d8e0f38caa4c9479958e1f8ce5e830, type: 3}
-    - {fileID: 21300000, guid: 90d2c897828aab44a9a76bc09b0b1058, type: 3}
-    - {fileID: 21300000, guid: 8d3a530c0a295044184745e567d56f96, type: 3}
-    - {fileID: 21300000, guid: a7dc20cfb9584d34d8dfbef7da7f749f, type: 3}
-    - {fileID: 21300000, guid: f0623d5c947fece479e77f72f2afb0e2, type: 3}
-    - {fileID: 21300000, guid: 9ba6600ffbe736a45851176d0ac90818, type: 3}
-    - {fileID: 21300000, guid: e2e755d8775f5e3439ac72ddf0e31126, type: 3}
-    - {fileID: 21300000, guid: e2e2aa5d59eb3b74abb8805d33363358, type: 3}
-    - {fileID: 21300000, guid: a95694a951ed3fc4098f6b5a769086f8, type: 3}
-    - {fileID: 21300000, guid: 2e64b97a38f9c5c41b2c283ba6039e95, type: 3}
-    - {fileID: 21300000, guid: 3f59364a42ac6bf4188d6109d785c9b2, type: 3}
-    - {fileID: 21300000, guid: e27f1b9432d910242b801873acc05d60, type: 3}
-    - {fileID: 21300000, guid: 5d92aaa1dc885d442b85c01b168ef792, type: 3}
-    - {fileID: 21300000, guid: b44efdb742c02a34ea250c0d61dbcbb4, type: 3}
-    - {fileID: 21300000, guid: 07e20ca31c6685342aae83b57f343705, type: 3}
-    - {fileID: 21300000, guid: 866a9c67f28a29e4f9dc548ba1f8473a, type: 3}
-    - {fileID: 21300000, guid: ef434277adb370e4d8700696fb82c947, type: 3}
-    - {fileID: 21300000, guid: 039e5d8c85a18a54497357c1e187f209, type: 3}
-    - {fileID: 21300000, guid: a34354b0297a01046971d07b337afb41, type: 3}
-    - {fileID: 21300000, guid: 25cd2284c68f03240b24c7ad404b5216, type: 3}
-    - {fileID: 21300000, guid: 71228db5124e43f4885260f920c33961, type: 3}
-    - {fileID: 21300000, guid: cb44471d8354fd647becab1d75cf419d, type: 3}
-    - {fileID: 21300000, guid: 95f61976451231a4cabe4ade8c181d35, type: 3}
-    - {fileID: 21300000, guid: 0fc8064401df1ca408e6af124a2c19a6, type: 3}
-    - {fileID: 21300000, guid: 0d37364b484e44544b0c1c8e3164c385, type: 3}
-    - {fileID: 21300000, guid: 291cd9aa96bd56341a97e490f46c05a5, type: 3}
-    - {fileID: 21300000, guid: a175a7782f400124594622f5b8a72bcf, type: 3}
-    - {fileID: 21300000, guid: 983e574159ff57140aa05721efbafbe3, type: 3}
-    - {fileID: 21300000, guid: aaf8f2025f7f4104ba37fc08caabaea5, type: 3}
-    - {fileID: 21300000, guid: ed18cd2aa120b5947a24bfed1218ecc0, type: 3}
-    - {fileID: 21300000, guid: 9bfb33e3c25f2a14aa83477e2faacba5, type: 3}
-    - {fileID: 21300000, guid: ffef46ff25958464093370e066908832, type: 3}
-    - {fileID: 21300000, guid: a611fe62d413fea46adc2bce39926201, type: 3}
-    - {fileID: 21300000, guid: 9484860e230dfbe42adf9beb5de217df, type: 3}
-    - {fileID: 21300000, guid: 17e6673fb04c7e54fabbf666188da3f6, type: 3}
-    - {fileID: 21300000, guid: e82bcab625c9ada478783414ced19e86, type: 3}
-    - {fileID: 21300000, guid: 38c82b82761011c498e45b5c3808c355, type: 3}
-    - {fileID: 21300000, guid: e696cbeba20607d4884c3eb3abc0ec61, type: 3}
-    - {fileID: 21300000, guid: c49de73978a9cc842bc632c2afee038e, type: 3}
-    - {fileID: 21300000, guid: 44f7d393bbd049a459905335379eb80b, type: 3}
-    - {fileID: 21300000, guid: 12cd6f4d24fb3c342ba6ab6e1dcf0a91, type: 3}
-    - {fileID: 21300000, guid: ac9e034314b722240b952ca70da2786b, type: 3}
-    - {fileID: 21300000, guid: ae0ab360023bce84a96d6dad2df1e8b3, type: 3}
-    - {fileID: 21300000, guid: 9717bb38f4dc32041b46121c82c65c06, type: 3}
-    - {fileID: 21300000, guid: 98b5fa612b0cc9f49bcf924a7a3f7191, type: 3}
-    - {fileID: 21300000, guid: d999a08036de10e4b9639471842c98eb, type: 3}
-    - {fileID: 21300000, guid: 1dd65e7b35005364f9b8de6afcaf10b1, type: 3}
-    - {fileID: 21300000, guid: a750966ade87b3c48afc0fd15e4901f2, type: 3}
-    - {fileID: 21300000, guid: 85b406c449b28b4459a7ac5c395d1cd8, type: 3}
-    - {fileID: 21300000, guid: 986f39127b332d94db1ceca880f5aa0b, type: 3}
-    - {fileID: 21300000, guid: ae8de5bebe7636a4398f09789cbb8873, type: 3}
-    - {fileID: 21300000, guid: f2e618c94aff65946b03a16bfa3ca909, type: 3}
-    - {fileID: 21300000, guid: a2254164a75255b4fbdca5f0c514bba0, type: 3}
-    - {fileID: 21300000, guid: b8ef9bc7a3986924b98d1f788c6241ee, type: 3}
-    - {fileID: 21300000, guid: d8d742d54bf71ba49ae946398090af14, type: 3}
-    - {fileID: 21300000, guid: 1b574f8fc1a7a66408ff8abb3354c8e9, type: 3}
-    - {fileID: 21300000, guid: 7cb289f2bbc6f2f459b16a2ced298c98, type: 3}
-    - {fileID: 21300000, guid: 05aa0521f67f03147839da5b2026d00f, type: 3}
-    - {fileID: 21300000, guid: e66028721951b814bb7e1117f53e098d, type: 3}
-    - {fileID: 21300000, guid: 2187e2e5790c6f843b1e8b0ff2eed54a, type: 3}
-    - {fileID: 21300000, guid: 95985fd8be942ac4481499b69a121924, type: 3}
-    - {fileID: 21300000, guid: a99d99b390cffcd468a1c0d457b67f84, type: 3}
-    - {fileID: 21300000, guid: 8a8a967d4cc122a478f1e1fade593333, type: 3}
-    - {fileID: 21300000, guid: 00ca2c111371d0649adfaeb4a8cd13fa, type: 3}
-    - {fileID: 21300000, guid: 638729a0754b2634280f81826ff92646, type: 3}
-    - {fileID: 21300000, guid: b1b0b32d7c5fe1d44adaa74536b78a20, type: 3}
-    - {fileID: 21300000, guid: 45a651578dc204946a58ba9668a109ff, type: 3}
-    - {fileID: 21300000, guid: bd578e88c542a394b98e4868fa300561, type: 3}
-    artOffset: {x: 0, y: 0}
-    mirror: 0
-    eventFrames: 
---- !u!212 &1744010434
-SpriteRenderer:
-  serializedVersion: 2
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1744010430}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: -2
-  m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: a40fb93ed9822fb43a7336d7fef641b6, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
-  m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 3.4133334, y: 3.4133334}
-  m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
-  m_SpriteSortPoint: 0
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 1
+  strength: 0.22
 --- !u!1 &1756093029
 GameObject:
   m_ObjectHideFlags: 0
@@ -5286,7 +4781,6 @@ Transform:
   - {fileID: 220296964}
   - {fileID: 269783052}
   - {fileID: 993497406}
-  - {fileID: 1329770981}
   m_Father: {fileID: 1850501741}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
