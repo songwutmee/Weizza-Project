@@ -81,6 +81,9 @@ namespace Weizza.EditorTools
             foreach (var sr in Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 if (sr.sprite == null || sr.name.StartsWith("Thicket")) continue;
+                // Pieces in the chunks this tool builds from scratch are never templates.
+                var sceneName = sr.gameObject.scene.name;
+                if (sceneName.StartsWith("Forest_") && string.CompareOrdinal(sceneName, "Forest_07") >= 0) continue;
                 var name = sr.sprite.texture.name;
                 if (!Templates.ContainsKey(name)) Templates[name] = sr;
             }
@@ -171,8 +174,8 @@ namespace Weizza.EditorTools
 
         private static RoomRoot EnsureChunk(int n, float xMin)
         {
-            var id = "forest_0" + n;
-            var sceneName = "Forest_0" + n;
+            var id = "forest_" + n.ToString("00");
+            var sceneName = "Forest_" + n.ToString("00");
             var defPath = RoomsFolder + "ROOM_" + id + ".asset";
             var def = AssetDatabase.LoadAssetAtPath<RoomDefinition>(defPath);
             if (def == null)
@@ -181,10 +184,10 @@ namespace Weizza.EditorTools
                 def.id = id;
                 def.sceneName = sceneName;
                 def.areaId = "forest";
-                def.displayNameKey = "ROOM_FOREST_0" + n;
+                def.displayNameKey = "ROOM_FOREST_" + n.ToString("00");
                 def.worldRect = new Rect(xMin, -14f, 40f, 40f);
                 def.mapColour = new Color(0.4875f, 0.75f, 0.658f);
-                def.neighbours = new[] { new RoomNeighbour { roomId = "forest_0" + (n - 1), link = RoomLink.Seamless } };
+                def.neighbours = new[] { new RoomNeighbour { roomId = "forest_" + (n - 1).ToString("00"), link = RoomLink.Seamless } };
                 AssetDatabase.CreateAsset(def, defPath);
             }
 
@@ -791,6 +794,255 @@ namespace Weizza.EditorTools
             EditorSceneManager.SaveOpenScenes();
             ColliderTable(118f, 240f);
             File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
+        }
+
+        // ---- The long walk after the boss -----------------------------------------
+
+        // Puts a piece's foot where it should look planted, whatever its scale. Depth lifts a
+        // sprite on screen (pitched camera), so the foot is measured from the drawn mesh.
+        private static void Seat(GameObject go, float footApparentY)
+        {
+            var sr = go.GetComponent<SpriteRenderer>();
+            var p = go.transform.position;
+            var foot = sr.bounds.min.y + p.z * 0.2756f;
+            go.transform.position = new Vector3(p.x, p.y + footApparentY - foot, p.z);
+        }
+
+        private static RoomRoot ChunkFor(float x) => ChunkPainting.ChunkAt(Mathf.Clamp(x, 0.5f, 399.5f), true);
+
+        // One stretch of forest. Groves cluster and clearings open between them, so it never
+        // reads as trees on a grid: gaps and spacing are random, scale is random, and ferns
+        // come in small clumps rather than one at a time.
+        private static void Grove(float from, float to, float treeGap, float fernClumpGap, float scaleBoost)
+        {
+            var podNames = new[] { "L4_trunkWithPod", "L4_trunkWithPod2", "L4_trunkWithPod3" };
+            var ferns = new SpriteRenderer[7];
+            for (var i = 0; i < 7; i++) ferns[i] = Tpl("L4_fernCluster" + (i + 1));
+
+            // Near trees: the main wall of the forest.
+            for (var x = from + R(0f, 4f); x < to; x += R(treeGap * 0.6f, treeGap * 1.5f))
+            {
+                var chunk = ChunkFor(x);
+                var tpl = Tpl(podNames[_rng.Next(3)]);
+                var go = Clone(tpl, chunk, Scenery(chunk, "2 Dark Things"), x, null, R(0.8f, 1.5f) * scaleBoost, _rng.NextDouble() > 0.5);
+                if (go != null) Seat(go, -0.35f);
+            }
+
+            // Far trees: paler, drifting slower, bigger, for depth.
+            for (var x = from + R(0f, 6f); x < to; x += R(treeGap * 1.1f, treeGap * 2f))
+            {
+                var chunk = ChunkFor(x);
+                var tpl = Tpl(podNames[_rng.Next(3)]);
+                var go = Clone(tpl, chunk, Scenery(chunk, "2 Dark Things"), x, null, R(1.3f, 2.0f) * scaleBoost, _rng.NextDouble() > 0.5);
+                if (go == null) continue;
+                var sr = go.GetComponent<SpriteRenderer>();
+                sr.color = new Color(1f, 1f, 1f, 0.5f);
+                sr.sortingOrder = 18 + _rng.Next(6);
+                var drift = go.GetComponent<BackgroundDrift>();
+                if (drift != null) drift.SetRate(0.4f);
+                go.transform.position = new Vector3(x, go.transform.position.y, 7.5f);
+                Seat(go, -0.6f);
+            }
+
+            // Fern clumps at the feet of everything.
+            for (var x = from + R(0f, 3f); x < to; x += R(fernClumpGap * 0.6f, fernClumpGap * 1.4f))
+            {
+                var count = _rng.Next(3, 7);
+                for (var i = 0; i < count; i++)
+                {
+                    var fx = x + R(-1.8f, 1.8f);
+                    var chunk = ChunkFor(fx);
+                    var go = Clone(ferns[_rng.Next(ferns.Length)], chunk, Scenery(chunk, "2 Dark Things"), fx, null, R(0.8f, 1.7f), _rng.NextDouble() > 0.5);
+                    if (go != null) Seat(go, -0.5f);
+                }
+            }
+        }
+
+        // Low stones to hop over, hanging vines and the odd fallen log, kept sparse.
+        private static void Details(float from, float to)
+        {
+            var stones = new[] { Tpl("L4_platform_stone1"), Tpl("L4_platform_stone2") };
+            for (var x = from + R(4f, 10f); x < to; x += R(16f, 30f))
+            {
+                var chunk = ChunkFor(x);
+                Clone(stones[_rng.Next(2)], chunk, Level(chunk), x, null, R(0.55f, 0.72f), _rng.NextDouble() > 0.5);
+            }
+            var vines = new[] { Tpl("ภาพวาด 20261010(1)"), Tpl("ภาพวาด 20261010") };
+            for (var x = from + R(3f, 9f); x < to; x += R(12f, 24f))
+            {
+                var chunk = ChunkFor(x);
+                Clone(vines[_rng.Next(2)], chunk, Scenery(chunk, "5 Vines"), x);
+            }
+            var log = Tpl("L4_fallwood");
+            for (var x = from + R(8f, 20f); x < to; x += R(35f, 60f))
+            {
+                var chunk = ChunkFor(x);
+                var go = Clone(log, chunk, Scenery(chunk, "2 Dark Things"), x, null, R(0.8f, 1.2f), _rng.NextDouble() > 0.5);
+                if (go != null) Seat(go, -0.5f);
+            }
+        }
+
+        [MenuItem("Weizza/Act 0/Build Long Walk")]
+        public static void BuildLongWalk()
+        {
+            Report.Clear();
+            Templates.Clear();
+            _rng = new System.Random(77);
+            for (var x = 20f; x < 240f; x += 40f) ChunkPainting.ChunkAt(x, true);
+            CacheTemplates();
+
+            // A rerun starts these four chunks empty, so nothing is placed twice.
+            for (var n = 7; n <= 10; n++)
+            {
+                var fresh = EnsureChunk(n, 160f + (n - 5) * 40f);
+                for (var i = fresh.transform.childCount - 1; i >= 0; i--) Object.DestroyImmediate(fresh.transform.GetChild(i).gameObject);
+            }
+
+            // No wipe after the boss: the walls open and the player walks on.
+            foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (t == null) continue;
+                if (t.name == "Boss Aftermath" || t.name == "Boss Aftermath Landing" || t.name == "End Wall")
+                {
+                    var scene = t.gameObject.scene;
+                    Object.DestroyImmediate(t.gameObject);
+                    EditorSceneManager.MarkSceneDirty(scene);
+                }
+            }
+
+            // Ground right to the end, and past it, because the zoomed camera sees beyond the last chunk.
+            var groundTpl = Tpl("L51_ground_flat1920x512");
+            for (var x = 247.3f; x < 430f; x += 21.33f) Clone(groundTpl, ChunkFor(Mathf.Min(x, 399f)), Level(ChunkFor(Mathf.Min(x, 399f))), x);
+            Physics.SyncTransforms();
+
+            // Far layers for the new chunks, scaled up so they reach the top of a zoomed frame.
+            for (var n = 7; n <= 10; n++)
+            {
+                var chunk = ChunkFor(160f + (n - 5) * 40f + 20f);
+                var xMin = 160f + (n - 5) * 40f;
+                var far = Scenery(chunk, "1 Far Fog");
+                Clone(Tpl("L0_Voidpng"), chunk, far, xMin + 10f);
+                Clone(Tpl("L0_Voidpng"), chunk, far, xMin + 30f);
+                Clone(Tpl("L1_MistBand"), chunk, far, xMin + 20f);
+                for (var i = 0; i < 4; i++)
+                {
+                    var trunk = Clone(Tpl("L1_TrunkFar" + (1 + (n * 3 + i) % 7)), chunk, far, xMin + 3.7f + i * 11.25f, null, R(1.4f, 1.8f));
+                    if (trunk != null) Seat(trunk, -2.2f);
+                }
+            }
+
+            // Four stretches, each with its own feel.
+            Grove(240f, 282f, 9f, 11f, 1.0f);   // first grove, gentle
+            Details(240f, 282f);
+            Grove(282f, 322f, 18f, 7f, 0.9f);   // open clearing, fewer trees, lots of ferns
+            Details(282f, 322f);
+            Grove(322f, 362f, 6.5f, 13f, 1.2f); // deep grove, close trees
+            Details(322f, 362f);
+            Grove(362f, 399f, 11f, 9f, 1.0f);   // sunlit glade to the end
+            Details(362f, 392f);
+
+            // Dark thickets to walk through between the stretches.
+            var c = ChunkFor(280f); Thicket(c, 276f, 286f);
+            c = ChunkFor(320f); Thicket(c, 316f, 326f);
+            c = ChunkFor(360f); Thicket(c, 356f, 366f);
+
+            // A few light fights and the sky over the glade.
+            Spawn("Assets/Prefabs/Enemies/AntRider.prefab", 262f, "AntRider");
+            Spawn("Assets/Prefabs/Enemies/BombFly.prefab", 272f, "Firefly");
+            Spawn("Assets/Prefabs/Enemies/AntRider.prefab", 302f, "AntRider");
+            Spawn("Assets/Prefabs/Enemies/BombFly.prefab", 338f, "Firefly");
+            Spawn("Assets/Prefabs/Enemies/BombFly.prefab", 343f, "Firefly");
+            Spawn("Assets/Prefabs/Enemies/AntRider.prefab", 348f, "AntRider");
+
+            // Save points all the way along.
+            var cps = new[] { 244f, 279f, 318f, 352f, 380f };
+            for (var i = 0; i < cps.Length; i++) MakeCheckpoint(cps[i], 7 + i);
+
+            // Soka waits at the end, and the ending plays when she has finished talking.
+            var soka = FindSokaAfterBoss();
+            if (soka != null)
+            {
+                var chunk = ChunkFor(388f);
+                soka.transform.SetParent(null, true);
+                SceneManager.MoveGameObjectToScene(soka, chunk.gameObject.scene);
+                soka.transform.SetParent(Story(chunk), true);
+                var sr = soka.GetComponent<SpriteRenderer>();
+                var minY = float.MaxValue;
+                foreach (var v in sr.sprite.vertices) minY = Mathf.Min(minY, v.y);
+                const float sx = 388f;
+                soka.transform.position = new Vector3(sx, GroundY(sx) - minY * soka.transform.lossyScale.y, 0f);
+                if (soka.GetComponent<EndingCutscene>() == null) soka.AddComponent<EndingCutscene>();
+                EditorSceneManager.MarkSceneDirty(chunk.gameObject.scene);
+                Report.AppendLine("Soka at " + soka.transform.position.ToString("0.0"));
+            }
+            var wallChunk = ChunkFor(399f);
+            var wall = new GameObject("End Wall", typeof(BoxCollider));
+            SceneManager.MoveGameObjectToScene(wall, wallChunk.gameObject.scene);
+            wall.transform.SetParent(Level(wallChunk), false);
+            wall.transform.position = new Vector3(396f, 10f, 0f);
+            wall.GetComponent<BoxCollider>().size = new Vector3(1f, 30f, 6f);
+
+            // Zoom out after the thicket behind the boss, and light for each stretch.
+            Core();
+
+            Physics.SyncTransforms();
+            EditorSceneManager.SaveOpenScenes();
+            AssetDatabase.SaveAssets();
+            ColliderTable(236f, 400f);
+            File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
+        }
+
+        private static GameObject FindSokaAfterBoss()
+        {
+            GameObject found = null;
+            foreach (var n in Object.FindObjectsByType<Narrative.NpcInteractable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (n.name == "Soka" && (found == null || n.transform.position.x > found.transform.position.x)) found = n.gameObject;
+            return found;
+        }
+
+        private static void Core()
+        {
+            Transform systems = null;
+            foreach (var root in SceneManager.GetSceneByName("Act0_Prototype").GetRootGameObjects())
+                if (root.name == "Systems") systems = root.transform;
+            var zone = Object.FindFirstObjectByType<CameraZoomZone>(FindObjectsInactive.Include);
+            if (zone == null)
+            {
+                var go = new GameObject("Camera Zoom Zone");
+                if (systems != null) go.transform.SetParent(systems, false);
+                zone = go.AddComponent<CameraZoomZone>();
+            }
+            var so = new SerializedObject(zone);
+            var zones = so.FindProperty("zones");
+            zones.arraySize = 1;
+            var z = zones.GetArrayElementAtIndex(0);
+            z.FindPropertyRelative("from").floatValue = 252f;
+            z.FindPropertyRelative("to").floatValue = 410f;
+            z.FindPropertyRelative("size").floatValue = 9.5f;
+            z.FindPropertyRelative("ease").floatValue = 14f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorSceneManager.MarkSceneDirty(zone.gameObject.scene);
+
+            var look = Object.FindFirstObjectByType<SceneLook>();
+            if (look == null) return;
+            var lso = new SerializedObject(look);
+            var bright = lso.FindProperty("brightZones");
+            // Keep the meadow zone, add: clearing brighter, deep grove darker, glade brighter.
+            var data = new (float from, float to, float mul, float fade)[]
+            {
+                (163f, 224f, 1.5f, 6f), (288f, 316f, 1.25f, 12f), (326f, 352f, 0.8f, 10f), (368f, 404f, 1.35f, 14f),
+            };
+            bright.arraySize = data.Length;
+            for (var i = 0; i < data.Length; i++)
+            {
+                var e = bright.GetArrayElementAtIndex(i);
+                e.FindPropertyRelative("from").floatValue = data[i].from;
+                e.FindPropertyRelative("to").floatValue = data[i].to;
+                e.FindPropertyRelative("multiplier").floatValue = data[i].mul;
+                e.FindPropertyRelative("fade").floatValue = data[i].fade;
+            }
+            lso.ApplyModifiedProperties();
+            EditorSceneManager.MarkSceneDirty(look.gameObject.scene);
         }
 
         // The order Songwut wants: ants, fireflies, Soka, ants and fireflies together, the boss
