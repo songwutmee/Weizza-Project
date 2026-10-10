@@ -823,6 +823,10 @@ namespace Weizza
                 _hitboxOpen = true;
                 hitbox.Begin(_attack, Motor.Facing, gameObject, damageScale: 1f,
                     lifesteal: CurrentStance.lifesteal);
+                // A white slash on every swing, so a swing reads even before real attack art exists.
+                var facing = Motor.Facing.Sign();
+                GlowFx.Slash(transform.position + new Vector3(facing * 0.35f, 0.7f, -0.3f), facing,
+                    _attack == CurrentStance.heavy ? 1.35f : 1f, Color.white);
             }
             else if (_hitboxOpen && _stateTimer >= activeEnd)
             {
@@ -877,8 +881,7 @@ namespace Weizza
             CombatSignals.Report(victim, result, info, byPlayer: true, ranged: false);
             if (result is HitResult.Missed or HitResult.Ignored) return;
 
-            HitStop.Freeze(info.hitStopFrames);
-            CameraFeel.Instance?.Shake(info.screenShake, new Vector2(info.knockback.x, 0f));
+            ImpactFeel(victim, info, 1f);
 
             // Scaled off hit stop rather than off damage, because hit stop is
             // already the number tuned for how heavy a hit is meant to read.
@@ -907,8 +910,7 @@ namespace Weizza
             CombatSignals.Report(victim, result, info, byPlayer: true, ranged: true);
             if (result is HitResult.Missed or HitResult.Ignored) return;
 
-            HitStop.Freeze(info.hitStopFrames);
-            CameraFeel.Instance?.Shake(info.screenShake, new Vector2(info.knockback.x, 0f));
+            ImpactFeel(victim, info, 0.6f);
             HitSpark.Play(info.point, info.knockback, Mathf.Max(0.25f, info.hitStopFrames * 0.12f),
                 result == HitResult.Hit ? Color.white : new Color(1f, 0.85f, 0.4f));
 
@@ -920,6 +922,22 @@ namespace Weizza
         /// skip anything already dead, so a victim that is dead after this hit
         /// was killed by it.
         /// </summary>
+        // Every connecting hit gets a little shake, not only the heavies: light swings had a
+        // shake of zero and read as hitting air. The floor comes from the hit stop, the number
+        // already tuned for how heavy a hit is, so a jab nudges and a heavy thumps. The kick
+        // points along the hit, plus a little downward, so it feels like weight landing.
+        // A killing blow holds the freeze a few frames longer and hits harder: the moment
+        // an enemy goes down should be the best feeling hit in the fight.
+        private void ImpactFeel(IDamageable victim, DamageInfo info, float scale)
+        {
+            var killed = victim != null && !victim.IsAlive;
+            HitStop.Freeze(info.hitStopFrames + (killed ? 4 : 0));
+            var shake = Mathf.Max(info.screenShake, info.hitStopFrames * 0.028f) * scale;
+            if (killed) shake = Mathf.Max(shake * 1.4f, 0.32f * scale);
+            var along = Mathf.Abs(info.knockback.x) > 0.01f ? Mathf.Sign(info.knockback.x) : Motor.Facing.Sign();
+            CameraFeel.Instance?.Shake(shake, new Vector2(along, -0.35f));
+        }
+
         private void HealIfKilled(IDamageable victim, HitResult result)
         {
             if (CurrentStance == null || CurrentStance.healOnKill <= 0f || Vitals == null) return;

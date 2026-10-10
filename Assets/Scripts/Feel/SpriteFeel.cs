@@ -168,20 +168,59 @@ namespace Weizza
             if (sprite != null && _flashLife == null) sprite.color = _baseColor;
         }
 
+        private SpriteRenderer _glow;
+
+        // A white flash has to read as light, not as a pale sprite: a vertex colour can
+        // never go past the art's own white. So a copy of the sprite in the glow material
+        // sits on top and fades out, bright enough for bloom to catch.
+        private void GlowOverlay(float strength)
+        {
+            // A rigged body (the beetle) hides this renderer and draws elsewhere; skip it.
+            if (GlowFx.Material == null || sprite == null || sprite.forceRenderingOff) return;
+            if (_glow == null)
+            {
+                var go = new GameObject("Flash Glow");
+                go.transform.SetParent(sprite.transform, false);
+                _glow = go.AddComponent<SpriteRenderer>();
+                _glow.sharedMaterial = GlowFx.Material;
+            }
+            _glow.sprite = sprite.sprite;
+            _glow.transform.localScale = new Vector3(sprite.flipX ? -1f : 1f, 1f, 1f);
+            _glow.sortingLayerID = sprite.sortingLayerID;
+            _glow.sortingOrder = sprite.sortingOrder + 1;
+            _glow.color = new Color(1f, 1f, 1f, strength);
+            _glow.enabled = true;
+        }
+
         private async UniTaskVoid FlashAsync(Color tint, CancellationToken token)
         {
             sprite.color = tint;
+            var white = tint.r > 0.9f && tint.g > 0.9f && tint.b > 0.9f;
+            if (white) GlowOverlay(1f);
             try
             {
-                await UniTask.Delay(
-                    System.TimeSpan.FromSeconds(Timing.Frames(flashFrames)),
-                    DelayType.UnscaledDeltaTime, PlayerLoopTiming.Update, token);
+                var seconds = Timing.Frames(flashFrames);
+                var t = 0f;
+                while (t < seconds)
+                {
+                    t += Time.unscaledDeltaTime;
+                    if (white && _glow != null)
+                    {
+                        // Follows the animation and fades, so it reads as a flash going off.
+                        _glow.sprite = sprite.sprite;
+                        _glow.transform.localScale = new Vector3(sprite.flipX ? -1f : 1f, 1f, 1f);
+                        _glow.color = new Color(1f, 1f, 1f, 1f - t / seconds);
+                    }
+                    await UniTask.Yield(PlayerLoopTiming.Update, token);
+                }
             }
             catch (System.OperationCanceledException)
             {
+                if (_glow != null) _glow.enabled = false;
                 return;
             }
 
+            if (_glow != null) _glow.enabled = false;
             _flashLife = null;
 
             // A hit landing mid telegraph must not wipe the telegraph. The
