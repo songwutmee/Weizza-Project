@@ -932,8 +932,8 @@ namespace Weizza
         {
             var killed = victim != null && !victim.IsAlive;
             HitStop.Freeze(info.hitStopFrames + (killed ? 4 : 0));
-            var shake = Mathf.Max(info.screenShake, info.hitStopFrames * 0.028f) * scale;
-            if (killed) shake = Mathf.Max(shake * 1.4f, 0.32f * scale);
+            var shake = Mathf.Max(info.screenShake, info.hitStopFrames * 0.016f) * 0.6f * scale;
+            if (killed) shake = Mathf.Max(shake * 1.2f, 0.18f * scale);
             var along = Mathf.Abs(info.knockback.x) > 0.01f ? Mathf.Sign(info.knockback.x) : Motor.Facing.Sign();
             CameraFeel.Instance?.Shake(shake, new Vector2(along, -0.35f));
         }
