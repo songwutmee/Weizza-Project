@@ -72,13 +72,8 @@ namespace Weizza
         [SerializeField] private Color fuseTint = new(1f, 0.93f, 0.5f);
 
         [BoxGroup("Glow")]
-        [Tooltip("The glowing tail. HDR above 1 so the scene bloom picks it up.")]
-        [ColorUsage(true, true)]
-        [SerializeField] private Color glowColour = new(1.6f, 1.45f, 0.35f, 0.9f);
-
-        [BoxGroup("Glow")]
-        [Tooltip("Where the glowing tail sits on the drawing, local metres.")]
-        [SerializeField] private Vector2 glowOffset = new(0.06f, -0.06f);
+        [Tooltip("Colour the sprite pulses toward. Plain colour, the glow material already goes past white.")]
+        [SerializeField] private Color glowTint = new(1f, 0.85f, 0.3f, 1f);
 
         [BoxGroup("Senses")]
         [SerializeField] private LayerMask groundMask = 1;
@@ -91,6 +86,7 @@ namespace Weizza
         private SpriteFeel _feel;
         private Transform _drawing;
         private SpriteRenderer _glow;
+        private SpriteRenderer _body_sprite;
         private Vector3 _home;
         private Vector3 _from, _to;
         private float _modeStarted, _modeUntil;
@@ -108,16 +104,17 @@ namespace Weizza
             _drawing = _feel != null ? _feel.transform : transform;
             _phase = Random.value * 10f;
 
+            // The light is the drawing itself brightening, not a ball stuck on it: an additive
+            // copy of the sprite that pulses.
+            _body_sprite = _drawing.GetComponent<SpriteRenderer>();
             var glow = new GameObject("Glow");
             glow.transform.SetParent(_drawing, false);
-            glow.transform.localPosition = glowOffset;
             _glow = glow.AddComponent<SpriteRenderer>();
-            _glow.sprite = ProceduralSprites.Dot(64);
-            var body = _drawing.GetComponent<SpriteRenderer>();
-            if (body != null)
+            if (GlowFx.Material != null) _glow.sharedMaterial = GlowFx.Material;
+            if (_body_sprite != null)
             {
-                _glow.sortingLayerName = body.sortingLayerName;
-                _glow.sortingOrder = body.sortingOrder + 1;
+                _glow.sortingLayerID = _body_sprite.sortingLayerID;
+                _glow.sortingOrder = _body_sprite.sortingOrder + 1;
             }
         }
 
@@ -349,10 +346,16 @@ namespace Weizza
             {
                 a = 0.55f + 0.45f * Mathf.Max(0f, Mathf.Sin(Time.time * 1.7f + _phase));
             }
-            var c = glowColour;
-            c.a *= a;
+            if (_body_sprite != null)
+            {
+                _glow.sprite = _body_sprite.sprite;
+                // The glow shader ignores flipX, so mirror with a negative scale like the other glows.
+                _glow.transform.localScale = new Vector3(_body_sprite.flipX ? -1f : 1f, 1f, 1f);
+            }
+            // Additive and already past white (the material is HDR), so a small alpha is plenty.
+            var c = glowTint;
+            c.a = Mathf.Lerp(0.02f, 0.11f, a);
             _glow.color = c;
-            _glow.transform.localScale = Vector3.one * (0.16f + 0.08f * a);
         }
 
         private void Enter(Mode next, float seconds)
