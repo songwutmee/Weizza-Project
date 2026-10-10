@@ -1544,6 +1544,7 @@ GameObject:
   m_Component:
   - component: {fileID: 697706301}
   - component: {fileID: 697706302}
+  - component: {fileID: 697706303}
   m_Layer: 0
   m_Name: Atmosphere
   m_TagString: Untagged
@@ -1609,6 +1610,9 @@ MonoBehaviour:
   beamDrift: 0.12
   lightBreath: 0.14
   shimmer: 0
+  rayReach: 0.9
+  shadeDepth: 0.22
+  skyWindow: {x: 0.36, y: 0.68}
   glareZones:
   - from: 52
     to: 66
@@ -1617,6 +1621,22 @@ MonoBehaviour:
     to: 140
     boost: 3
   glareEase: 2.5
+--- !u!114 &697706303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697706300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95b4dcce2e354384f9ead2dc76993e2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.WindField
+  gustAmount: 0.6
+  gustSpeed: 2.5
+  gustLength: 18
+  blowsRight: 1
 --- !u!1 &759257321
 GameObject:
   m_ObjectHideFlags: 0
@@ -1957,7 +1977,7 @@ SpriteRenderer:
   m_SortingOrder: -2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
-  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.6014}
+  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.62}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

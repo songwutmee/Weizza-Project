@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 169730627}
   - component: {fileID: 169730629}
   - component: {fileID: 169730628}
+  - component: {fileID: 169730630}
   m_Layer: 0
   m_Name: "\u0E20\u0E32\u0E1E\u0E27\u0E32\u0E14 20261010(1)"
   m_TagString: Untagged
@@ -192,7 +193,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -225,6 +226,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &169730630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 169730626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 1
+  strength: 0.1
 --- !u!1 &220296963
 GameObject:
   m_ObjectHideFlags: 0
@@ -1446,6 +1461,7 @@ GameObject:
   - component: {fileID: 659532897}
   - component: {fileID: 659532899}
   - component: {fileID: 659532898}
+  - component: {fileID: 659532900}
   m_Layer: 0
   m_Name: "\u0E20\u0E32\u0E1E\u0E27\u0E32\u0E14 20261010"
   m_TagString: Untagged
@@ -1508,7 +1524,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1541,6 +1557,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &659532900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659532896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 1
+  strength: 0.11293894
 --- !u!1 &730397850
 GameObject:
   m_ObjectHideFlags: 0
@@ -1673,6 +1703,7 @@ GameObject:
   - component: {fileID: 827684469}
   - component: {fileID: 827684468}
   - component: {fileID: 827684467}
+  - component: {fileID: 827684470}
   m_Layer: 0
   m_Name: L6_undergrowthBand5
   m_TagString: Untagged
@@ -1748,7 +1779,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1781,6 +1812,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &827684470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827684465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.1
 --- !u!1 &957985667
 GameObject:
   m_ObjectHideFlags: 0
@@ -2963,6 +3008,7 @@ GameObject:
   - component: {fileID: 1546351622}
   - component: {fileID: 1546351621}
   - component: {fileID: 1546351620}
+  - component: {fileID: 1546351623}
   m_Layer: 0
   m_Name: L6_undergrowthBand4
   m_TagString: Untagged
@@ -3038,7 +3084,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3071,6 +3117,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1546351623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1546351618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.1
 --- !u!1 &1587003732
 GameObject:
   m_ObjectHideFlags: 0
@@ -3082,6 +3142,7 @@ GameObject:
   - component: {fileID: 1587003733}
   - component: {fileID: 1587003735}
   - component: {fileID: 1587003734}
+  - component: {fileID: 1587003736}
   m_Layer: 0
   m_Name: L4_fernCluster4
   m_TagString: Untagged
@@ -3144,7 +3205,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3177,6 +3238,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1587003736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1587003732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.2
 --- !u!1 &1601256522
 GameObject:
   m_ObjectHideFlags: 0
@@ -3992,6 +4067,7 @@ GameObject:
   - component: {fileID: 1859663272}
   - component: {fileID: 1859663274}
   - component: {fileID: 1859663273}
+  - component: {fileID: 1859663275}
   m_Layer: 0
   m_Name: L4_fernCluster5
   m_TagString: Untagged
@@ -4054,7 +4130,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4087,6 +4163,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1859663275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1859663271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.2
 --- !u!1 &1867484871
 GameObject:
   m_ObjectHideFlags: 0
@@ -4292,6 +4382,7 @@ GameObject:
   - component: {fileID: 1978065710}
   - component: {fileID: 1978065712}
   - component: {fileID: 1978065711}
+  - component: {fileID: 1978065713}
   m_Layer: 0
   m_Name: L4_fernCluster7
   m_TagString: Untagged
@@ -4354,7 +4445,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4387,6 +4478,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1978065713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1978065709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 0
+  strength: 0.2
 --- !u!1 &2039732073
 GameObject:
   m_ObjectHideFlags: 0
@@ -4398,6 +4503,7 @@ GameObject:
   - component: {fileID: 2039732074}
   - component: {fileID: 2039732076}
   - component: {fileID: 2039732075}
+  - component: {fileID: 2039732077}
   m_Layer: 0
   m_Name: "\u0E20\u0E32\u0E1E\u0E27\u0E32\u0E14 20261010(1)"
   m_TagString: Untagged
@@ -4460,7 +4566,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: c5037b6b34726454684f6858408b906d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4493,6 +4599,20 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &2039732077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2039732073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e5f22e4bb767743bd1aade988528fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
+  hanging: 1
+  strength: 0.1
 --- !u!1 &2081823930
 GameObject:
   m_ObjectHideFlags: 0
