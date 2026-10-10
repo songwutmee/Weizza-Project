@@ -30,6 +30,16 @@ namespace Weizza
         [ShowInInspector, ReadOnly]
         public bool Claimed { get; private set; }
 
+        /// <summary>Off for a save point: walking through then claims nothing, pressing E does.</summary>
+        public bool ClaimOnTouch { get; set; } = true;
+
+        /// <summary>Makes this the place the player wakes up at.</summary>
+        public void ClaimNow()
+        {
+            Claimed = true;
+            RespawnDirector.Instance?.Claim(this);
+        }
+
         public int Order => order;
         public Vector3 RespawnPoint => transform.position + Vector3.up * standOffset;
 
@@ -43,11 +53,9 @@ namespace Weizza
 
         private void OnTriggerEnter(Collider other)
         {
-            if (Claimed) return;
+            if (!ClaimOnTouch || Claimed) return;
             if (other.GetComponentInParent<PlayerController>() == null) return;
-
-            Claimed = true;
-            RespawnDirector.Instance?.Claim(this);
+            ClaimNow();
         }
 
         private void OnDrawGizmos()
