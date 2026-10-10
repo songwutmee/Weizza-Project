@@ -940,6 +940,12 @@ namespace Weizza
             _motor.Velocity = Vector3.zero;
 
             if (animator != null) animator.Play(deathClip, restart: true);
+            if (despawnDelay > 0f)
+            {
+                var fade = GetComponent<DeathFade>();
+                if (fade == null) fade = gameObject.AddComponent<DeathFade>();
+                fade.Begin(despawnDelay * 0.9f);
+            }
             // Pooled enemies (spawned by an EncounterRoom) go back to their pool after
             // the death drawing; hand placed ones are destroyed as before.
             if (despawnDelay > 0f) PrefabPool.DespawnAfter(gameObject, despawnDelay);
