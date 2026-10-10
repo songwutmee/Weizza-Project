@@ -1598,7 +1598,7 @@ MonoBehaviour:
   tintRight: {r: 1.12, g: 1.04, b: 0.8, a: 1}
   groundShadow: 0.6
   groundReach: 0.3
-  worldBrightness: {x: 0.85, y: 1.1}
+  worldBrightness: {x: 0.9, y: 0.68}
   worldRange: {x: 0, y: 160}
   sunPosition: {x: 0.82, y: 0.82}
   sunRadius: 0.5
@@ -1617,8 +1617,8 @@ MonoBehaviour:
   - from: 52
     to: 66
     boost: 2.2
-  - from: 112
-    to: 140
+  - from: 88
+    to: 116
     boost: 3
   glareEase: 2.5
 --- !u!114 &697706303
@@ -18810,6 +18810,21 @@ MonoBehaviour:
     animationName: Idle
     waitForEnd: 1
     lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
+  - kind: 8
+    letterboxShow: 1
+    fadeToAlpha: 1
+    seconds: 0.5
+    lockReason: cutscene
+    actorId: Player
+    targetStageId: 
+    moveSpeed: 2
+    animationName: Idle
+    waitForEnd: 1
+    lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
   - kind: 1
     letterboxShow: 1
     fadeToAlpha: 1
@@ -18821,6 +18836,8 @@ MonoBehaviour:
     animationName: Idle
     waitForEnd: 1
     lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
   - kind: 0
     letterboxShow: 1
     fadeToAlpha: 1
@@ -18832,6 +18849,8 @@ MonoBehaviour:
     animationName: Idle
     waitForEnd: 1
     lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
   - kind: 5
     letterboxShow: 1
     fadeToAlpha: 1
@@ -18843,6 +18862,8 @@ MonoBehaviour:
     animationName: Idle
     waitForEnd: 0
     lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
   - kind: 1
     letterboxShow: 1
     fadeToAlpha: 0
@@ -18854,6 +18875,8 @@ MonoBehaviour:
     animationName: Idle
     waitForEnd: 1
     lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
   - kind: 7
     letterboxShow: 1
     fadeToAlpha: 1
@@ -18865,6 +18888,8 @@ MonoBehaviour:
     animationName: Idle
     waitForEnd: 1
     lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
   - kind: 4
     letterboxShow: 1
     fadeToAlpha: 1
@@ -18876,6 +18901,8 @@ MonoBehaviour:
     animationName: Idle
     waitForEnd: 1
     lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
   - kind: 0
     letterboxShow: 0
     fadeToAlpha: 1
@@ -18887,6 +18914,8 @@ MonoBehaviour:
     animationName: Idle
     waitForEnd: 1
     lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
   - kind: 3
     letterboxShow: 1
     fadeToAlpha: 1
@@ -18898,6 +18927,21 @@ MonoBehaviour:
     animationName: Idle
     waitForEnd: 1
     lookAtStageId: 
+    hudShow: 0
+    conversation: {fileID: 0}
+  - kind: 8
+    letterboxShow: 1
+    fadeToAlpha: 1
+    seconds: 0.5
+    lockReason: cutscene
+    actorId: Player
+    targetStageId: 
+    moveSpeed: 2
+    animationName: Idle
+    waitForEnd: 1
+    lookAtStageId: 
+    hudShow: 1
+    conversation: {fileID: 0}
   playOnStart: 0
 --- !u!1 &1970794318
 GameObject:
