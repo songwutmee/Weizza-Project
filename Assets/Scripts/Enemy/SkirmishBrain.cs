@@ -36,9 +36,40 @@ namespace Weizza
         [SerializeField] private float shakenMultiplier = 1.7f;
 
         [BoxGroup("Regroup")]
-        [PropertyRange(0f, 1.5f)]
-        [Tooltip("Seconds it stands its ground after backing off, before walking in again.")]
-        [SerializeField] private float holdGround = 0.4f;
+        [Tooltip("Seconds it stands its ground after backing off, before walking in again, random between the two.")]
+        [SerializeField] private Vector2 holdGround = new(0.1f, 0.45f);
+
+        [BoxGroup("Smarts")]
+        [PropertyRange(0f, 1f)]
+        [Tooltip("Chance it stays in the fight after a swing instead of backing off. The move cooldown is then the only gap.")]
+        [SerializeField] private float followUpChance = 0.25f;
+
+        [BoxGroup("Smarts")]
+        [PropertyRange(0f, 1f)]
+        [Tooltip("Chance of a long back off after a swing, which leaves it at lunge range.")]
+        [SerializeField] private float longBackOffChance = 0.3f;
+
+        [BoxGroup("Smarts")]
+        [Tooltip("Seconds of the long back off, random between the two.")]
+        [SerializeField] private Vector2 longBackOff = new(0.7f, 1.1f);
+
+        [BoxGroup("Smarts")]
+        [PropertyRange(0f, 1f)]
+        [Tooltip("Chance it steps back when the player swings while it is close.")]
+        [SerializeField] private float dodgeChance = 0.3f;
+
+        [BoxGroup("Smarts")]
+        [PropertyRange(0.1f, 0.6f)]
+        [SerializeField] private float dodgeSeconds = 0.3f;
+
+        [BoxGroup("Smarts")]
+        [PropertyRange(0.5f, 5f)]
+        [SerializeField] private float dodgeCooldown = 2.2f;
+
+        [BoxGroup("Smarts")]
+        [PropertyRange(1f, 5f)]
+        [Tooltip("If the player swings and misses while it is this close, it stops regrouping and answers at once.")]
+        [SerializeField] private float punishRange = 3.2f;
 
         [BoxGroup("Body Feel")]
         [Tooltip("The drawing. Walking has one frame, so the step bounce is code.")]
@@ -64,6 +95,8 @@ namespace Weizza
         private float _phaseUntil;
         private float _lastHitAt = -99f;
         private float _bobPhase;
+        private bool _playerWasSwinging;
+        private float _nextDodgeAt;
         private bool _pendingBackOff;
         private float _pendingSeconds;
 
@@ -118,8 +151,10 @@ namespace Weizza
 
             // A swing just ended: the body moved from its strike into recovery.
             if (_lastState == EnemyController.State.Commit && state != EnemyController.State.Commit)
-                QueueBackOff(Random.Range(backOffAfterSwing.x, backOffAfterSwing.y));
+                AfterSwing();
             _lastState = state;
+
+            ReadThePlayer(state);
 
             // The body owns a flinch and a swing; the retreat starts once both are done.
             if (_pendingBackOff && state is not (EnemyController.State.Stagger or EnemyController.State.Telegraph
@@ -149,7 +184,47 @@ namespace Weizza
             if (Time.time < _phaseUntil) return;
             _enemy.DirectedWalk = 0f;
             _phase = Phase.Holding;
-            _phaseUntil = Time.time + holdGround;
+            _phaseUntil = Time.time + Random.Range(holdGround.x, holdGround.y);
+        }
+
+        // Not the same rhythm every time: sometimes it stays and swings again, sometimes it
+        // gives a little ground, sometimes a lot (which leaves it at lunge range).
+        private void AfterSwing()
+        {
+            var roll = Random.value;
+            if (roll < followUpChance) return;
+            if (roll > 1f - longBackOffChance) QueueBackOff(Random.Range(longBackOff.x, longBackOff.y));
+            else QueueBackOff(Random.Range(backOffAfterSwing.x, backOffAfterSwing.y));
+        }
+
+        // Watches the player's swings. A swing that misses leaves the player open, so a
+        // regrouping ant answers at once; a swing aimed at an ant that stands close makes it
+        // step out of reach first, and the missed swing then gets answered.
+        private void ReadThePlayer(EnemyController.State state)
+        {
+            var player = PlayerLocator.Player;
+            var swinging = player != null && player.State == PlayerState.Attack;
+            if (swinging && player != null)
+            {
+                var gap = Mathf.Abs(player.transform.position.x - transform.position.x);
+                if (_phase != Phase.Fighting && gap <= punishRange && Time.time - _lastHitAt > 0.6f)
+                {
+                    _pendingBackOff = false;
+                    _phase = Phase.Fighting;
+                    _enemy.DirectedWalk = 0f;
+                    _enemy.AutoBrain = true;
+                }
+                else if (!_playerWasSwinging && _phase == Phase.Fighting && gap < 2.2f && Time.time >= _nextDodgeAt
+                         && (state == EnemyController.State.Idle || state == EnemyController.State.Chase)
+                         && Random.value < dodgeChance)
+                {
+                    _nextDodgeAt = Time.time + dodgeCooldown;
+                    _phase = Phase.BackingOff;
+                    _phaseUntil = Time.time + dodgeSeconds;
+                    _enemy.AutoBrain = false;
+                }
+            }
+            _playerWasSwinging = swinging;
         }
 
         private void TickHold()
