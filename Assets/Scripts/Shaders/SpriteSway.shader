@@ -97,7 +97,7 @@ Shader "Weizza/SpriteSway"
                 float gust = g1 * g2 * wind.y;
                 // The wind leans a plant one way, the shake rides on top of the lean.
                 float lean = (0.18 + gust) * wind.w;
-                float flutter = wave * (0.22 + gust * 0.5);
+                float flutter = wave * (0.45 + gust * 0.6);
                 float tipFlutter = sin(_Time.y * 6.3 + phase * 3.1) * along * along * along * gust * 0.18;
 
                 // Strength is in metres, so undo the object's own scale.
