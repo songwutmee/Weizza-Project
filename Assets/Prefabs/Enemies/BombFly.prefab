@@ -132,7 +132,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: abf3d9f386bac9c47b42d19b29c1f8c6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 923d9e210d21d914eb92eac32e4e4ad3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -176,11 +176,12 @@ MonoBehaviour:
   fallbackClip: Idle
   clips:
   - name: Idle
-    fps: 0
-    loop: 0
-    hold: 0
+    fps: 8
+    loop: 1
+    hold: 1
     frames:
-    - {fileID: 21300000, guid: abf3d9f386bac9c47b42d19b29c1f8c6, type: 3}
+    - {fileID: 21300000, guid: 923d9e210d21d914eb92eac32e4e4ad3, type: 3}
+    - {fileID: 21300000, guid: fcc03a9c7996ff24ca1fe8647cfc2a98, type: 3}
     artOffset: {x: 0, y: 0}
     eventFrames: 
 --- !u!114 &2608487304434474334
