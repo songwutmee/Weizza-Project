@@ -796,6 +796,126 @@ namespace Weizza.EditorTools
             File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
         }
 
+        // ---- The ending spot: Soka, one save light, a clean forest for the camera to rise over ----
+
+        [MenuItem("Weizza/Act 0/Move Ending")]
+        public static void MoveEnding()
+        {
+            Report.Clear();
+            for (var x = 20f; x < 400f; x += 40f) ChunkPainting.ChunkAt(x, true);
+
+            var doomed = new List<GameObject>();
+            foreach (var sr in Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (sr.sprite == null) continue;
+                var scene = sr.gameObject.scene.name;
+                var tex = sr.sprite.texture.name;
+                var x = sr.transform.position.x;
+                var inEndChunks = scene == "Forest_09" || scene == "Forest_10";
+
+                // The dark thicket at the chunk border, and the stones that stood in the way.
+                if (sr.name.StartsWith("Thicket") && x > 350f && x < 372f) doomed.Add(sr.gameObject);
+                else if (inEndChunks && tex.StartsWith("L4_platform") && x > 350f && x < 375f) doomed.Add(sr.gameObject);
+                // Far trunks end in a flat cut that would show against the sky when the camera rises.
+                else if (inEndChunks && tex.StartsWith("L1_TrunkFar") && x >= 335f) doomed.Add(sr.gameObject);
+                // A taller, wider sky, so rising camera never meets the edge of it.
+                else if ((scene == "Forest_08" || inEndChunks) && tex == "L0_Voidpng")
+                {
+                    sr.transform.localScale = Vector3.one * 6.4f;
+                    var p = sr.transform.position;
+                    sr.transform.position = new Vector3(p.x, 30.8f, p.z);
+                    EditorSceneManager.MarkSceneDirty(sr.gameObject.scene);
+                }
+            }
+            // The quiet end has no fights.
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (e.transform.position.x >= 335f) doomed.Add(e.gameObject);
+            foreach (var go in doomed)
+            {
+                var scene = go.scene;
+                Object.DestroyImmediate(go);
+                EditorSceneManager.MarkSceneDirty(scene);
+            }
+            Report.AppendLine("removed " + doomed.Count);
+
+            Physics.SyncTransforms();
+            var chunk9 = ChunkPainting.ChunkAt(350f, true);
+
+            // Soka at the end of the walk that can be reached, with the ending attached.
+            var soka = FindSokaAfterBoss();
+            if (soka != null)
+            {
+                soka.transform.SetParent(null, true);
+                SceneManager.MoveGameObjectToScene(soka, chunk9.gameObject.scene);
+                soka.transform.SetParent(Story(chunk9), true);
+                var sr = soka.GetComponent<SpriteRenderer>();
+                var minY = float.MaxValue;
+                foreach (var v in sr.sprite.vertices) minY = Mathf.Min(minY, v.y);
+                const float sx = 353f;
+                soka.transform.position = new Vector3(sx, GroundY(sx) - minY * soka.transform.lossyScale.y, 0f);
+                Report.AppendLine("Soka at " + soka.transform.position.ToString("0.0"));
+            }
+
+            // Only Soka's spot is a light to save at. Every other checkpoint is a plain one again.
+            Checkpoint keep = null;
+            foreach (var cp in Object.FindObjectsByType<Checkpoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var save = cp.GetComponent<SavePoint>();
+                if (save != null) Object.DestroyImmediate(save);
+                if (cp.transform.position.x > 345f && cp.transform.position.x < 360f) keep = cp;
+                else if (cp.transform.position.x >= 360f)
+                {
+                    var scene = cp.gameObject.scene;
+                    Object.DestroyImmediate(cp.gameObject);
+                    EditorSceneManager.MarkSceneDirty(scene);
+                    continue;
+                }
+                EditorSceneManager.MarkSceneDirty(cp.gameObject.scene);
+            }
+            if (keep != null)
+            {
+                keep.transform.position = new Vector3(349f, GroundY(349f), 0f);
+                keep.gameObject.AddComponent<SavePoint>();
+                Report.AppendLine("save light at " + keep.transform.position.ToString("0.0"));
+            }
+            else Report.AppendLine("no checkpoint near the ending");
+
+            // The world ends a few steps past Soka.
+            foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (t == null || t.name != "End Wall") continue;
+                var scene = t.gameObject.scene;
+                Object.DestroyImmediate(t.gameObject);
+                EditorSceneManager.MarkSceneDirty(scene);
+            }
+            var wall = new GameObject("End Wall", typeof(BoxCollider));
+            SceneManager.MoveGameObjectToScene(wall, chunk9.gameObject.scene);
+            wall.transform.SetParent(Level(chunk9), false);
+            wall.transform.position = new Vector3(358.5f, 10f, 0f);
+            wall.GetComponent<BoxCollider>().size = new Vector3(1f, 30f, 6f);
+
+            // Bright for the last stretch, so the rise over the forest is lit.
+            var look = Object.FindFirstObjectByType<SceneLook>();
+            if (look != null)
+            {
+                var so = new SerializedObject(look);
+                var zones = so.FindProperty("brightZones");
+                for (var i = 0; i < zones.arraySize; i++)
+                {
+                    var z = zones.GetArrayElementAtIndex(i);
+                    var from = z.FindPropertyRelative("from").floatValue;
+                    if (from >= 320f && from < 330f) { z.FindPropertyRelative("to").floatValue = 336f; z.FindPropertyRelative("fade").floatValue = 8f; }
+                    if (from >= 360f) { z.FindPropertyRelative("from").floatValue = 342f; z.FindPropertyRelative("to").floatValue = 404f; z.FindPropertyRelative("fade").floatValue = 10f; }
+                }
+                so.ApplyModifiedProperties();
+                EditorSceneManager.MarkSceneDirty(look.gameObject.scene);
+            }
+
+            EditorSceneManager.SaveOpenScenes();
+            ColliderTable(330f, 400f);
+            File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
+        }
+
         // ---- Polish pass: the new sketch frames, save lights, thinner boss thickets ----
 
         private const string SketchRoot = "Assets/Mock_Asset/Sketch_Character/";
