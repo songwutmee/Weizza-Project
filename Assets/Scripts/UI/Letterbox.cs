@@ -23,7 +23,7 @@ namespace Weizza
         [BoxGroup("Look")]
         [PropertyRange(0f, 0.3f)]
         [Tooltip("Each bar's height as a fraction of the screen.")]
-        [SerializeField] private float barFraction = 0.12f;
+        [SerializeField] private float barFraction = 0.065f;
 
         [BoxGroup("Look")]
         [SerializeField] private Color colour = Color.black;
