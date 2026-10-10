@@ -793,6 +793,86 @@ namespace Weizza.EditorTools
             File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
         }
 
+        // The order Songwut wants: ants, fireflies, Soka, ants and fireflies together, the boss
+        // room, the boss, Soka again. Soka stands in two places, one conversation each.
+        [MenuItem("Weizza/Act 0/Fix Flow Order")]
+        public static void FixFlow()
+        {
+            Report.Clear();
+            Templates.Clear();
+            _rng = new System.Random(5);
+            for (var x = 20f; x < 240f; x += 40f) ChunkPainting.ChunkAt(x, true);
+
+            // Everything placed in the second half goes; the first two ants (x 78, 88) stay.
+            var doomed = new List<GameObject>();
+            foreach (var b in Object.FindObjectsByType<BombFlyBrain>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (b.transform.position.x >= 99f) doomed.Add(b.gameObject);
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (e.name == "AntRider" && e.transform.position.x >= 99f) doomed.Add(e.gameObject);
+            foreach (var go in doomed)
+            {
+                var scene = go.scene;
+                Object.DestroyImmediate(go);
+                EditorSceneManager.MarkSceneDirty(scene);
+            }
+            Physics.SyncTransforms();
+
+            const string ant = "Assets/Prefabs/Enemies/AntRider.prefab";
+            const string fly = "Assets/Prefabs/Enemies/BombFly.prefab";
+            Spawn(fly, 102f, "Firefly");
+            Spawn(fly, 107f, "Firefly");
+            // Soka is placed between them and the next fight (below).
+            Spawn(ant, 121f, "AntRider");
+            Spawn(fly, 131f, "Firefly");
+            Spawn(fly, 141f, "Firefly");
+            Spawn(fly, 151f, "Firefly");
+            Spawn(ant, 160.5f, "AntRider");
+
+            var soka = GameObject.Find("Soka");
+            if (soka != null)
+            {
+                // The one waiting after the boss keeps the second conversation.
+                SetConversation(soka, "DLG_ACT0_SOKA_AGAIN");
+                var first = Object.Instantiate(soka);
+                first.name = "Soka";
+                first.transform.SetParent(null, true);
+                var chunk = ChunkPainting.ChunkAt(114f, true);
+                SceneManager.MoveGameObjectToScene(first, chunk.gameObject.scene);
+                first.transform.SetParent(Story(chunk), true);
+                var sr = first.GetComponent<SpriteRenderer>();
+                var minY = float.MaxValue;
+                foreach (var v in sr.sprite.vertices) minY = Mathf.Min(minY, v.y);
+                const float x = 114f;
+                first.transform.position = new Vector3(x, GroundY(x) - minY * first.transform.lossyScale.y, 0f);
+                SetConversation(first, "DLG_ACT0_SOKA_INTRO");
+                EditorSceneManager.MarkSceneDirty(chunk.gameObject.scene);
+                Report.AppendLine("first Soka at " + first.transform.position.ToString("0.0"));
+            }
+
+            // The beetle wakes well before the player reaches it, so the long room does not
+            // let them stroll past a clump of ferns.
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemies/Beetle.prefab");
+            var so = new SerializedObject(prefab.GetComponent<MiniBossBrain>());
+            so.FindProperty("wakeRange").floatValue = 14f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(prefab);
+
+            EditorSceneManager.SaveOpenScenes();
+            AssetDatabase.SaveAssets();
+            File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
+        }
+
+        private static void SetConversation(GameObject soka, string asset)
+        {
+            var npc = soka.GetComponent<Narrative.NpcInteractable>();
+            var so = new SerializedObject(npc);
+            so.FindProperty("conversation").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<Narrative.Conversation>("Assets/GameData/Conversations/" + asset + ".asset");
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(soka);
+            EditorSceneManager.MarkSceneDirty(soka.scene);
+        }
+
         // Back to the foreground the artist painted: only the pieces that were in the chunks
         // before the second half was built stay in the stone run.
         private static void RemoveTunnelAdditions()
