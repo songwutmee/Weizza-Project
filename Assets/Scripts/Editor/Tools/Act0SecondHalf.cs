@@ -22,6 +22,11 @@ namespace Weizza.EditorTools
         private const string ScenesFolder = "Assets/Scenes/World/";
         private const string PackFolder = "Assets/Mock_Asset/Forest_Silhouette_01/";
 
+        // The boss room: walls stand where the dark thickets end, so the room is clear of black.
+        private const float RoomLeftWallX = 173.5f;
+        private const float RoomRightWallX = 222.5f;
+        private const float LandingX = 233.8f;
+
         private static readonly StringBuilder Report = new();
         private static readonly Dictionary<string, SpriteRenderer> Templates = new();
         private static System.Random _rng;
@@ -75,7 +80,7 @@ namespace Weizza.EditorTools
         {
             foreach (var sr in Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
-                if (sr.sprite == null) continue;
+                if (sr.sprite == null || sr.name.StartsWith("Thicket")) continue;
                 var name = sr.sprite.texture.name;
                 if (!Templates.ContainsKey(name)) Templates[name] = sr;
             }
@@ -616,7 +621,7 @@ namespace Weizza.EditorTools
             SceneManager.MoveGameObjectToScene(arena, chunk.gameObject.scene);
             arena.transform.SetParent(story, false);
             arena.transform.position = Vector3.zero;
-            foreach (var x in new[] { 172f, 194f })
+            foreach (var x in new[] { RoomLeftWallX, RoomRightWallX })
             {
                 var wall = new GameObject("Wall " + x, typeof(BoxCollider));
                 wall.transform.SetParent(arena.transform, false);
@@ -630,7 +635,7 @@ namespace Weizza.EditorTools
             var landing = new GameObject("Boss Aftermath Landing");
             SceneManager.MoveGameObjectToScene(landing, chunk.gameObject.scene);
             landing.transform.SetParent(story, false);
-            landing.transform.position = new Vector3(201.5f, GroundY(201.5f) + 0.1f, 0f);
+            landing.transform.position = new Vector3(LandingX, GroundY(LandingX) + 0.1f, 0f);
 
             BossAftermath after = null;
             foreach (var a in Object.FindObjectsByType<BossAftermath>(FindObjectsInactive.Include, FindObjectsSortMode.None)) after = a;
@@ -685,9 +690,6 @@ namespace Weizza.EditorTools
                 }
             }
 
-            // A roof of leaves over the middle.
-            var roof = Clone(Tpl("L6_canopy"), chunk, fg, mid, 6.2f);
-            if (roof != null) roof.name = "Thicket Roof";
         }
 
         // A background drawing pulled into the foreground layer and turned near black. Its foot is
@@ -719,6 +721,105 @@ namespace Weizza.EditorTools
             Report.AppendLine("thickets placed");
         }
 
+        // Third pass, after playing it: the stone run is back to how the artist left it, the
+        // boss room is 48 m wide, and its walls stand at the edge of the dark so nobody can
+        // walk into the thickets while the fight is on.
+        [MenuItem("Weizza/Act 0/Widen Boss Room")]
+        public static void WidenBossRoom()
+        {
+            Report.Clear();
+            Templates.Clear();
+            _rng = new System.Random(47);
+            for (var x = 20f; x < 240f; x += 40f) ChunkPainting.ChunkAt(x, true);
+            CacheTemplates();
+
+            RemoveTunnelAdditions();
+
+            var chunk5 = ChunkPainting.ChunkAt(180f, true);
+            var chunk6 = ChunkPainting.ChunkAt(227f, true);
+            RemoveOldThickets();
+            Thicket(chunk5, 164f, 174f);
+            Thicket(chunk6, 222f, 232f);
+            Physics.SyncTransforms();
+            RebuildRoomWalls(chunk5);
+
+            // The boss in the middle of the long room, Soka and the last checkpoint beyond the dark.
+            foreach (var brain in Object.FindObjectsByType<MiniBossBrain>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                const float x = 198f;
+                brain.transform.position = new Vector3(x, GroundY(x) + 0.2f, 0f);
+                EditorSceneManager.MarkSceneDirty(brain.gameObject.scene);
+                Report.AppendLine("boss at " + brain.transform.position.ToString("0.0"));
+            }
+            var soka = GameObject.Find("Soka");
+            if (soka != null)
+            {
+                var sr = soka.GetComponent<SpriteRenderer>();
+                var minY = float.MaxValue;
+                foreach (var v in sr.sprite.vertices) minY = Mathf.Min(minY, v.y);
+                const float x = 236f;
+                soka.transform.position = new Vector3(x, GroundY(x) - minY * soka.transform.lossyScale.y, 0f);
+                EditorSceneManager.MarkSceneDirty(soka.scene);
+                Report.AppendLine("soka at " + soka.transform.position.ToString("0.0"));
+            }
+            foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (t.name != "Checkpoint 6") continue;
+                t.position = new Vector3(233f, GroundY(233f), 0f);
+                EditorSceneManager.MarkSceneDirty(t.gameObject.scene);
+            }
+
+            // Ferns and bushes all the way across the longer meadow.
+            var ferns = new SpriteRenderer[7];
+            for (var i = 0; i < 7; i++) ferns[i] = Tpl("L4_fernCluster" + (i + 1));
+            for (var x = 199f; x < 221.5f; x += 1.1f + (float)_rng.NextDouble() * 1.3f)
+            {
+                var chunk = ChunkPainting.ChunkAt(x, true);
+                Clone(ferns[_rng.Next(ferns.Length)], chunk, Scenery(chunk, "2 Dark Things"), x, null, R(0.9f, 1.7f), _rng.NextDouble() > 0.5);
+            }
+
+            var look = Object.FindFirstObjectByType<SceneLook>();
+            if (look != null)
+            {
+                var so = new SerializedObject(look);
+                so.FindProperty("brightZones").GetArrayElementAtIndex(0).FindPropertyRelative("to").floatValue = 224f;
+                so.ApplyModifiedProperties();
+                EditorSceneManager.MarkSceneDirty(look.gameObject.scene);
+            }
+
+            Physics.SyncTransforms();
+            EditorSceneManager.SaveOpenScenes();
+            ColliderTable(118f, 240f);
+            File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
+        }
+
+        // Back to the foreground the artist painted: only the pieces that were in the chunks
+        // before the second half was built stay in the stone run.
+        private static void RemoveTunnelAdditions()
+        {
+            var keep = new[] { 141.2f, 149.8f, 122.6f, 137.7f, 145.0f, 149.1f };
+            var doomed = new List<GameObject>();
+            foreach (var sr in Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (sr.sprite == null) continue;
+                var parent = sr.transform.parent != null ? sr.transform.parent.name : "";
+                if (parent != "4 Foreground Silhouette" && parent != "5 Vines") continue;
+                var x = sr.transform.position.x;
+                if (x < 121f || x > 160.5f) continue;
+                if (sr.name.StartsWith("Thicket")) continue;
+                var original = false;
+                foreach (var k in keep) if (Mathf.Abs(x - k) < 0.4f) original = true;
+                if (!original) doomed.Add(sr.gameObject);
+            }
+            foreach (var go in doomed)
+            {
+                var scene = go.scene;
+                Object.DestroyImmediate(go);
+                EditorSceneManager.MarkSceneDirty(scene);
+            }
+            Report.AppendLine("removed added tunnel foreground " + doomed.Count);
+        }
+
         [MenuItem("Weizza/Act 0/Redo Boss Room Thickets")]
         public static void RedoThickets()
         {
@@ -738,9 +839,11 @@ namespace Weizza.EditorTools
             var doomed = new List<GameObject>();
             foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
-                if (t == null || t.gameObject.scene.name != "Forest_05") continue;
+                if (t == null) continue;
+                var sceneName = t.gameObject.scene.name;
+                if (sceneName != "Forest_05" && sceneName != "Forest_06") continue;
                 var x = t.position.x;
-                if (x < 160f || x > 205f) continue;
+                if (x < 160f || x > 240f) continue;
                 var sr = t.GetComponent<SpriteRenderer>();
                 if (t.name == "Black Fill" || t.name.StartsWith("Thicket")) doomed.Add(t.gameObject);
                 else if (sr != null && sr.sprite != null && sr.sprite.texture.name == "L6_canopy" && Mathf.Abs(Mathf.DeltaAngle(t.eulerAngles.z, 0f)) > 45f)
