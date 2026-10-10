@@ -570,6 +570,18 @@ namespace Weizza
             _banner.style.opacity = opacity;
         }
 
+        /// <summary>Hides everything on the HUD except the big title, so a title can stand alone on screen.</summary>
+        public void ShowOnlyTitle(bool on)
+        {
+            if (_root == null) return;
+            foreach (var child in _root.Children())
+            {
+                if (child == _title) continue;
+                if (on) child.style.visibility = Visibility.Hidden;
+                else child.style.visibility = StyleKeyword.Null;
+            }
+        }
+
         public void SetVisible(bool visible)
         {
             if (_root != null) _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;

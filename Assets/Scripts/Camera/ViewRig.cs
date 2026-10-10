@@ -34,6 +34,9 @@ namespace Weizza
     public sealed class ViewRig : MonoBehaviour
     {
         private static ViewRig _instance;
+        private float _extraScreenY;
+
+        public static ViewRig Instance => _instance;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics() => _instance = null;
@@ -265,12 +268,34 @@ namespace Weizza
                     var composition = composer.Composition;
                     composition.ScreenPosition = new Vector2(
                         composition.ScreenPosition.x,
-                        (FeetPercentAtZeroScreenY - groundInFramePercent) / 100f);
+                        (FeetPercentAtZeroScreenY - groundInFramePercent) / 100f + _extraScreenY);
                     composer.Composition = composition;
                 }
             }
 
             RefreshSprites();
+        }
+
+        /// <summary>Zoom without touching the saved size. A zoom zone or a cutscene calls this every frame.</summary>
+        public void SetZoom(float size)
+        {
+            foreach (var camera in Cameras())
+                if (camera != null) camera.Lens.OrthographicSize = size;
+        }
+
+        /// <summary>Slides the framing up the world without moving anything: positive shows more of what is above.</summary>
+        public void SetPanUp(float extra)
+        {
+            _extraScreenY = extra;
+            foreach (var camera in Cameras())
+            {
+                var composer = camera != null ? camera.GetComponent<CinemachinePositionComposer>() : null;
+                if (composer == null) continue;
+                var composition = composer.Composition;
+                composition.ScreenPosition = new Vector2(composition.ScreenPosition.x,
+                    (FeetPercentAtZeroScreenY - groundInFramePercent) / 100f + extra);
+                composer.Composition = composition;
+            }
         }
 
         private IEnumerable<CinemachineCamera> Cameras()
