@@ -39,6 +39,7 @@ Shader "Weizza/SceneLook"
             float _LookWorldBrightness;
             float4 _LookTintLeft, _LookTintRight;
             float _LookContrast, _LookSaturation, _LookShimmer, _LookBreath;
+            float4 _LookRay;         // x reach toward the sun, y z sky brightness window, w shade depth
 
             half Luma(half3 c) { return dot(c, half3(0.299, 0.587, 0.114)); }
 
@@ -100,8 +101,32 @@ Shader "Weizza/SceneLook"
                 float beams = pow(saturate(b1), 3.0) * 0.65 + pow(saturate(b2), 4.0) * 0.45;
                 float breath = 1.0 + _LookBreath * (sin(t * 0.7) * 0.6 + sin(t * 1.9 + 1.3) * 0.4);
                 float reach = exp(-length(toSun * float2(aspect, 1.0)) * 1.1);
+
+                // Light that trees really block. March from this pixel toward the sun and
+                // count how much open sky it passes over: a trunk or a crown in the way
+                // cuts the light, so rays only reach pixels with clear sky between them
+                // and the sun, and every tree throws a shadow streak away from the sun.
+                // The art is dark silhouettes on bright sky, so brightness is the occluder.
+                float2 step = (_LookSunPos.xy - uv) * (_LookRay.x / 28.0);
+                float openSky = 0.0;
+                float weight = 0.0;
+                float decay = 1.0;
+                [loop] for (int i = 1; i <= 28; i++)
+                {
+                    float2 p = uv + step * i;
+                    half s = Luma(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, p).rgb);
+                    openSky += smoothstep(_LookRay.y, _LookRay.z, s) * decay;
+                    weight += decay;
+                    decay *= 0.965;
+                }
+                openSky /= max(0.001, weight);
+
+                // Moving light on top of the real shadows, so the beams drift and swell.
                 half haze = saturate(L * 1.6 + 0.15);
-                col += _LookSunColor.rgb * beams * reach * _LookShaft.x * haze * breath;
+                float shaft = openSky * openSky * (0.45 + 0.55 * saturate(beams));
+                col += _LookSunColor.rgb * shaft * reach * _LookShaft.x * haze * breath * 2.2;
+                // And the shade itself: where the sun is blocked the frame sits a little darker.
+                col *= lerp(1.0 - _LookRay.w, 1.0, saturate(openSky * 1.3));
 
                 // 4. The sun itself: a hot core and a wide glow, past 1 so bloom blows it out.
                 float2 d = (uv - _LookSunPos.xy) * float2(aspect, 1.0);

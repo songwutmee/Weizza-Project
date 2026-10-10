@@ -130,6 +130,18 @@ namespace Weizza
         [PropertyRange(0f, 3f), Tooltip("Air wobbling around the sun, like heat over warm ground. Only near the sun.")]
         [SerializeField] private float shimmer = 0f;
 
+        [BoxGroup("Sun")]
+        [PropertyRange(0.3f, 1.2f), Tooltip("How far from each pixel toward the sun the light is traced. Longer reaches trees further from the sun.")]
+        [SerializeField] private float rayReach = 0.9f;
+
+        [BoxGroup("Sun")]
+        [PropertyRange(0f, 0.6f), Tooltip("How much darker the frame gets where trees block the sun.")]
+        [SerializeField] private float shadeDepth = 0.22f;
+
+        [BoxGroup("Sun")]
+        [Tooltip("Brightness below the first value counts as a tree (blocks light), above the second as open sky.")]
+        [SerializeField] private Vector2 skyWindow = new(0.36f, 0.68f);
+
         [BoxGroup("Glare zones", centerLabel: true)]
         [ListDrawerSettings(ShowFoldout = true, DefaultExpandedState = true)]
         [SerializeField] private SunZone[] glareZones = Array.Empty<SunZone>();
@@ -154,6 +166,7 @@ namespace Weizza
         private static readonly int Reach = Shader.PropertyToID("_LookBottomReach");
         private static readonly int Shaft = Shader.PropertyToID("_LookShaft");
         private static readonly int World = Shader.PropertyToID("_LookWorldBrightness");
+        private static readonly int Ray = Shader.PropertyToID("_LookRay");
         private static readonly int Sat = Shader.PropertyToID("_LookSaturation");
         private static readonly int Con = Shader.PropertyToID("_LookContrast");
         private static readonly int Shim = Shader.PropertyToID("_LookShimmer");
@@ -204,6 +217,7 @@ namespace Weizza
             Shader.SetGlobalFloat(Bottom, groundShadow);
             Shader.SetGlobalFloat(Reach, groundReach);
             Shader.SetGlobalVector(Shaft, new Vector4(beamIntensity * _glare, beamAngle, beamCount, beamDrift));
+            Shader.SetGlobalVector(Ray, new Vector4(rayReach, skyWindow.x, skyWindow.y, shadeDepth));
             Shader.SetGlobalFloat(Sat, saturation);
             Shader.SetGlobalFloat(Con, contrast);
             Shader.SetGlobalFloat(Shim, shimmer);
