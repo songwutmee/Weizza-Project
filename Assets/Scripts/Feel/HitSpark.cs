@@ -136,6 +136,8 @@ namespace Weizza
         private void Awake()
         {
             _renderer = gameObject.AddComponent<SpriteRenderer>();
+            // Drawn as light, past white, so bloom makes it sting.
+            if (GlowFx.Material != null) _renderer.sharedMaterial = GlowFx.Material;
 
             // In front of characters, which are on Default. A spark drawn
             // behind the thing it is hitting is a spark nobody sees.
