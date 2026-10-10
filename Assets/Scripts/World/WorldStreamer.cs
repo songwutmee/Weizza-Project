@@ -118,6 +118,14 @@ namespace Weizza
             }
         }
 
+        // The camera's limits come from the atlas, not from which chunks are loaded, so they are
+        // set at once. Waiting for the boot chain left the camera in the old level's box in a
+        // build (where chunks load one by one), and the player started off screen.
+        private void Start()
+        {
+            if (_atlas != null && _atlas.linear) LinearCameraBounds.Apply(_atlas);
+        }
+
         private void OnDestroy()
         {
             if (Instance == this) Instance = null;

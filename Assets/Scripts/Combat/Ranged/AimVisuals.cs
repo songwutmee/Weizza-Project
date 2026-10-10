@@ -167,7 +167,8 @@ namespace Weizza
             if (visible && !_visible) _drawn = 0f;
             _visible = visible;
             _drawSeconds = Mathf.Max(0.01f, drawSeconds);
-            if (!visible) _line.enabled = false;
+            // The line is destroyed with the scene on quit, and OnDisable still calls this.
+            if (!visible && _line != null) _line.enabled = false;
         }
 
         public void Tick(Vector3 origin, Vector3 velocity, float gravity, float seconds, float radius,
