@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46ec74126e6cf7c458a6a89d92f3c043, type: 3}
+  m_Name: ROOM_forest_07
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.RoomDefinition
+  id: forest_07
+  sceneName: Forest_07
+  areaId: forest
+  displayNameKey: ROOM_FOREST_07
+  worldRect:
+    serializedVersion: 2
+    x: 240
+    y: -14
+    width: 40
+    height: 40
+  neighbours:
+  - roomId: forest_06
+    link: 0
+  mapColour: {r: 0.4875, g: 0.75, b: 0.658, a: 1}
+  hiddenUntilVisited: 1
+  pins: []
+  musicId: 
+  ambienceId: 
