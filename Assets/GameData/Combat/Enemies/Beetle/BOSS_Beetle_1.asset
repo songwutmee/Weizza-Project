@@ -13,20 +13,24 @@ MonoBehaviour:
   m_Name: BOSS_Beetle_1
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.BossPhase
   startsAtHealth: 1
-  entryMoveId: 
+  entryMoveId: roar
   moves:
   - moveId: clamp
     weight: 3
     noRepeat: 0
-    playerDistance: {x: 0, y: 3.2}
+    playerDistance: {x: 0, y: 4.2}
   - moveId: hop
     weight: 2.5
     noRepeat: 1
-    playerDistance: {x: 0, y: 2.4}
+    playerDistance: {x: 0, y: 3.4}
   - moveId: spit
+    weight: 1
+    noRepeat: 1
+    playerDistance: {x: 4.2, y: 30}
+  - moveId: ink_volley
     weight: 3
     noRepeat: 1
-    playerDistance: {x: 3.2, y: 30}
+    playerDistance: {x: 3, y: 30}
   restBetweenMoves: {x: 0.6, y: 1.2}
   poise: 50
   tempo: 1

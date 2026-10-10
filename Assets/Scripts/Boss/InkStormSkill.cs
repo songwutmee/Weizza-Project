@@ -73,12 +73,17 @@ namespace Weizza
 
         [BoxGroup("Stabs (Ultimate 2)")]
         [Tooltip("Volleys per use, random between the two. Each volley is one stab pattern.")]
-        [SerializeField] private Vector2Int stabCount = new(3, 4);
+        [SerializeField] private Vector2Int stabCount = new(3, 5);
 
         [BoxGroup("Stabs (Ultimate 2)")]
         [PropertyRange(0.3f, 1.5f)]
         [Tooltip("Seconds a ring shows before its stab lands. Later stabs come a little faster.")]
-        [SerializeField] private float ringWarning = 0.8f;
+        [SerializeField] private float ringWarning = 1f;
+
+        [BoxGroup("Stabs (Ultimate 2)")]
+        [PropertyRange(0.1f, 1.5f)]
+        [Tooltip("Seconds of calm between two volleys, to read the floor again.")]
+        [SerializeField] private float volleyRest = 0.55f;
 
         [BoxGroup("Stabs (Ultimate 2)")]
         [PropertyRange(0.3f, 2f)]
@@ -161,10 +166,10 @@ namespace Weizza
                     ct.ThrowIfCancellationRequested();
                     PlaceLoom(loom, cam, 0f, 0f);
                     // Later volleys warn a little less: the fight tightens as it goes.
-                    var warning = Mathf.Lerp(ringWarning, ringWarning * 0.75f, i / Mathf.Max(1f, count - 1f));
+                    var warning = Mathf.Lerp(ringWarning, ringWarning * 0.88f, i / Mathf.Max(1f, count - 1f));
                     lastPattern = PickPattern(lastPattern, i);
                     await Volley((StabPattern)lastPattern, cam, loom, warning, ct);
-                    await UniTask.Delay(TimeSpan.FromSeconds(0.25f), cancellationToken: ct);
+                    await UniTask.Delay(TimeSpan.FromSeconds(volleyRest), cancellationToken: ct);
                 }
 
                 // ---- Let go: drop back down away from the player -------------------
@@ -223,6 +228,10 @@ namespace Weizza
             LeadLine, // a row laid down ahead of where the player is running
             Sweep,    // a wave walking across the floor toward the player: jump it
             Scatter,  // several at once with one guaranteed safe gap near the player
+            Pincer,   // two walls walk in from both sides and stop one gap short: stand still in the middle
+            Checker,  // every other spot, then the spots between: step across once, at the right time
+            Rain,     // singles falling one after another all over, one always on the player
+            Cage,     // a ring of stabs around the player, then the centre: get out through the side that opens late
         }
 
         private int PickPattern(int last, int volleyIndex)
@@ -249,8 +258,8 @@ namespace Weizza
                 case StabPattern.Hunt:
                     for (var i = 0; i < 3; i++)
                     {
-                        await Strike(cam, loom, new[] { LeadAim(i) }, warning * (i == 0 ? 1f : 0.8f), ct);
-                        await UniTask.Delay(TimeSpan.FromSeconds(0.1f), cancellationToken: ct);
+                        await Strike(cam, loom, new[] { LeadAim(i) }, warning * (i == 0 ? 1f : 0.85f), ct);
+                        await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: ct);
                     }
                     break;
 
@@ -278,8 +287,8 @@ namespace Weizza
                     var tasks = new List<UniTask>();
                     for (var i = 0; i < 5; i++)
                     {
-                        tasks.Add(Strike(cam, loom, new[] { from + heading * i * gap * 0.9f }, warning * 0.85f, ct));
-                        await UniTask.Delay(TimeSpan.FromSeconds(0.16f), cancellationToken: ct);
+                        tasks.Add(Strike(cam, loom, new[] { from + heading * i * gap * 0.9f }, warning * 0.9f, ct));
+                        await UniTask.Delay(TimeSpan.FromSeconds(0.22f), cancellationToken: ct);
                     }
                     await UniTask.WhenAll(tasks);
                     break;
@@ -294,6 +303,59 @@ namespace Weizza
                         if (UnityEngine.Random.value < 0.75f) spots.Add(x + UnityEngine.Random.Range(-0.3f, 0.3f));
                     }
                     await Strike(cam, loom, spots.ToArray(), warning * 1.1f, ct);
+                    break;
+
+                case StabPattern.Pincer:
+                    // Two walls close in a step at a time and stop one gap short. Standing still
+                    // is right, until a late ring opens on the middle: then step into the
+                    // spot a wall already hit.
+                    var walls = new List<UniTask>();
+                    for (var step = 0; step < 3; step++)
+                    {
+                        var reach = (4 - step) * gap;
+                        walls.Add(Strike(cam, loom, new[] { px - reach, px + reach }, warning * 0.9f, ct));
+                        await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
+                    }
+                    await UniTask.WhenAll(walls);
+                    await Strike(cam, loom, new[] { px }, warning, ct);
+                    break;
+
+                case StabPattern.Checker:
+                    // Every other spot lands first, the spots between land next. The player
+                    // starts on a first wave spot, so it is one step over, then one step back.
+                    var first = new List<float>();
+                    var second = new List<float>();
+                    for (var k = -4; k <= 4; k++) (k % 2 == 0 ? first : second).Add(px + k * gap);
+                    var waveA = Strike(cam, loom, first.ToArray(), warning * 1.1f, ct);
+                    await UniTask.Delay(TimeSpan.FromSeconds(warning * 0.75f), cancellationToken: ct);
+                    var waveB = Strike(cam, loom, second.ToArray(), warning, ct);
+                    await UniTask.WhenAll(waveA, waveB);
+                    break;
+
+                case StabPattern.Rain:
+                    // Singles all over, one after another. Every third one is aimed, so
+                    // waiting for the rain to pass is not an answer either.
+                    var drops = new List<UniTask>();
+                    for (var i = 0; i < 8; i++)
+                    {
+                        var x = i % 3 == 2 ? LeadAim(0) : px + UnityEngine.Random.Range(-6f, 6f);
+                        drops.Add(Strike(cam, loom, new[] { x }, warning * 0.95f, ct));
+                        await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
+                        var p = PlayerLocator.Player;
+                        if (p != null) px = p.transform.position.x;
+                    }
+                    await UniTask.WhenAll(drops);
+                    break;
+
+                case StabPattern.Cage:
+                    // Rings on both sides and further out, the centre next. One side lands
+                    // late: that is the door, and it has to be used before it shuts.
+                    var door = UnityEngine.Random.value < 0.5f ? -1f : 1f;
+                    var cage = Strike(cam, loom, new[] { px - door * gap, px - 2f * gap, px + 2f * gap }, warning, ct);
+                    await UniTask.Delay(TimeSpan.FromSeconds(warning * 0.3f), cancellationToken: ct);
+                    var centre = Strike(cam, loom, new[] { px }, warning * 0.85f, ct);
+                    var shut = Strike(cam, loom, new[] { px + door * gap }, warning * 1.6f, ct);
+                    await UniTask.WhenAll(cage, centre, shut);
                     break;
             }
         }
@@ -396,14 +458,11 @@ namespace Weizza
         {
             var go = new GameObject("Looming Beetle");
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = _sprite != null ? _sprite.sprite : ProceduralSprites.Dot(64);
+            sr.sprite = InkLoom.Get();
             sr.color = loomTint;
             sr.sortingLayerName = "Foreground";
             sr.sortingOrder = 40;
             go.transform.SetParent(cam.transform, false);
-            // Upside down: it hangs from the top of the frame by its legs.
-            go.transform.localRotation = Quaternion.Euler(0f, 0f, 180f);
-            go.transform.localScale = Vector3.one * loomScale;
             _spawned.Add(go);
             return go;
         }
@@ -412,11 +471,16 @@ namespace Weizza
         {
             if (loom == null) return;
             var h = cam.orthographicSize;
-            var bodyHeight = (_sprite != null && _sprite.sprite != null ? _sprite.sprite.bounds.size.y : 1.5f) * loomScale;
-            // Pivot is at the feet, so upside down the feet point down into the frame.
-            var y = h + bodyHeight * 0.35f + drop;
+            // Sized to the frame rather than the world, so it fills the top the same way at any zoom.
+            var sprite = InkLoom.Get();
+            var scale = 2f * h * cam.aspect * 0.8f / sprite.bounds.size.x * (loomScale / 3.2f);
+            loom.transform.localScale = Vector3.one * scale;
+            var height = sprite.bounds.size.y * scale;
+            // Pivot is the top centre. drop 0 hangs it fully in view from the top edge,
+            // negative pulls it back up out of the frame.
+            var y = h + Mathf.Max(0f, -drop) / 2.5f * height;
             loom.transform.localPosition = new Vector3(0f, y, cam.nearClipPlane + 2f);
-            loom.transform.localRotation = Quaternion.Euler(0f, 0f, 180f + tilt);
+            loom.transform.localRotation = Quaternion.Euler(0f, 0f, tilt);
         }
 
         private void SpawnBlot(Camera cam, int index)

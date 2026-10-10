@@ -23,7 +23,15 @@ namespace Weizza
     [RequireComponent(typeof(UIDocument))]
     public sealed class HudScreen : MonoBehaviour
     {
-        public static HudScreen Instance { get; private set; }
+        private static HudScreen _instance;
+
+        // Falls back to a search, because Instance was once found empty mid fight while
+        // this HUD was alive and showing, and a missing title card fails silently.
+        public static HudScreen Instance
+        {
+            get => _instance != null ? _instance : _instance = FindAnyObjectByType<HudScreen>();
+            private set => _instance = value;
+        }
 
         [BoxGroup("Look")]
         [SerializeField] private Color healthColour = new(0.94f, 0.9f, 0.82f);
@@ -45,6 +53,10 @@ namespace Weizza
         [PropertyRange(0.2f, 5f)]
         [Tooltip("Fraction of the bar the ghost drains per second.")]
         [SerializeField] private float ghostDrainPerSecond = 0.8f;
+
+        [BoxGroup("Look")]
+        [ToggleLeft, Tooltip("Off on purpose: a boss is read from its body and its name card, not a health bar. Tick to bring the bar back for balancing.")]
+        [SerializeField] private bool showBossBar;
 
         private UIDocument _document;
         private VisualElement _root;
@@ -71,7 +83,7 @@ namespace Weizza
         private readonly System.Collections.Generic.List<System.IDisposable> _subscriptions = new();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => Instance = null;
+        private static void ResetStatics() => _instance = null;
 
         private void Awake()
         {
@@ -108,7 +120,7 @@ namespace Weizza
 
         private void OnDestroy()
         {
-            if (Instance == this) Instance = null;
+            if (_instance == this) _instance = null;
         }
 
         // ---- Build ----------------------------------------------------------------------
@@ -219,6 +231,7 @@ namespace Weizza
             _title.Add(_titleRule);
             _root.Add(_title);
         }
+
 
         private VisualElement _title;
         private Label _titleLabel;
@@ -503,7 +516,7 @@ namespace Weizza
         private void TickBoss(float dt)
         {
             var boss = MiniBossBrain.Active;
-            var showing = boss != null && boss.Vitals != null;
+            var showing = boss != null && boss.Vitals != null && showBossBar;
             _bossPanel.style.display = showing ? DisplayStyle.Flex : DisplayStyle.None;
             if (!showing) return;
 

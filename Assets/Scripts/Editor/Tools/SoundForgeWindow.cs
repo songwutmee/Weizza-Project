@@ -133,6 +133,12 @@ namespace Weizza.EditorTools
             yield return Sfx("boss.roar", 1, 0.8f, s => Soften(Mix(1.0f,
                 Tremolo(Tone(Wave.Saw, 1.4f, 0.12f, 72f, 52f, 0.6f, s), 9f, 0.5f),
                 Noise(1.4f, 0.1f, 600f, 250f, 0.5f, s)), 1.4f), 1f);
+            // An insect roar: a low growl under a chittering rasp and a thin screech on top,
+            // so it reads as a beetle and not as a lion.
+            yield return Sfx("boss.beetle.roar", 1, 0.9f, s => Soften(Mix(1.0f,
+                Tremolo(Tone(Wave.Saw, 1.8f, 0.08f, 64f, 44f, 0.55f, s), 14f, 0.6f),
+                Tremolo(Noise(1.8f, 0.05f, 1400f, 500f, 0.45f, s), 23f, 0.8f),
+                Lowpass(Vibrato(Tone(Wave.Saw, 1.5f, 0.12f, 880f, 600f, 0.22f, s), 7f, 0.05f), 2600f)), 1.6f), 1f);
             yield return Sfx("boss.phase", 1, 0.8f, s => Mix(1.0f,
                 Tone(Wave.Sine, 0.9f, 0.002f, 70f, 40f, 1.0f, s),
                 Noise(0.6f, 0.002f, 1200f, 120f, 0.6f, s)), 0.5f);
