@@ -916,6 +916,141 @@ namespace Weizza.EditorTools
             File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
         }
 
+        // The closing view looks up through a whole forest, so it needs trees at every depth, tall
+        // enough to fill the frame, and a sky with no edge. Trunk drawings that end in a flat cut
+        // are gone from here, and the sky above its drawn height continues as a mirror of itself,
+        // so there is no seam where the picture used to stop.
+        [MenuItem("Weizza/Act 0/Beautify Ending")]
+        public static void BeautifyEnding()
+        {
+            Report.Clear();
+            Templates.Clear();
+            _rng = new System.Random(88);
+            for (var x = 20f; x < 400f; x += 40f) ChunkPainting.ChunkAt(x, true);
+            CacheTemplates();
+
+            var doomed = new List<GameObject>();
+            foreach (var sr in Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (sr.sprite == null) continue;
+                var scene = sr.gameObject.scene.name;
+                var tex = sr.sprite.texture.name;
+                var x = sr.transform.position.x;
+                var endChunks = scene == "Forest_08" || scene == "Forest_09" || scene == "Forest_10";
+                if (endChunks && tex.StartsWith("L1_TrunkFar") && x >= 300f) doomed.Add(sr.gameObject);
+                // Earlier layers from this tool, so a rerun does not stack them.
+                else if (endChunks && sr.name.StartsWith("Ending ")) doomed.Add(sr.gameObject);
+                // The sky goes back to its drawn size. The mirrored tiles above carry it up instead.
+                else if (endChunks && tex == "L0_Voidpng")
+                {
+                    sr.transform.localScale = Vector3.one * 2.4f;
+                    var p = sr.transform.position;
+                    sr.transform.position = new Vector3(p.x, -7.64f, p.z);
+                    EditorSceneManager.MarkSceneDirty(sr.gameObject.scene);
+                }
+            }
+            foreach (var go in doomed)
+            {
+                var scene = go.scene;
+                Object.DestroyImmediate(go);
+                EditorSceneManager.MarkSceneDirty(scene);
+            }
+
+            // Mirrored sky: it starts where the real one ends (y 21.2) and flips, so the colour
+            // meets itself at the seam.
+            var sky = Tpl("L0_Voidpng");
+            foreach (var cx in new[] { 330f, 350f, 370f })
+            {
+                var chunk = ChunkFor(cx);
+                var go = Clone(sky, chunk, Scenery(chunk, "1 Far Fog"), cx);
+                if (go == null) continue;
+                go.name = "Ending Sky";
+                var skySr = go.GetComponent<SpriteRenderer>();
+                skySr.flipY = true;
+                // Drawn under the real sky and tucked 0.4 m behind its top edge, so the seam is covered
+                // by the real sky's own pixels instead of showing a join.
+                skySr.sortingOrder = skySr.sortingOrder - 1;
+                var p = go.transform.position;
+                go.transform.position = new Vector3(p.x, 21.2f + 14.4f - 0.4f, p.z);
+            }
+
+            // Trees at four depths. Far rows are paler, bigger and slower, so they fill the top of a
+            // zoomed frame and read as a forest going on into the distance.
+            var pods = new[] { Tpl("L4_trunkWithPod"), Tpl("L4_trunkWithPod2"), Tpl("L4_trunkWithPod3") };
+            var rows = new (float z, float scaleMin, float scaleMax, float alpha, float rate, int order, float foot, float gapMin, float gapMax)[]
+            {
+                (5.0f, 1.3f, 1.9f, 1.0f, 0.2f, 31, -0.4f, 7f, 11f),
+                (6.8f, 2.2f, 3.0f, 0.8f, 0.4f, 28, -0.6f, 14f, 20f),
+                (8.3f, 3.2f, 4.2f, 0.6f, 0.5f, 24, -0.9f, 18f, 26f),
+                (9.3f, 4.4f, 5.6f, 0.45f, 0.6f, 20, -1.2f, 24f, 34f),
+            };
+            var placed = 0;
+            foreach (var row in rows)
+            {
+                for (var x = 290f + R(0f, 6f); x < 420f; x += R(row.gapMin, row.gapMax))
+                {
+                    var chunk = ChunkFor(x);
+                    var go = Clone(pods[_rng.Next(3)], chunk, Scenery(chunk, "2 Dark Things"), x, null, 1f, _rng.NextDouble() > 0.5);
+                    if (go == null) continue;
+                    go.name = "Ending Tree";
+                    var sr = go.GetComponent<SpriteRenderer>();
+                    go.transform.localScale = Vector3.one * R(row.scaleMin, row.scaleMax);
+                    sr.color = new Color(1f, 1f, 1f, row.alpha);
+                    sr.sortingOrder = row.order + _rng.Next(3);
+                    var drift = go.GetComponent<BackgroundDrift>();
+                    if (drift != null) drift.SetRate(row.rate);
+                    var p = go.transform.position;
+                    go.transform.position = new Vector3(p.x, p.y, row.z);
+                    Seat(go, row.foot);
+                    placed++;
+                }
+            }
+            Report.AppendLine("ending trees " + placed);
+
+            // Ferns and bushes thick around the ground, in clumps, all along the last stretch.
+            var ferns = new SpriteRenderer[7];
+            for (var i = 0; i < 7; i++) ferns[i] = Tpl("L4_fernCluster" + (i + 1));
+            var clumps = 0;
+            for (var x = 318f; x < 392f; x += R(4f, 8f))
+            {
+                var count = _rng.Next(4, 8);
+                for (var i = 0; i < count; i++)
+                {
+                    var fx = x + R(-2.2f, 2.2f);
+                    var chunk = ChunkFor(fx);
+                    var go = Clone(ferns[_rng.Next(7)], chunk, Scenery(chunk, "2 Dark Things"), fx, null, R(0.9f, 2.0f), _rng.NextDouble() > 0.5);
+                    if (go == null) continue;
+                    go.name = "Ending Fern";
+                    Seat(go, -0.5f);
+                }
+                clumps++;
+            }
+            Report.AppendLine("ending fern clumps " + clumps);
+
+            // The light that falls over the closing rise comes from the pack's own shaft drawings.
+            var sokaGo = FindSokaAfterBoss();
+            var ending = sokaGo != null ? sokaGo.GetComponent<EndingCutscene>() : null;
+            if (ending != null)
+            {
+                var so = new SerializedObject(ending);
+                var shafts = so.FindProperty("lightShafts");
+                shafts.arraySize = 3;
+                for (var i = 0; i < 3; i++)
+                {
+                    var path = PackFolder + "Lv7 VFX/L7_lightShaft" + (i + 1) + ".png";
+                    var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                    shafts.GetArrayElementAtIndex(i).objectReferenceValue = sprite;
+                    if (sprite == null) Report.AppendLine("NO SPRITE " + path);
+                }
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorSceneManager.MarkSceneDirty(sokaGo.scene);
+            }
+            else Report.AppendLine("no ending component found");
+
+            EditorSceneManager.SaveOpenScenes();
+            File.WriteAllText("Temp/act0_second_half.txt", Report.ToString());
+        }
+
         // ---- Polish pass: the new sketch frames, save lights, thinner boss thickets ----
 
         private const string SketchRoot = "Assets/Mock_Asset/Sketch_Character/";
