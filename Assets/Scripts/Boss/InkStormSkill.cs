@@ -575,7 +575,9 @@ namespace Weizza
             sr.sortingOrder = 45;
             var top = cam.transform.position.y + cam.orthographicSize + 6f;
             go.transform.position = new Vector3(x, top, -0.7f);
-            go.transform.localScale = new Vector3(1f, 1f, 1f);
+            // Long enough to reach past the top of the frame from the ground, so the tail reads as one
+            // great spike coming down from out of sight, not a short stick hanging in the air.
+            go.transform.localScale = new Vector3(1.3f, 2.6f, 1f);
             _spawned.Add(go);
             return go;
         }
@@ -657,20 +659,20 @@ namespace Weizza
             const int size = 256;
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
             var rng = new System.Random(1000 + i * 37);
-            var arms = 7 + i * 2;
+            var arms = 4 + i;
             var armAngle = new float[arms];
             var armLen = new float[arms];
             for (var a = 0; a < arms; a++)
             {
                 armAngle[a] = (float)rng.NextDouble() * Mathf.PI * 2f;
-                armLen[a] = 0.55f + (float)rng.NextDouble() * 0.4f;
+                armLen[a] = 0.5f + (float)rng.NextDouble() * 0.22f;
             }
-            var drops = new Vector3[10];
+            var drops = new Vector3[6];
             for (var d = 0; d < drops.Length; d++)
             {
                 var ang = (float)rng.NextDouble() * Mathf.PI * 2f;
-                var r = 0.6f + (float)rng.NextDouble() * 0.35f;
-                drops[d] = new Vector3(Mathf.Cos(ang) * r, Mathf.Sin(ang) * r, 0.03f + (float)rng.NextDouble() * 0.05f);
+                var r = 0.62f + (float)rng.NextDouble() * 0.25f;
+                drops[d] = new Vector3(Mathf.Cos(ang) * r, Mathf.Sin(ang) * r, 0.04f + (float)rng.NextDouble() * 0.05f);
             }
 
             var px = new Color32[size * size];
@@ -683,11 +685,11 @@ namespace Weizza
                 var ang = Mathf.Atan2(v, u);
 
                 // Core edge wobbles with noise, arms push it out in a few directions.
-                var edge = 0.38f + 0.07f * Mathf.PerlinNoise(Mathf.Cos(ang) * 2f + i * 3f, Mathf.Sin(ang) * 2f + i * 5f);
+                var edge = 0.42f + 0.06f * Mathf.PerlinNoise(Mathf.Cos(ang) * 2f + i * 3f, Mathf.Sin(ang) * 2f + i * 5f);
                 for (var a = 0; a < arms; a++)
                 {
                     var diff = Mathf.Abs(Mathf.DeltaAngle(ang * Mathf.Rad2Deg, armAngle[a] * Mathf.Rad2Deg)) * Mathf.Deg2Rad;
-                    edge = Mathf.Max(edge, armLen[a] * Mathf.Exp(-diff * diff * 90f));
+                    edge = Mathf.Max(edge, armLen[a] * Mathf.Exp(-diff * diff * 16f));
                 }
                 var alpha = Mathf.Clamp01((edge - d) * 40f);
                 foreach (var drop in drops)
