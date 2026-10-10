@@ -8,13 +8,10 @@ namespace Weizza
     /// throws itself at the player and goes off after a two second fuse. One hit
     /// kills it, and a firefly killed before its fuse ends just pops.
     ///
-    /// Two ways in, picked at random each time so the player never knows which is
-    /// next (the design note: "never let them know its next move"):
-    ///   Leap  - one ballistic jump onto where the player stood, then it sits and fuses.
-    ///   Glide - flies after the player, and keeps drifting after them while it fuses.
-    /// Either way the answer is the same and always readable: hit it before it
-    /// blows, or get out of the ring. The fuse is the warm yellow pulse (a pulse
-    /// means "about to"), speeding up as it runs out.
+    /// It flies after the player and keeps drifting after them while the fuse burns.
+    /// The answer is always readable: hit it before it blows, or get out of the ring.
+    /// The fuse is the warm yellow pulse (a pulse means "about to"), speeding up as
+    /// it runs out.
     ///
     /// The body is light and airborne, so this brain carries it itself (it holds
     /// EnemyController and places the body each frame). Vitals and the hurt box
@@ -24,7 +21,7 @@ namespace Weizza
     [RequireComponent(typeof(EnemyController))]
     public sealed class BombFlyBrain : MonoBehaviour
     {
-        private enum Mode { Perched, Notice, Leap, Glide, Fuse, Gone }
+        private enum Mode { Perched, Notice, Glide, Fuse, Gone }
 
         [BoxGroup("Senses")]
         [PropertyRange(2f, 15f)]
@@ -35,13 +32,9 @@ namespace Weizza
         [SerializeField] private Vector2 noticeDelay = new(0.2f, 0.7f);
 
         [BoxGroup("Attack")]
-        [PropertyRange(0f, 1f)]
-        [Tooltip("Chance of the leap over the glide.")]
-        [SerializeField] private float leapChance = 0.5f;
-
-        [BoxGroup("Attack")]
-        [PropertyRange(0.3f, 1.5f)]
-        [SerializeField] private float leapSeconds = 0.7f;
+        [PropertyRange(2f, 12f)]
+        [Tooltip("How long it chases before it blows wherever it is.")]
+        [SerializeField] private float glideSeconds = 7f;
 
         [BoxGroup("Attack")]
         [PropertyRange(1f, 8f)]
@@ -75,9 +68,6 @@ namespace Weizza
         [Tooltip("Colour the sprite pulses toward. Plain colour, the glow material already goes past white.")]
         [SerializeField] private Color glowTint = new(1f, 0.85f, 0.3f, 1f);
 
-        [BoxGroup("Senses")]
-        [SerializeField] private LayerMask groundMask = 1;
-
         [BoxGroup("Live"), ShowInInspector, ReadOnly] private Mode _mode = Mode.Perched;
 
         private EnemyController _body;
@@ -88,7 +78,6 @@ namespace Weizza
         private SpriteRenderer _glow;
         private SpriteRenderer _body_sprite;
         private Vector3 _home;
-        private Vector3 _from, _to;
         private float _modeStarted, _modeUntil;
         private bool _follows;
         private bool _blew;
@@ -142,7 +131,6 @@ namespace Weizza
             {
                 case Mode.Perched: TickPerched(); break;
                 case Mode.Notice: TickNotice(); break;
-                case Mode.Leap: TickLeap(); break;
                 case Mode.Glide: TickGlide(dt); break;
                 case Mode.Fuse: TickFuse(dt); break;
             }
@@ -171,35 +159,7 @@ namespace Weizza
 
             var player = PlayerLocator.Player;
             if (player == null) { Enter(Mode.Perched, 0f); return; }
-            if (Random.value < leapChance) BeginLeap(player.transform.position);
-            else Enter(Mode.Glide, 5f);
-        }
-
-        private void BeginLeap(Vector3 target)
-        {
-            _from = transform.position;
-            // Lands on the floor under where the player stood.
-            var ground = Physics.Raycast(target + Vector3.up * 1.5f, Vector3.down, out var hit, 6f, groundMask,
-                QueryTriggerInteraction.Ignore) ? hit.point.y : target.y;
-            _to = new Vector3(target.x, ground + 0.25f, transform.position.z);
-            Face(_to.x - _from.x);
-            Enter(Mode.Leap, leapSeconds);
-        }
-
-        private void TickLeap()
-        {
-            var k = Mathf.Clamp01((Time.time - _modeStarted) / leapSeconds);
-            var apex = Mathf.Max(_from.y, _to.y) + 2f;
-            // A parabola through the start, the apex and the landing.
-            var p = Vector3.Lerp(_from, _to, k);
-            p.y = Mathf.Lerp(_from.y, _to.y, k) + (apex - Mathf.Max(_from.y, _to.y)) * 4f * k * (1f - k);
-            Place(p);
-            _drawing.localRotation = Quaternion.Euler(0f, 0f, Mathf.Lerp(-25f, 25f, k) * Facing());
-            if (k < 1f) return;
-            _drawing.localRotation = Quaternion.identity;
-            _feel?.Land(6f);
-            _follows = false;
-            BeginFuse();
+            Enter(Mode.Glide, glideSeconds);
         }
 
         private void TickGlide(float dt)
@@ -329,7 +289,6 @@ namespace Weizza
             if (Mathf.Abs(dx) > 0.01f) _motor.FaceMovement(dx);
         }
 
-        private float Facing() => _motor.Facing.Sign();
 
         private void Glow()
         {
