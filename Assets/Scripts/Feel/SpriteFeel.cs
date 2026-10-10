@@ -209,7 +209,9 @@ namespace Weizza
                         // Follows the animation and fades, so it reads as a flash going off.
                         _glow.sprite = sprite.sprite;
                         _glow.transform.localScale = new Vector3(sprite.flipX ? -1f : 1f, 1f, 1f);
-                        _glow.color = new Color(1f, 1f, 1f, 1f - t / seconds);
+                        // Stays at full light for the first half so the flash reads as a burst, then drops.
+                        var k = t / seconds;
+                        _glow.color = new Color(1f, 1f, 1f, k < 0.5f ? 1f : 1f - (k - 0.5f) * 2f);
                     }
                     await UniTask.Yield(PlayerLoopTiming.Update, token);
                 }

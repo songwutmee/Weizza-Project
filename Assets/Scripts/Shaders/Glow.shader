@@ -6,7 +6,7 @@ Shader "Weizza/Glow"
     Properties
     {
         [MainTexture] _MainTex ("Sprite", 2D) = "white" {}
-        _Intensity ("Intensity", Range(1, 12)) = 4
+        _Intensity ("Intensity", Range(1, 20)) = 4
     }
 
     SubShader
