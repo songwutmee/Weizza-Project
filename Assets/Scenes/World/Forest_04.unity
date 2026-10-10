@@ -1122,7 +1122,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_Color.a
-      value: 0.45
+      value: 0.44099995
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -1212,7 +1212,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_Color.a
-      value: 0.45
+      value: 0.44099998
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -2672,129 +2672,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SpriteSway
   hanging: 0
   strength: 0.16
---- !u!1 &1041342790
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1041342791}
-  - component: {fileID: 1041342793}
-  - component: {fileID: 1041342792}
-  m_Layer: 2
-  m_Name: Zone Soka Meet
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1041342791
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1041342790}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 31, y: 14, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1942128155}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1041342792
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1041342790}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9e6ae52f27919984fb982d3ad8c02e68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.StoryZone
-  graph: {fileID: 0}
-  cutscene: {fileID: 1741630714}
-  raiseEvent: 
-  fireOn: 0
-  repeat: 0
-  cooldown: 1
-  requireFlag: 
-  blockedByFlag: 
-  requireStance: 0
-  stance: 0
-  setFlagWhenDone: act0.soka.met
-  autosave: 0
---- !u!65 &1041342793
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1041342790}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 2, y: 4, z: 6}
-  m_Center: {x: 0, y: 2, z: 0}
---- !u!1 &1080693952
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1080693953}
-  - component: {fileID: 1080693954}
-  m_Layer: 0
-  m_Name: SokaMeet_Player
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1080693953
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1080693952}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 33.5, y: 14, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1942128155}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1080693954
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1080693952}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ff5197893defde469f04691dfa0a3ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: StoryKit.Runtime::StoryKit.Bridge.StoryStageId
-  _id: SokaMeet_Player
 --- !u!1 &1116629448
 GameObject:
   m_ObjectHideFlags: 0
@@ -3764,7 +3641,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_Color.a
-      value: 0.45
+      value: 0.44099998
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -4109,7 +3986,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_Color.a
-      value: 0.45
+      value: 0.44099998
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -5289,227 +5166,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!1 &1723066372
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1723066373}
-  - component: {fileID: 1723066374}
-  m_Layer: 0
-  m_Name: SokaMeet_Soka
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1723066373
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1723066372}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 39, y: 15.015, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1942128155}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1723066374
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1723066372}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ff5197893defde469f04691dfa0a3ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: StoryKit.Runtime::StoryKit.Bridge.StoryStageId
-  _id: SokaMeet_Soka
---- !u!1 &1741630713
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1741630715}
-  - component: {fileID: 1741630714}
-  m_Layer: 0
-  m_Name: Cutscene Soka Meet
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1741630714
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1741630713}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50b8d1768432a8e40988a31d120587cd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.CutsceneDirector
-  beats:
-  - kind: 0
-    letterboxShow: 1
-    fadeToAlpha: 1
-    seconds: 0.7
-    lockReason: cutscene
-    actorId: Player
-    targetStageId: 
-    moveSpeed: 2
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: 
-    hudShow: 0
-    conversation: {fileID: 0}
-  - kind: 2
-    letterboxShow: 1
-    fadeToAlpha: 1
-    seconds: 0.5
-    lockReason: soka meet
-    actorId: Player
-    targetStageId: 
-    moveSpeed: 2
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: 
-    hudShow: 0
-    conversation: {fileID: 0}
-  - kind: 8
-    letterboxShow: 1
-    fadeToAlpha: 1
-    seconds: 0.5
-    lockReason: cutscene
-    actorId: Player
-    targetStageId: 
-    moveSpeed: 2
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: 
-    hudShow: 0
-    conversation: {fileID: 0}
-  - kind: 4
-    letterboxShow: 1
-    fadeToAlpha: 1
-    seconds: 0.5
-    lockReason: cutscene
-    actorId: Player
-    targetStageId: SokaMeet_Player
-    moveSpeed: 1.6
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: 
-    hudShow: 0
-    conversation: {fileID: 0}
-  - kind: 6
-    letterboxShow: 1
-    fadeToAlpha: 1
-    seconds: 0.5
-    lockReason: cutscene
-    actorId: Player
-    targetStageId: 
-    moveSpeed: 2
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: SokaMeet_Soka
-    hudShow: 0
-    conversation: {fileID: 0}
-  - kind: 7
-    letterboxShow: 1
-    fadeToAlpha: 1
-    seconds: 0.8
-    lockReason: cutscene
-    actorId: Player
-    targetStageId: 
-    moveSpeed: 2
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: 
-    hudShow: 0
-    conversation: {fileID: 0}
-  - kind: 0
-    letterboxShow: 0
-    fadeToAlpha: 1
-    seconds: 0.7
-    lockReason: cutscene
-    actorId: Player
-    targetStageId: 
-    moveSpeed: 2
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: 
-    hudShow: 0
-    conversation: {fileID: 0}
-  - kind: 9
-    letterboxShow: 1
-    fadeToAlpha: 1
-    seconds: 0.5
-    lockReason: cutscene
-    actorId: Player
-    targetStageId: 
-    moveSpeed: 2
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: 
-    hudShow: 0
-    conversation: {fileID: 11400000, guid: 79a69625af9a37c48b36d40a1c391721, type: 2}
-  - kind: 3
-    letterboxShow: 1
-    fadeToAlpha: 1
-    seconds: 0.5
-    lockReason: cutscene
-    actorId: Player
-    targetStageId: 
-    moveSpeed: 2
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: 
-    hudShow: 0
-    conversation: {fileID: 0}
-  - kind: 8
-    letterboxShow: 1
-    fadeToAlpha: 1
-    seconds: 0.5
-    lockReason: cutscene
-    actorId: Player
-    targetStageId: 
-    moveSpeed: 2
-    animationName: Idle
-    waitForEnd: 1
-    lookAtStageId: 
-    hudShow: 1
-    conversation: {fileID: 0}
-  playOnStart: 0
---- !u!4 &1741630715
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1741630713}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -120, y: 14, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1942128155}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1857814028
 GameObject:
   m_ObjectHideFlags: 0
@@ -5827,10 +5483,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 491222798}
-  - {fileID: 1080693953}
-  - {fileID: 1723066373}
-  - {fileID: 1741630715}
-  - {fileID: 1041342791}
   m_Father: {fileID: 778889215}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1949040163
@@ -6477,7 +6129,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_Color.a
-      value: 0.45
+      value: 0.44099998
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_WasSpriteAssigned
