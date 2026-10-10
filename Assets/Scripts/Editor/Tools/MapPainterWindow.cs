@@ -123,14 +123,62 @@ namespace Weizza.EditorTools
 
         // ---- Presets ----------------------------------------------------------
 
-        [TitleGroup("Presets", "Stop re-dragging the same sheet in every session", TitleAlignments.Centered)]
-        [InfoBox("A preset remembers the palette source and every setting below " +
-                 "it: role, scale, collider, sorting, flip. Saved presets stay " +
-                 "in this window's own state, the same way the last sheet you " +
-                 "used already does, so they survive closing Unity.")]
-        [ShowInInspector, HideLabel]
-        [TableList(IsReadOnly = false, AlwaysExpanded = true, HideToolbar = true)]
-        private List<Preset> presets = new();
+        [TitleGroup("Presets", "One click loads a whole layer: its pictures, band, scale and collider", TitleAlignments.Centered)]
+        [OnInspectorGUI]
+        private void DrawPresetButtons()
+        {
+            if (presets.Count == 0)
+            {
+                EditorGUILayout.HelpBox("No presets yet. Set up a palette below, name it and press Save current.", MessageType.Info);
+                return;
+            }
+
+            // Buttons flow into as many columns as the window is wide, so the list stays
+            // readable in a narrow docked panel instead of running off the edge as a table.
+            var width = EditorGUIUtility.currentViewWidth - 30f;
+            var columns = Mathf.Max(1, Mathf.FloorToInt(width / 200f));
+            Preset remove = null;
+            for (var i = 0; i < presets.Count; i += columns)
+            {
+                EditorGUILayout.BeginHorizontal();
+                for (var c = 0; c < columns; c++)
+                {
+                    if (i + c >= presets.Count) { GUILayout.FlexibleSpace(); continue; }
+                    var p = presets[i + c];
+                    var live = folder != null && p.folder == folder && sheet == null || sheet != null && p.sheet == sheet;
+                    var old = GUI.backgroundColor;
+                    GUI.backgroundColor = live ? new Color(0.55f, 1f, 0.6f) : new Color(0.75f, 0.85f, 1f);
+                    if (GUILayout.Button(p.name, GUILayout.Height(30), GUILayout.MinWidth(80))) ApplyPreset(p);
+                    GUI.backgroundColor = new Color(1f, 0.6f, 0.55f);
+                    if (GUILayout.Button("x", GUILayout.Width(22), GUILayout.Height(30)) &&
+                        EditorUtility.DisplayDialog("Delete preset", "Delete the preset '" + p.name + "'? The pictures are not touched.", "Delete", "Keep"))
+                        remove = p;
+                    GUI.backgroundColor = old;
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            if (remove != null) presets.Remove(remove);
+        }
+
+        [SerializeField, HideInInspector] private List<Preset> presets = new();
+
+        private void ApplyPreset(Preset p)
+        {
+            sheet = p.sheet;
+            folder = p.folder;
+            role = p.role;
+            pieceScale = p.pieceScale;
+            solid = p.solid;
+            colliderDepth = p.colliderDepth;
+            sortingOrder = p.sortingOrder;
+            alternateFlip = p.alternateFlip;
+            grid = p.grid;
+            LoadPalette();
+            RefreshLayerRows();
+            painting = true;
+            Repaint();
+            SceneView.RepaintAll();
+        }
 
         [TitleGroup("Presets")]
         [HorizontalGroup("Presets/Save")]
@@ -1412,22 +1460,31 @@ namespace Weizza.EditorTools
         private void Pick(Ray ray)
         {
             HitTest(ray, 0f, _hits);
+            // While a band is soloed, only that band can be picked. The topmost hit used
+            // to win, so picking a stone through a dimmed foreground plant picked the plant.
+            if (isolating) _hits.RemoveAll(h => h == null || !SceneryRoleData.Matches(h, isolatedRole));
             if (_hits.Count == 0) return;
             var r = _hits[0];
 
             var index = swatches.FindIndex(s => s.sprite == r.sprite);
             if (index < 0)
             {
-                // Not on the loaded palette: load the sheet it came from.
-                var texture = r.sprite.texture;
-                var path = AssetDatabase.GetAssetPath(texture);
-                if (!string.IsNullOrEmpty(path))
+                var path = AssetDatabase.GetAssetPath(r.sprite.texture);
+                var dir = string.IsNullOrEmpty(path) ? null : System.IO.Path.GetDirectoryName(path)?.Replace('\\', '/');
+
+                // An art pack folder with a saved preset: load the whole preset, so the
+                // palette is the folder and the band, scale and collider come with it.
+                var preset = dir == null ? null : presets.Find(p => p.folder != null && AssetDatabase.GetAssetPath(p.folder) == dir);
+                if (preset != null) ApplyPreset(preset);
+                else if (!string.IsNullOrEmpty(path))
                 {
-                    sheet = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-                    folder = null;
+                    // One picture per file means the folder is the palette, not the file.
+                    var sprites = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().Count();
+                    if (sprites <= 1 && dir != null) { sheet = null; folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(dir); }
+                    else { sheet = AssetDatabase.LoadAssetAtPath<Texture2D>(path); folder = null; }
                     LoadPalette();
-                    index = swatches.FindIndex(s => s.sprite == r.sprite);
                 }
+                index = swatches.FindIndex(s => s.sprite == r.sprite);
             }
             if (index >= 0) chosen = index;
 
