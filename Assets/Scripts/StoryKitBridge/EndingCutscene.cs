@@ -37,6 +37,17 @@ namespace Weizza
         [PropertyRange(4f, 20f), Tooltip("Seconds the camera takes to rise and pull back.")]
         [SerializeField] private float riseSeconds = 11f;
 
+        [BoxGroup("Light")]
+        [Tooltip("The pack's light shaft drawings. They fade in over the picture while the camera rises, like sun falling through the trees.")]
+        [SerializeField] private Sprite[] lightShafts = Array.Empty<Sprite>();
+
+        [BoxGroup("Light")]
+        [SerializeField] private Color shaftTint = new(1f, 0.92f, 0.62f, 1f);
+
+        [BoxGroup("Light")]
+        [PropertyRange(0f, 1f)]
+        [SerializeField] private float shaftStrength = 0.5f;
+
         [BoxGroup("Restart")]
         [Tooltip("Scene loaded after the ending. Everything remembered is wiped first.")]
         [SerializeField] private string restartScene = "Act0_Prototype";
@@ -76,6 +87,7 @@ namespace Weizza
                 if (zone != null) zone.Paused = true;
                 var startZoom = zone != null && zone.CurrentSize > 0f ? zone.CurrentSize : rig != null ? rig.OrthographicSize : 6f;
 
+                var shafts = SpawnShafts();
                 var titled = false;
                 var t = 0f;
                 while (t < riseSeconds)
@@ -85,6 +97,7 @@ namespace Weizza
                     var eased = k * k * (3f - 2f * k);
                     rig?.SetPanUp(Mathf.Lerp(0f, panUp, eased));
                     rig?.SetZoom(Mathf.Lerp(startZoom, endZoom, eased));
+                    TickShafts(shafts, t, k);
                     if (!titled && k > 0.4f && hud != null)
                     {
                         titled = true;
@@ -108,6 +121,44 @@ namespace Weizza
             {
                 hold?.Dispose();
                 _running = false;
+            }
+        }
+
+        private SpriteRenderer[] SpawnShafts()
+        {
+            var cam = Camera.main;
+            if (cam == null || lightShafts == null || lightShafts.Length == 0) return Array.Empty<SpriteRenderer>();
+            var list = new SpriteRenderer[lightShafts.Length];
+            for (var i = 0; i < list.Length; i++)
+            {
+                var go = new GameObject("Ending Shaft");
+                go.transform.SetParent(cam.transform, false);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = lightShafts[i];
+                sr.color = new Color(shaftTint.r, shaftTint.g, shaftTint.b, 0f);
+                sr.sortingLayerName = "Foreground";
+                sr.sortingOrder = 4 + i;
+                list[i] = sr;
+            }
+            return list;
+        }
+
+        // The drawings were made for the normal view, so they grow with the zoom to keep covering the picture,
+        // and each sways on its own slow beat so the light is never still.
+        private void TickShafts(SpriteRenderer[] shafts, float t, float k)
+        {
+            var cam = Camera.main;
+            if (cam == null) return;
+            var scale = cam.orthographicSize / 6f;
+            var fade = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(k * 2.2f));
+            for (var i = 0; i < shafts.Length; i++)
+            {
+                if (shafts[i] == null) continue;
+                var sway = Mathf.Sin(t * (0.25f + i * 0.07f) + i * 2.1f);
+                shafts[i].transform.localScale = Vector3.one * scale * (1.05f + 0.04f * sway);
+                shafts[i].transform.localPosition = new Vector3(sway * 0.8f * scale, 0f, 5f);
+                var a = shaftStrength * fade * (0.75f + 0.25f * Mathf.Sin(t * 0.4f + i * 1.7f));
+                shafts[i].color = new Color(shaftTint.r, shaftTint.g, shaftTint.b, a);
             }
         }
 
