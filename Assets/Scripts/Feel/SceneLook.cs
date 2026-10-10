@@ -27,13 +27,13 @@ namespace Weizza
 
         [BoxGroup("Colour", centerLabel: true)]
         [InfoBox("Brightness of the grey art is mapped through these three colours: deep shadow, the middle, the lit side.")]
-        [SerializeField] private Color shadow = new(0.015f, 0.08f, 0.07f);
+        [SerializeField] private Color shadow = new(0.02f, 0.11f, 0.08f);
 
         [BoxGroup("Colour")]
-        [SerializeField] private Color middle = new(0.40f, 0.45f, 0.13f);
+        [SerializeField] private Color middle = new(0.46f, 0.50f, 0.18f);
 
         [BoxGroup("Colour")]
-        [SerializeField] private Color lit = new(1f, 0.93f, 0.48f);
+        [SerializeField] private Color lit = new(0.95f, 0.92f, 0.55f);
 
         [BoxGroup("Colour")]
         [PropertyRange(0f, 1f), Tooltip("0 leaves the art as it is, 1 is fully re-coloured.")]
@@ -50,6 +50,14 @@ namespace Weizza
         [BoxGroup("Colour")]
         [PropertyRange(0f, 10f), Tooltip("How much of a saturated colour (the player, enemies) is kept. Grey art is never kept.")]
         [SerializeField] private float keepSaturated = 4f;
+
+        [BoxGroup("Colour")]
+        [PropertyRange(0.5f, 2f), Tooltip("Above 1 pushes colours away from grey. The mock is rich green and yellow, not pastel.")]
+        [SerializeField] private float saturation = 1.1f;
+
+        [BoxGroup("Colour")]
+        [PropertyRange(0.6f, 2f), Tooltip("Above 1 makes shadows darker and the lit parts brighter.")]
+        [SerializeField] private float contrast = 1.2f;
 
         [BoxGroup("Light", centerLabel: true)]
         [PropertyRange(0.2f, 1.2f), Tooltip("Brightness at the left edge of the screen.")]
@@ -111,8 +119,16 @@ namespace Weizza
         [SerializeField] private float beamCount = 3.5f;
 
         [BoxGroup("Sun")]
-        [PropertyRange(0f, 0.4f)]
-        [SerializeField] private float beamDrift = 0.05f;
+        [PropertyRange(0f, 0.4f), Tooltip("How fast the beams slide across the frame.")]
+        [SerializeField] private float beamDrift = 0.12f;
+
+        [BoxGroup("Sun")]
+        [PropertyRange(0f, 0.5f), Tooltip("How much the whole light swells and thins, slowly, like a cloud passing.")]
+        [SerializeField] private float lightBreath = 0.14f;
+
+        [BoxGroup("Sun")]
+        [PropertyRange(0f, 3f), Tooltip("Air wobbling around the sun, like heat over warm ground. Only near the sun.")]
+        [SerializeField] private float shimmer = 0f;
 
         [BoxGroup("Glare zones", centerLabel: true)]
         [ListDrawerSettings(ShowFoldout = true, DefaultExpandedState = true)]
@@ -138,6 +154,10 @@ namespace Weizza
         private static readonly int Reach = Shader.PropertyToID("_LookBottomReach");
         private static readonly int Shaft = Shader.PropertyToID("_LookShaft");
         private static readonly int World = Shader.PropertyToID("_LookWorldBrightness");
+        private static readonly int Sat = Shader.PropertyToID("_LookSaturation");
+        private static readonly int Con = Shader.PropertyToID("_LookContrast");
+        private static readonly int Shim = Shader.PropertyToID("_LookShimmer");
+        private static readonly int Breath = Shader.PropertyToID("_LookBreath");
         private static readonly int TintL = Shader.PropertyToID("_LookTintLeft");
         private static readonly int TintR = Shader.PropertyToID("_LookTintRight");
 
@@ -184,6 +204,10 @@ namespace Weizza
             Shader.SetGlobalFloat(Bottom, groundShadow);
             Shader.SetGlobalFloat(Reach, groundReach);
             Shader.SetGlobalVector(Shaft, new Vector4(beamIntensity * _glare, beamAngle, beamCount, beamDrift));
+            Shader.SetGlobalFloat(Sat, saturation);
+            Shader.SetGlobalFloat(Con, contrast);
+            Shader.SetGlobalFloat(Shim, shimmer);
+            Shader.SetGlobalFloat(Breath, lightBreath);
             Shader.SetGlobalColor(TintL, tintLeft);
             Shader.SetGlobalColor(TintR, tintRight);
             Shader.SetGlobalFloat(World, Mathf.Lerp(worldBrightness.x, worldBrightness.y, progress));
