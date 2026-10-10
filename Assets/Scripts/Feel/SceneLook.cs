@@ -25,6 +25,17 @@ namespace Weizza
             public float boost = 2.4f;
         }
 
+        [Serializable]
+        public sealed class BrightZone
+        {
+            [Tooltip("World x where the zone is fully on.")] public float from;
+            [Tooltip("World x where it starts to ease out.")] public float to = 20f;
+            [PropertyRange(0.3f, 2f), Tooltip("Multiplies the whole frame's light. Below 1 is darker, above 1 is brighter.")]
+            public float multiplier = 1.4f;
+            [PropertyRange(1f, 20f), Tooltip("Metres it takes to ease in before from, and out after to.")]
+            public float fade = 6f;
+        }
+
         [BoxGroup("Colour", centerLabel: true)]
         [InfoBox("Brightness of the grey art is mapped through these three colours: deep shadow, the middle, the lit side.")]
         [SerializeField] private Color shadow = new(0.02f, 0.11f, 0.08f);
@@ -90,6 +101,11 @@ namespace Weizza
         [BoxGroup("Light")]
         [Tooltip("World x range the brightening runs across.")]
         [SerializeField] private Vector2 worldRange = new(0f, 160f);
+
+        [BoxGroup("Light")]
+        [ListDrawerSettings(ShowFoldout = true, DefaultExpandedState = true)]
+        [Tooltip("Stretches of the level that are brighter or darker than the slow brightening above, like an open meadow after a dark tunnel.")]
+        [SerializeField] private BrightZone[] brightZones = Array.Empty<BrightZone>();
 
         [BoxGroup("Sun", centerLabel: true)]
         [Tooltip("Where the sun sits on screen, 0 to 1. Upper right.")]
@@ -224,7 +240,16 @@ namespace Weizza
             Shader.SetGlobalFloat(Breath, lightBreath);
             Shader.SetGlobalColor(TintL, tintLeft);
             Shader.SetGlobalColor(TintR, tintRight);
-            Shader.SetGlobalFloat(World, Mathf.Lerp(worldBrightness.x, worldBrightness.y, progress));
+            var zoneLight = 1f;
+            foreach (var zone in brightZones)
+            {
+                if (zone == null || zone.to <= zone.from) continue;
+                var fade = Mathf.Max(0.1f, zone.fade);
+                var on = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(zone.from - fade, zone.from, x))
+                         * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(zone.to, zone.to + fade, x)));
+                zoneLight *= Mathf.Lerp(1f, zone.multiplier, on);
+            }
+            Shader.SetGlobalFloat(World, Mathf.Lerp(worldBrightness.x, worldBrightness.y, progress) * zoneLight);
         }
     }
 }
