@@ -65,6 +65,12 @@ namespace Weizza
                  "and answers distance with a ranged move and crowding with a hop away.")]
         [SerializeField] private bool approachBetweenMoves = true;
 
+        [BoxGroup("Fight")]
+        [ToggleLeft]
+        [Tooltip("Reads the player when picking a move: hops away when it is being hit a lot, does not swing " +
+                 "low at someone in the air, shoots at someone backing off, and gives a breather after it lands a hit.")]
+        [SerializeField] private bool readThePlayer = true;
+
         [BoxGroup("Forced death", centerLabel: true)]
         [InfoBox("Act 0's mini boss kills the player by design. When the " +
                  "condition below is met, the boss stops taking damage, plays the " +
@@ -143,6 +149,10 @@ namespace Weizza
         private IDisposable _finisherLock;
         private IDisposable _finisherArmor;
         private readonly List<BossMoveChoice> _candidates = new(8);
+        private readonly List<(BossMoveChoice choice, float weight)> _weighted = new(8);
+        private readonly Queue<float> _hurtTimes = new();
+        private float _playerHurtAt = -10f;
+        private Vitals _watchedPlayer;
 
         private string PhaseReadout
         {
@@ -183,6 +193,7 @@ namespace Weizza
         private void OnEnable()
         {
             _vitals.Died += OnDied;
+            _vitals.Damaged += OnHurt;
             if (_poise != null) _poise.Broke += OnPoiseBroke;
             // A boss scripted to win never drops below its finisher point, so a hit
             // that would kill it (a one hit kill while testing) starts the finisher
@@ -194,6 +205,9 @@ namespace Weizza
         private void OnDisable()
         {
             _vitals.Died -= OnDied;
+            _vitals.Damaged -= OnHurt;
+            if (_watchedPlayer != null) _watchedPlayer.Damaged -= OnPlayerHurt;
+            _watchedPlayer = null;
             if (_poise != null) _poise.Broke -= OnPoiseBroke;
             _playerDied?.Dispose();
             _playerDied = null;
@@ -225,6 +239,8 @@ namespace Weizza
         {
             if (State != Phase.Dormant) return;
             Active = this;
+            WatchPlayer();
+            _hurtTimes.Clear();
             PhaseIndex = 0;
             ApplyPhase(0);
             StoryEvents.Raise(GameEvents.BossStarted, bossName);
@@ -302,6 +318,13 @@ namespace Weizza
             var range = phase != null ? phase.restBetweenMoves : new Vector2(1f, 1.5f);
             var tempo = phase != null ? phase.tempo : 1f;
             _restFor = UnityEngine.Random.Range(range.x, range.y) * tempo;
+            if (readThePlayer)
+            {
+                // Just landed a hit: a breath, so a hit never chains straight into the next.
+                // Just took several: answer sooner, so standing in its face is not free.
+                if (Time.time - _playerHurtAt < 1.2f) _restFor *= 1.35f;
+                else if (RecentHurts(1.5f) >= 2) _restFor *= 0.7f;
+            }
             Enter(Phase.Resting);
         }
 
@@ -381,16 +404,75 @@ namespace Weizza
             }
             if (_candidates.Count > 1)
                 _candidates.RemoveAll(c => c.noRepeat && c.moveId == LastMove);
-            foreach (var choice in _candidates) total += choice.weight;
+            // Each choice carries its own weight, so the two can never come apart.
+            _weighted.Clear();
+            foreach (var choice in _candidates)
+            {
+                var weight = ReadWeight(choice, player);
+                _weighted.Add((choice, weight));
+                total += weight;
+            }
 
             if (_candidates.Count == 0) return null;
             var roll = UnityEngine.Random.value * total;
-            foreach (var choice in _candidates)
+            foreach (var (choice, weight) in _weighted)
             {
-                roll -= choice.weight;
+                roll -= weight;
                 if (roll <= 0f) return choice;
             }
             return _candidates[_candidates.Count - 1];
+        }
+
+        // ---- Reading the player ------------------------------------------------------------
+        //
+        // Small nudges on top of the phase weights, never a rule that removes a move. The
+        // fight stays readable because the same few situations always get the same kind of
+        // answer, and it stays fair because every nudge has a way to play around it.
+
+        private float ReadWeight(BossMoveChoice choice, PlayerController player)
+        {
+            var weight = choice.weight;
+            if (!readThePlayer || player == null) return weight;
+
+            var move = _body.Data != null ? _body.Data.FindMove(choice.moveId) : null;
+            var evasive = move != null && move.leapAwayDistance > 0f;
+            var ranged = move != null && move.projectile != null;
+            var melee = move != null && !ranged && !evasive && !move.harmless;
+
+            // Being hit a lot up close: get out, rather than trade blows it is losing.
+            if (evasive && RecentHurts(2f) >= 2) weight *= 4f;
+            // Someone in the air jumps clean over a low swing, so do not throw one.
+            if (melee && !player.Motor.Grounded) weight *= 0.4f;
+            // Backing off to heal or to line up a shot: that is what the ink is for.
+            var away = Mathf.Sign(player.transform.position.x - transform.position.x);
+            if (ranged && player.Motor.Velocity.x * away > 2f) weight *= 1.8f;
+            return weight;
+        }
+
+        private int RecentHurts(float seconds)
+        {
+            while (_hurtTimes.Count > 0 && Time.time - _hurtTimes.Peek() > seconds) _hurtTimes.Dequeue();
+            return _hurtTimes.Count;
+        }
+
+        private void OnHurt(DamageInfo info, HitResult result)
+        {
+            if (State is not (Phase.Dormant or Phase.Defeated)) _hurtTimes.Enqueue(Time.time);
+        }
+
+        private void OnPlayerHurt(DamageInfo info, HitResult result)
+        {
+            if (info.source == gameObject) _playerHurtAt = Time.time;
+        }
+
+        private void WatchPlayer()
+        {
+            var player = PlayerLocator.Player;
+            var vitals = player != null ? player.Vitals : null;
+            if (vitals == _watchedPlayer) return;
+            if (_watchedPlayer != null) _watchedPlayer.Damaged -= OnPlayerHurt;
+            _watchedPlayer = vitals;
+            if (_watchedPlayer != null) _watchedPlayer.Damaged += OnPlayerHurt;
         }
 
         private bool TryPerform(string moveId)

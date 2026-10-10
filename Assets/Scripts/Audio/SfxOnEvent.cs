@@ -38,7 +38,6 @@ namespace Weizza
             new Pair { eventName = GameEvents.HealedOnKill, soundId = "player.heal" },
             new Pair { eventName = GameEvents.CheckpointClaimed, soundId = "world.checkpoint" },
             new Pair { eventName = GameEvents.GameSaved, soundId = "ui.save" },
-            new Pair { eventName = GameEvents.BossStarted, soundId = "boss.roar" },
             new Pair { eventName = GameEvents.BossPhaseChanged, soundId = "boss.phase" },
             new Pair { eventName = Shrine.RestedEvent, soundId = "world.shrine" },
         };

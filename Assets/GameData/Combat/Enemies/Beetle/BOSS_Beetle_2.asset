@@ -18,15 +18,19 @@ MonoBehaviour:
   - moveId: clamp
     weight: 3
     noRepeat: 0
-    playerDistance: {x: 0, y: 3.2}
+    playerDistance: {x: 0, y: 4.2}
   - moveId: hop
     weight: 2
     noRepeat: 1
-    playerDistance: {x: 0, y: 2.4}
+    playerDistance: {x: 0, y: 3.4}
   - moveId: spit_wide
+    weight: 1
+    noRepeat: 1
+    playerDistance: {x: 4.2, y: 30}
+  - moveId: ink_volley
     weight: 3
     noRepeat: 1
-    playerDistance: {x: 3.2, y: 30}
+    playerDistance: {x: 3, y: 30}
   - moveId: ink_storm
     weight: 2.2
     noRepeat: 1
