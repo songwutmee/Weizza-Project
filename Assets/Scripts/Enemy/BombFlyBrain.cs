@@ -27,11 +27,6 @@ namespace Weizza
         private enum Mode { Perched, Notice, Leap, Glide, Fuse, Gone }
 
         [BoxGroup("Senses")]
-        [Tooltip("Tick for a firefly that just sits on the ground and glows. It never notices the player " +
-                 "and never blows up. A hit still pops it.")]
-        [ToggleLeft, SerializeField] private bool resting;
-
-        [BoxGroup("Senses")]
         [PropertyRange(2f, 15f)]
         [SerializeField] private float noticeRange = 7f;
 
@@ -103,7 +98,6 @@ namespace Weizza
         private bool _blew;
         private Vector3 _velocity;
         private float _phase;
-        private float _blink;
 
         private void Awake()
         {
@@ -164,7 +158,6 @@ namespace Weizza
         {
             // Sitting still, breathing a little. Fireflies blink on their own beat.
             Place(_home + Vector3.up * Mathf.Sin(Time.time * 2.1f + _phase) * 0.02f);
-            if (resting) return;
             var player = PlayerLocator.Player;
             if (player == null || !_body.TargetOnSameLane) return;
             if (Vector3.Distance(player.transform.position, transform.position) > noticeRange) return;
@@ -354,23 +347,12 @@ namespace Weizza
             }
             else
             {
-                // A resting one blinks a little faster when someone walks close, like it noticed them.
-                var hz = 1.7f;
-                var player = resting ? PlayerLocator.Player : null;
-                if (player != null)
-                {
-                    var near = 1f - Mathf.Clamp01(Vector3.Distance(player.transform.position, transform.position) / 4f);
-                    hz = Mathf.Lerp(1.7f, 3.4f, near);
-                }
-                // Phase is accumulated, not time * hz, so changing the rate never makes the light jump.
-                _blink += Time.deltaTime * hz;
-                a = 0.55f + 0.45f * Mathf.Max(0f, Mathf.Sin(_blink + _phase));
+                a = 0.55f + 0.45f * Mathf.Max(0f, Mathf.Sin(Time.time * 1.7f + _phase));
             }
             var c = glowColour;
             c.a *= a;
             _glow.color = c;
-            // A resting one is scenery, so its light is wider and softer.
-            _glow.transform.localScale = Vector3.one * ((0.16f + 0.08f * a) * (resting ? 2.2f : 1f));
+            _glow.transform.localScale = Vector3.one * (0.16f + 0.08f * a);
         }
 
         private void Enter(Mode next, float seconds)
