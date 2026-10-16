@@ -143,6 +143,10 @@ namespace Weizza
         [SerializeField] private float lightBreath = 0.14f;
 
         [BoxGroup("Sun")]
+        [PropertyRange(0f, 4f), Tooltip("Fine grain that hides stripes in slow gradients (beams, haze, dark sky). In steps of 1/255. 1 to 1.5 is invisible as grain, 0 turns it off.")]
+        [SerializeField] private float banding = 1.2f;
+
+        [BoxGroup("Sun")]
         [PropertyRange(0f, 3f), Tooltip("Air wobbling around the sun, like heat over warm ground. Only near the sun.")]
         [SerializeField] private float shimmer = 0f;
 
@@ -187,6 +191,7 @@ namespace Weizza
         private static readonly int Con = Shader.PropertyToID("_LookContrast");
         private static readonly int Shim = Shader.PropertyToID("_LookShimmer");
         private static readonly int Breath = Shader.PropertyToID("_LookBreath");
+        private static readonly int Dither = Shader.PropertyToID("_LookDither");
         private static readonly int TintL = Shader.PropertyToID("_LookTintLeft");
         private static readonly int TintR = Shader.PropertyToID("_LookTintRight");
 
@@ -238,6 +243,7 @@ namespace Weizza
             Shader.SetGlobalFloat(Con, contrast);
             Shader.SetGlobalFloat(Shim, shimmer);
             Shader.SetGlobalFloat(Breath, lightBreath);
+            Shader.SetGlobalFloat(Dither, banding);
             Shader.SetGlobalColor(TintL, tintLeft);
             Shader.SetGlobalColor(TintR, tintRight);
             var zoneLight = 1f;
