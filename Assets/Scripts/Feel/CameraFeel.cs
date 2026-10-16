@@ -58,6 +58,10 @@ namespace Weizza
         {
             // The settings scale is an accessibility dial: zero turns every
             // shake off, for players who get motion sick.
+            // Every shake is felt in the hands too, before the shake setting: a player
+            // who turns shake off for motion sickness still wants the rumble.
+            Rumble.FromShake(strength);
+
             strength *= GameSettings.ShakeScale;
             LastStrength = strength;
             if (impulse == null || strength <= 0f) return;

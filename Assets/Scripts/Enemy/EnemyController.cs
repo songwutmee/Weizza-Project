@@ -38,11 +38,28 @@ namespace Weizza
         /// </summary>
         private static readonly List<EnemyController> Live = new(16);
 
+        /// <summary>Any enemy died, after it entered its Dead state.</summary>
+        public static event System.Action<EnemyController> AnyDied;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
             Live.Clear();
             _groundMask = -1;
+            AnyDied = null;
+        }
+
+        /// <summary>Enemies still alive within this distance of a point along x.</summary>
+        public static int CountAliveNear(Vector3 point, float radius)
+        {
+            var count = 0;
+            foreach (var enemy in Live)
+            {
+                if (enemy == null || enemy.Current == State.Dead) continue;
+                if (Mathf.Abs(enemy.transform.position.x - point.x) > radius) continue;
+                count++;
+            }
+            return count;
         }
 
         [BoxGroup("Setup")]
@@ -244,6 +261,8 @@ namespace Weizza
             // Aimable from the moment it exists, so placing an enemy never
             // needs a second step for In to be able to lock onto it.
             if (GetComponent<Targetable>() == null) gameObject.AddComponent<Targetable>();
+            // Dust when knocked back, landing or charging, for every enemy with no setup.
+            if (_motor != null && GetComponent<FootDust>() == null) gameObject.AddComponent<FootDust>();
 
             if (animator == null) animator = GetComponentInChildren<SpriteAnimator>();
             if (hitbox == null) hitbox = GetComponentInChildren<HitboxEmitter>();
@@ -604,7 +623,9 @@ namespace Weizza
         private void TickTelegraph()
         {
             Brake();
-            if (_stateTimer < Timing.Frames(_move.telegraphFrames)) return;
+            // The longer warnings assist holds every wind up half as long again.
+            var warning = Timing.Frames(_move.telegraphFrames) * (GameSettings.LongerWarnings ? 1.5f : 1f);
+            if (_stateTimer < warning) return;
 
             spriteFeel?.ReleaseTint();
             Enter(State.Commit);
@@ -938,6 +959,7 @@ namespace Weizza
             StoryEvents.Raise(GameEvents.EnemyDefeated, data != null ? data.displayName : name);
             Enter(State.Dead);
             _motor.Velocity = Vector3.zero;
+            AnyDied?.Invoke(this);
 
             if (animator != null) animator.Play(deathClip, restart: true);
             if (despawnDelay > 0f)
