@@ -120,9 +120,17 @@ namespace Weizza
 
             card.Add(Heading("Comfort", 20));
             card.Add(SliderRow("Screen shake", GameSettings.ShakeScale, v => GameSettings.ShakeScale = v, 0f, 1.5f));
+            card.Add(SliderRow("Controller rumble", GameSettings.RumbleScale, v => GameSettings.RumbleScale = v));
             card.Add(ToggleRow("Softer flashes", GameSettings.ReduceFlashes, v => GameSettings.ReduceFlashes = v));
             card.Add(ToggleRow("Damage numbers", GameSettings.DamageNumbers, v => GameSettings.DamageNumbers = v));
             card.Add(ToggleRow("Frame data overlay", GameSettings.FrameDataOverlay, v => GameSettings.FrameDataOverlay = v));
+
+            // Each assist is its own switch, so a player who only needs time does not
+            // also have to give up the challenge of being hit.
+            card.Add(Heading("Assist", 20));
+            card.Add(SliderRow("Game speed", GameSettings.GameSpeed, v => GameSettings.GameSpeed = v, 0.5f, 1f));
+            card.Add(ToggleRow("Longer enemy warnings", GameSettings.LongerWarnings, v => GameSettings.LongerWarnings = v));
+            card.Add(ToggleRow("Invincible", GameSettings.AssistInvincible, v => GameSettings.AssistInvincible = v));
 
             card.Add(Heading("Display", 20));
             card.Add(ToggleRow("Fullscreen", GameSettings.Fullscreen, v => GameSettings.Fullscreen = v));

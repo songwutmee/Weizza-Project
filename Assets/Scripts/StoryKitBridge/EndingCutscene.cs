@@ -164,7 +164,7 @@ namespace Weizza
 
         private void Restart()
         {
-            StoryTimeScale.SetBase(1f);
+            StoryTimeScale.SetBase(AssistOptions.Normal);
             StoryState.Global.Clear();
             SaveSystem.Instance?.DeleteSlot();
             SceneManager.LoadScene(restartScene);

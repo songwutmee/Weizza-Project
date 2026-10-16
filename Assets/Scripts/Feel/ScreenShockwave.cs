@@ -46,7 +46,8 @@ namespace Weizza
                 DontDestroyOnLoad(go);
                 _runner = go.AddComponent<ScreenShockwave>();
             }
-            _runner.Add(world, seconds, strength, reach);
+            // Softer flashes also calms the screen ripple, which is a flash of distortion.
+            _runner.Add(world, seconds, GameSettings.ReduceFlashes ? strength * 0.4f : strength, reach);
         }
 
         private void Add(Vector3 world, float seconds, float strength, float reach)
