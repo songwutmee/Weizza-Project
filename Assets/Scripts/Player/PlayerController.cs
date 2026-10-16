@@ -206,6 +206,14 @@ namespace Weizza
             if (GetComponent<PlayerShooter>() == null) gameObject.AddComponent<PlayerShooter>();
             if (GetComponent<SafeGroundTracker>() == null) gameObject.AddComponent<SafeGroundTracker>();
             if (GetComponent<StanceSwitchFeedback>() == null) gameObject.AddComponent<StanceSwitchFeedback>();
+            if (GetComponent<FootDust>() == null) gameObject.AddComponent<FootDust>();
+            if (GetComponent<DashGhosts>() == null) gameObject.AddComponent<DashGhosts>();
+            if (GetComponent<RunLean>() == null) gameObject.AddComponent<RunLean>();
+            if (GetComponentInChildren<RimLight>() == null && spriteFeel != null)
+            {
+                var drawing = GetComponentInChildren<SpriteRenderer>();
+                if (drawing != null) drawing.gameObject.AddComponent<RimLight>();
+            }
 
             if (_reactor == null)
             {
@@ -602,6 +610,7 @@ namespace Weizza
             _jumpBufferedUntil = 0f;
             _coyoteUntil = 0f;
             Motor.Velocity.y = CurrentStance.JumpVelocity;
+            spriteFeel?.Stretch();
             return true;
         }
 
@@ -635,6 +644,12 @@ namespace Weizza
 
             var direction = Motor.Facing.Sign();
             StoryEvents.Raise(GameEvents.Dashed, Stance.ToString());
+
+            // Celeste's dash beat: the world holds for a few frames and the frame kicks
+            // the way of the dash, so the dash reads as a burst instead of a fast walk.
+            // The dash itself still starts this frame; only the world waits.
+            HitStop.Freeze(3);
+            CameraFeel.Instance?.Shake(0.07f, new Vector2(direction, 0f));
 
             // Crossing a lane belongs to the dash button, whichever school owns
             // the dash. It used to be the blink's alone, and moved with the
@@ -888,6 +903,10 @@ namespace Weizza
             HitSpark.Play(info.point, info.knockback, info.hitStopFrames * 0.12f,
                 result == HitResult.Hit ? Color.white : new Color(1f, 0.85f, 0.4f));
 
+            // Heavy hits shake the plants around the impact (light jabs do not, or a
+            // combo would keep the forest rattling).
+            if (info.hitStopFrames >= 8) WindField.Ripple(info.point, Mathf.Clamp(info.hitStopFrames * 0.02f, 0.15f, 0.35f));
+
             if (result == HitResult.Parried) return;
 
             if (info.lifesteal > 0f && Vitals != null) Vitals.Heal(info.amount * info.lifesteal);
@@ -1120,7 +1139,16 @@ namespace Weizza
             StoryEvents.Raise(GameEvents.PlayerRevived);
         }
 
-        private void OnLanded(float impactSpeed) => spriteFeel?.Land(impactSpeed);
+        private void OnLanded(float impactSpeed)
+        {
+            spriteFeel?.Land(impactSpeed);
+            // Only a real drop nudges the camera down; an ordinary jump landing must not,
+            // or every hop in a fight shakes the frame.
+            if (impactSpeed > 11f) CameraFeel.Instance?.Shake(Mathf.InverseLerp(11f, 22f, impactSpeed) * 0.18f, Vector2.down);
+            // Than's weight shakes the plants around where it lands.
+            if (CurrentStance != null && CurrentStance.isHeavy && impactSpeed > 9f)
+                WindField.Ripple(transform.position, Mathf.InverseLerp(9f, 20f, impactSpeed) * 0.3f + 0.1f);
+        }
 
         private void EnterState(PlayerState next)
         {
