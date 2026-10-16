@@ -330,7 +330,31 @@ namespace Weizza
 
         private void OnPlayerDamaged(DamageInfo info, HitResult result)
         {
-            if (result is HitResult.Hit or HitResult.Armored) _ghostHoldUntil = Time.unscaledTime + ghostDelay;
+            if (result is HitResult.Hit or HitResult.Armored)
+            {
+                _ghostHoldUntil = Time.unscaledTime + ghostDelay;
+                // The wings flinch with the body, so the eye goes to the health that was just lost.
+                _wingShakeUntil = Time.unscaledTime + WingShakeSeconds;
+                Rumble.Pulse(0.55f, 0.35f, 0.16f);
+            }
+        }
+
+        private const float WingShakeSeconds = 0.28f;
+        private float _wingShakeUntil;
+
+        private void ShakeWings()
+        {
+            if (_wings == null) return;
+            var left = _wingShakeUntil - Time.unscaledTime;
+            if (left <= 0f)
+            {
+                if (_wingShakeUntil > 0f) { _wings.style.translate = new StyleTranslate(new Translate(0, 0)); _wingShakeUntil = 0f; }
+                return;
+            }
+            // Pixels, fading out, scaled by the same comfort dial as screen shake.
+            var k = left / WingShakeSeconds * GameSettings.ShakeScale;
+            var t = Time.unscaledTime * 55f;
+            _wings.style.translate = new StyleTranslate(new Translate(Mathf.Sin(t) * 6f * k, Mathf.Cos(t * 1.3f) * 3f * k));
         }
 
         private void Update()
@@ -346,6 +370,7 @@ namespace Weizza
             }
 
             if (_root == null) return;
+            ShakeWings();
             if (_player == null) _player = PlayerLocator.Player;
             var dt = Time.unscaledDeltaTime;
 
