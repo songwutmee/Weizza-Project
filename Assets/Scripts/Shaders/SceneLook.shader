@@ -43,6 +43,7 @@ Shader "Weizza/SceneLook"
             float _LookDither;       // noise size in 1/255 steps, 0 is off
             float4 _LookMist;        // x strength, y height (share of the screen), z drift speed, w size
             float _LookMistCamX;     // camera x in metres, so the mist stays put in the world as the view scrolls
+            float _LookCvd;          // colour blind preview: 0 off, 1 protan, 2 deutan, 3 tritan (editor tool only)
 
             half Luma(half3 c) { return dot(c, half3(0.299, 0.587, 0.114)); }
 
@@ -180,6 +181,20 @@ Shader "Weizza/SceneLook"
                 float core = exp(-r2 / (rad * rad * 0.08));
                 float glow = exp(-r2 / (rad * rad));
                 col += _LookSunColor.rgb * _LookSunColor.a * (core * 2.5 + glow * 0.22) * (0.35 + L) * breath;
+
+                // Colour blind preview, Machado, Oliveira and Fernandes 2009, table 1 at
+                // severity 1.0. Lets the team check that the one colour, one meaning cues
+                // (white, amber, red, warm yellow) still read apart for dichromat players.
+                // Applied before bloom and tone mapping, so it is a close preview, not exact.
+                if (_LookCvd > 0.5)
+                {
+                    float3x3 m = _LookCvd < 1.5
+                        ? float3x3(0.152286, 1.052583, -0.204868,  0.114503, 0.786281, 0.099216,  -0.003882, -0.048116, 1.051998)
+                        : _LookCvd < 2.5
+                        ? float3x3(0.367322, 0.860646, -0.227968,  0.280085, 0.672501, 0.047413,  -0.011820, 0.042940, 0.968881)
+                        : float3x3(1.255528, -0.076749, -0.178779,  -0.078411, 0.930809, 0.147602,  0.004733, 0.691367, 0.303900);
+                    col = max(mul(m, col), 0.0);
+                }
 
                 // 5. Break up colour banding. Slow gradients (beams, haze, the dark sky) only
                 //    have 256 steps per channel and show as stripes; a grain of about one step
