@@ -40,16 +40,8 @@ Shader "Weizza/SceneLook"
             float4 _LookTintLeft, _LookTintRight;
             float _LookContrast, _LookSaturation, _LookShimmer, _LookBreath;
             float4 _LookRay;         // x reach toward the sun, y z sky brightness window, w shade depth
-            float _LookDither;       // noise size in 1/255 steps, 0 is off
 
             half Luma(half3 c) { return dot(c, half3(0.299, 0.587, 0.114)); }
-
-            // Interleaved gradient noise (Jimenez): even spread, no visible grid, a few
-            // multiplies. Taken from the pixel position so the grain stays one pixel big.
-            float InterleavedNoise(float2 pixel)
-            {
-                return frac(52.9829189 * frac(dot(pixel, float2(0.06711056, 0.00583715))));
-            }
 
             half3 Ramp(half t)
             {
@@ -143,12 +135,6 @@ Shader "Weizza/SceneLook"
                 float core = exp(-r2 / (rad * rad * 0.08));
                 float glow = exp(-r2 / (rad * rad));
                 col += _LookSunColor.rgb * _LookSunColor.a * (core * 2.5 + glow * 0.22) * (0.35 + L) * breath;
-
-                // 5. Break up colour banding. Slow gradients (beams, haze, the dark sky) only
-                //    have 256 steps per channel and show as stripes; a grain of about one step
-                //    makes neighbouring pixels round differently, so the eye averages them.
-                float grain = InterleavedNoise(uv * _ScreenParams.xy + fmod(_Time.y * 60.0, 64.0)) * 2.0 - 1.0;
-                col += grain * (_LookDither / 255.0);
 
                 return half4(col, src.a);
             }
