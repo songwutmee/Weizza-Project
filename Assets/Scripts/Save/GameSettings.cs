@@ -24,6 +24,10 @@ namespace Weizza
             public float voice = 1f;
             public float shake = 1f;
             public bool reduceFlashes;
+            public float gameSpeed = 1f;
+            public float rumble = 1f;
+            public bool assistInvincible;
+            public bool longerWarnings;
             public bool damageNumbers;
             public bool frameData;
             public string language = "th";
@@ -71,6 +75,22 @@ namespace Weizza
         public static bool ReduceFlashes { get => D.reduceFlashes; set => Set(ref D.reduceFlashes, value); }
 
         /// <summary>Off by default: the design bible says hit stop reads better than numbers.</summary>
+        /// <summary>Assist: the whole game slower, in steps of a tenth, like Celeste's assist mode. 1 is normal.</summary>
+        public static float GameSpeed
+        {
+            get => D.gameSpeed <= 0f ? 1f : D.gameSpeed;
+            set => Set(ref D.gameSpeed, Mathf.Clamp(Mathf.Round(value * 10f) / 10f, 0.5f, 1f));
+        }
+
+        /// <summary>Controller rumble strength, 0 is off.</summary>
+        public static float RumbleScale { get => D.rumble; set => Set(ref D.rumble, Mathf.Clamp01(value)); }
+
+        /// <summary>Assist: the player takes no damage.</summary>
+        public static bool AssistInvincible { get => D.assistInvincible; set => Set(ref D.assistInvincible, value); }
+
+        /// <summary>Assist: enemies hold their wind up half as long again before they swing.</summary>
+        public static bool LongerWarnings { get => D.longerWarnings; set => Set(ref D.longerWarnings, value); }
+
         public static bool DamageNumbers { get => D.damageNumbers; set => Set(ref D.damageNumbers, value); }
 
         /// <summary>Frame data bar over the player while attacking. A tuning aid.</summary>
