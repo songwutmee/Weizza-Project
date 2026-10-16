@@ -379,8 +379,14 @@ namespace Weizza.EditorTools
             fade.enabled = true;
             fade.color = new ParticleSystem.MinMaxGradient(Ramp());
 
+            // Every mote its own little turn and size, so the air does not read as a grid.
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            var spin = system.rotationOverLifetime;
+            spin.enabled = true;
+            spin.z = new ParticleSystem.MinMaxCurve(-0.6f, 0.6f);
+
             var renderer = holder.GetComponent<ParticleSystemRenderer>();
-            renderer.sharedMaterial = Additive();
+            renderer.sharedMaterial = MoteMaterial();
             renderer.renderMode = ParticleSystemRenderMode.Billboard;
 
             // In front of the player. This is the whole point of them.
@@ -388,6 +394,47 @@ namespace Weizza.EditorTools
 
             system.Stop();
             system.Clear();
+        }
+
+        /// <summary>
+        /// Additive like the old shaft material, but with a soft round dot. With no
+        /// texture a particle draws its whole quad, and the motes showed as hard squares.
+        /// </summary>
+        internal static Material MoteMaterial()
+        {
+            var path = $"{TextureFolder}/Mote.mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                Folder(TextureFolder);
+                material = new Material(Shader.Find("Sprites/Default")) { name = "Mote" };
+                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            material.mainTexture = MoteTexture();
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Texture2D MoteTexture()
+        {
+            var path = $"{TextureFolder}/MoteDot.png";
+            var existing = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if (existing != null) return existing;
+
+            Folder(TextureFolder);
+            var dot = SoftDust.Texture(64, keepReadable: true);
+            System.IO.File.WriteAllBytes(path, dot.EncodeToPNG());
+            Object.DestroyImmediate(dot);
+            AssetDatabase.ImportAsset(path);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            importer.textureType = TextureImporterType.Default;
+            importer.alphaIsTransparency = true;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.mipmapEnabled = false;
+            importer.SaveAndReimport();
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
         private static Gradient Ramp() => new()
