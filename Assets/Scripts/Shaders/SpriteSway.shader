@@ -54,6 +54,7 @@ Shader "Weizza/SpriteSway"
             {
                 COMMON_2D_OUTPUTS
                 half4 color : COLOR;
+                float blur : TEXCOORD5;   // how soft this piece draws, from its depth
             };
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/2DCommon.hlsl"
@@ -67,6 +68,10 @@ Shader "Weizza/SpriteSway"
             CBUFFER_END
 
             float4 _WindA;   // set by WindField.cs, outside the material buffer on purpose
+            float4 _PlayerPush;   // xyz the player's feet, w how far the push reaches (0 is off)
+            float4 _PlayerPushB;  // x the player's speed along x, y how far a plant is pushed (metres)
+            float4 _SwayKick;     // xy where a big hit or landing happened, z when (level time), w how hard
+            float _FarBlur;       // how soft the furthest layers draw, 0 is sharp
 
             Varyings Vert(Attributes input)
             {
@@ -102,16 +107,64 @@ Shader "Weizza/SpriteSway"
 
                 // Strength is in metres, so undo the object's own scale.
                 float scaleX = max(length(GetObjectToWorldMatrix()._m00_m10_m20), 1e-4);
-                input.positionOS.x += (lean + flutter + tipFlutter) * bend * _Strength / scaleX;
+
+                // The player walking through: leaves near the body lean away from it and
+                // spring back once it has passed. Only plants close to the player's depth
+                // react, so a tree far behind never moves when someone walks past it.
+                float push = 0.0;
+                if (_PlayerPush.w > 0.01)
+                {
+                    float3 vertexWS = TransformObjectToWorld(input.positionOS.xyz);
+                    float dx = vertexWS.x - _PlayerPush.x;
+                    float dy = vertexWS.y - _PlayerPush.y;
+                    float sameDepth = 1.0 - smoothstep(2.5, 3.5, abs(origin.z - _PlayerPush.z));
+                    float nearX = 1.0 - smoothstep(0.0, _PlayerPush.w, abs(dx));
+                    float atBody = smoothstep(-0.8, 0.0, dy) * (1.0 - smoothstep(2.0, 2.8, dy));
+                    float moving = 0.55 + 0.45 * saturate(abs(_PlayerPushB.x) / 5.0);
+                    push = (dx >= 0.0 ? 1.0 : -1.0) * nearX * atBody * sameDepth * moving * _PlayerPushB.y;
+                }
+
+                // A heavy hit or landing sends a ripple through the plants around it: a
+                // ring that travels outward at about twelve metres a second, shakes each
+                // plant away from the impact once and dies out. Cascading action, from the
+                // Juice It or Lose It talk: one event, the world answering after it.
+                float kick = 0.0;
+                float since = _Time.y - _SwayKick.z;
+                if (_SwayKick.w > 0.001 && since >= 0.0 && since < 1.5)
+                {
+                    float away = origin.x - _SwayKick.x;
+                    float reach = abs(away);
+                    float arrive = since - reach / 12.0;
+                    if (arrive > 0.0)
+                    {
+                        float fall = (1.0 - smoothstep(0.0, 8.0, reach)) * exp(-arrive * 4.0);
+                        kick = (away >= 0.0 ? 1.0 : -1.0) * sin(arrive * 22.0) * fall * _SwayKick.w;
+                    }
+                }
+
+                input.positionOS.x += ((lean + flutter + tipFlutter) * _Strength + push + kick) * bend / scaleX;
 
                 Varyings o = CommonUnlitVertex(input);
                 o.color = input.color * _Color * unity_SpriteColor;
+                // Only the far layers (Dark Things and Far Fog, five metres back and beyond)
+                // soften, so the plane the player plays on stays crisp.
+                o.blur = _FarBlur * saturate((origin.z - 4.5) / 4.0);
                 return o;
             }
 
             half4 Frag(Varyings input) : SV_Target
             {
-                return CommonUnlitFragment(input, input.color);
+                if (input.blur < 0.001) return CommonUnlitFragment(input, input.color);
+
+                // Five taps in a small cross, sized as a share of the sprite's own rect so
+                // the softness is the same on a small piece and a large one.
+                float2 r = input.blur * 0.004 * _UVRect.zw;
+                half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv) * 0.36;
+                c += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv + float2(r.x, r.y)) * 0.16;
+                c += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv + float2(-r.x, r.y)) * 0.16;
+                c += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv + float2(r.x, -r.y)) * 0.16;
+                c += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv + float2(-r.x, -r.y)) * 0.16;
+                return c * input.color;
             }
             ENDHLSL
         }
