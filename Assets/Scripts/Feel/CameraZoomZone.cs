@@ -29,6 +29,11 @@ namespace Weizza
         /// <summary>A cutscene that wants the zoom for itself switches this on.</summary>
         public bool Paused { get; set; }
 
+        [PropertyRange(0.6f, 1f), Tooltip("How close the camera leans in while someone talks, as a share of the current size. 1 turns it off. A gentle lean in focuses a conversation without black bars.")]
+        [SerializeField] private float talkZoom = 0.86f;
+
+        private float _talk;
+
         public float CurrentSize { get; private set; }
 
         private float _last = -1f;
@@ -49,6 +54,11 @@ namespace Weizza
                          * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(zone.to, zone.to + ease, x)));
                 size = Mathf.Lerp(size, zone.size, on);
             }
+
+            // Lean in while a conversation runs, on unscaled time since talking may slow the world.
+            var talking = Narrative.DialogueDirector.Talking ? 1f : 0f;
+            _talk = Mathf.MoveTowards(_talk, talking, Time.unscaledDeltaTime / 0.6f);
+            size *= Mathf.Lerp(1f, talkZoom, Mathf.SmoothStep(0f, 1f, _talk));
 
             CurrentSize = size;
             if (Mathf.Abs(size - _last) < 0.002f) return;
