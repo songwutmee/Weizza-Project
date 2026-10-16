@@ -149,6 +149,19 @@ namespace Weizza
             else Open();
         }
 
+        /// <summary>
+        /// Alt tab, a notification, the controller going to sleep: whatever pulled the
+        /// player away, they come back to a paused game instead of a dead character.
+        /// Build only, because the editor loses focus all the time while working.
+        /// Respects the same screens the pause key does, so it never fights a talk.
+        /// </summary>
+        private void OnApplicationFocus(bool focused)
+        {
+            if (focused || Paused || Application.isEditor) return;
+            if (SettingsScreen.IsOpen || ItemRevealScreen.Showing || DialogueDirector.Talking) return;
+            Open();
+        }
+
         private void Open()
         {
             if (Paused) return;
