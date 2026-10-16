@@ -1578,6 +1578,16 @@ namespace Weizza.EditorTools
         /// </summary>
         private void AddCollider(GameObject go, SpriteRenderer renderer, Vector2 localSize)
         {
+            // A rock or a stump is not a rectangle: follow its drawn outline.
+            // Flat strips fall through to the box below.
+            if (OutlineColliders.Wants(renderer.sprite))
+            {
+                var mesh = go.AddComponent<MeshCollider>();
+                mesh.sharedMesh = OutlineColliders.MeshForSprite(renderer.sprite, renderer.flipX);
+                if (mesh.sharedMesh != null) return;
+                DestroyImmediate(mesh);
+            }
+
             var box = go.AddComponent<BoxCollider>();
             var depth = Mathf.Clamp01(colliderDepth);
 
