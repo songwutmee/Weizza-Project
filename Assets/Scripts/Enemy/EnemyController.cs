@@ -144,6 +144,11 @@ namespace Weizza
         [PropertyRange(0f, 4f)]
         [SerializeField] private float despawnDelay = 0.6f;
 
+        [BoxGroup("Animation")]
+        [PropertyRange(0f, 8f)]
+        [Tooltip("Metres per second the killing blow throws the body back from the player (and a little up). 0 drops it where it stands.")]
+        [SerializeField] private float deathLaunch = 3.2f;
+
         // ---- Live ------------------------------------------------------------
 
         [FoldoutGroup("Live", expanded: true)]
@@ -316,8 +321,23 @@ namespace Weizza
             EncounterDirector.Instance?.LeaveSlot(this);
         }
 
+        // A body knocked out keeps flying and falling until it lands, instead of freezing
+        // in the air where the last hit caught it.
+        private float _deathFlightUntil;
+
         private void Update()
         {
+            if (data != null && Current == State.Dead && Time.time < _deathFlightUntil && !Held)
+            {
+                var flight = Time.deltaTime;
+                // Plain gravity even for a flyer: a firefly that dies drops out of the air.
+                if (!_motor.Grounded || _motor.Velocity.y > 0f)
+                    _motor.Velocity.y += Physics.gravity.y * (_reactor != null ? _reactor.GravityScale : 1f) * flight;
+                _motor.Velocity.x = Mathf.MoveTowards(_motor.Velocity.x, 0f, (_motor.Grounded ? 18f : 3f) * flight);
+                _motor.Step(flight);
+                if (_motor.Grounded && _motor.Velocity.y <= 0f && Mathf.Abs(_motor.Velocity.x) < 0.05f) _deathFlightUntil = 0f;
+                return;
+            }
             if (data == null || Current == State.Dead) return;
             // A boss skill has lifted the body off the ground (clinging to the top
             // of the screen) and places it by hand until it lets go.
@@ -625,6 +645,7 @@ namespace Weizza
             Brake();
             // The longer warnings assist holds every wind up half as long again.
             var warning = Timing.Frames(_move.telegraphFrames) * (GameSettings.LongerWarnings ? 1.5f : 1f);
+            spriteFeel?.SetHoldProgress(warning > 0f ? _stateTimer / warning : 1f);
             if (_stateTimer < warning) return;
 
             spriteFeel?.ReleaseTint();
@@ -958,7 +979,16 @@ namespace Weizza
             EncounterDirector.Instance?.LeaveSlot(this);
             StoryEvents.Raise(GameEvents.EnemyDefeated, data != null ? data.displayName : name);
             Enter(State.Dead);
-            _motor.Velocity = Vector3.zero;
+
+            // The killing blow throws the body back and up, a readable arc instead of a
+            // collapse on the spot. Bosses keep their own death and only fall.
+            var player = PlayerLocator.Player;
+            var away = player != null ? Mathf.Sign(transform.position.x - player.transform.position.x) : -_motor.Facing.Sign();
+            var boss = GetComponent<MiniBossBrain>() != null;
+            _motor.Velocity = boss || deathLaunch <= 0f
+                ? Vector3.zero
+                : new Vector3(away * deathLaunch, data.flying ? 0f : deathLaunch * 0.9f, 0f);
+            _deathFlightUntil = Time.time + 2.5f;
             AnyDied?.Invoke(this);
 
             if (animator != null) animator.Play(deathClip, restart: true);

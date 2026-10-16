@@ -154,6 +154,8 @@ namespace Weizza
             _holding = true;
             _heldTint = tint;
             _holdStarted = Time.unscaledTime;
+            _holdPhase = 0f;
+            _holdProgress = 0f;
             _flashLife?.Cancel();
             _flashLife?.Dispose();
             _flashLife = null;
@@ -175,10 +177,20 @@ namespace Weizza
             if (!_holding || sprite == null) return;
 
             // Unscaled, because a telegraph interrupted by hit stop should keep
-            // pulsing rather than freezing into a solid colour.
-            var beat = Mathf.PingPong((Time.unscaledTime - _holdStarted) * holdPulseHz * 2f, 1f);
-            sprite.color = Color.Lerp(_baseColor, _heldTint, 0.35f + beat * 0.65f);
+            // pulsing rather than freezing into a solid colour. The beat quickens
+            // over the last part of a wind up, so the player can read not only that
+            // a swing is coming but when: the fast blinking is "now".
+            var urgency = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.55f, 1f, _holdProgress));
+            _holdPhase += Time.unscaledDeltaTime * holdPulseHz * 2f * Mathf.Lerp(1f, 2.6f, urgency);
+            var beat = Mathf.PingPong(_holdPhase, 1f);
+            sprite.color = Color.Lerp(_baseColor, _heldTint, Mathf.Lerp(0.35f, 0.55f, urgency) + beat * Mathf.Lerp(0.65f, 0.45f, urgency));
         }
+
+        private float _holdPhase;
+        private float _holdProgress;
+
+        /// <summary>How far through the wind up a held tint is, 0 to 1. Drives the quickening pulse.</summary>
+        public void SetHoldProgress(float progress) => _holdProgress = Mathf.Clamp01(progress);
 
         /// <summary>Drops a held tint and goes back to the sprite's own colour.</summary>
         public void ReleaseTint()
