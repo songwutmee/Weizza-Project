@@ -176,9 +176,10 @@ namespace Weizza
             // capsule slides off the lane without any code having asked it to.
             Velocity.z = 0f;
             _groundCandidate = null;
-            Controller.Move(Velocity * dt + _pendingDisplacement);
+            var flags = Controller.Move(Velocity * dt + _pendingDisplacement);
             _pendingDisplacement = Vector3.zero;
             Grounded = Controller.isGrounded;
+            if (CornerCorrection) CorrectCorners(flags, dt);
             GroundCollider = Grounded ? _groundCandidate : null;
 
             var position = transform.position;
@@ -239,6 +240,89 @@ namespace Weizza
         {
             if (Mathf.Abs(axis) < 0.1f) return;
             SetFacing(FacingExtensions.FromSign(axis));
+        }
+
+        // ---- Corner correction ----------------------------------------------------------
+
+        /// <summary>
+        /// Celeste's forgiveness rules, from Maddy Thorson's own list: a head that clips a
+        /// ceiling corner on the way up is slid around it, and a body that clips the lip of
+        /// a ledge while moving sideways in the air is popped up onto it. Each fudges a few
+        /// centimetres in the player's favour so a near miss counts. Off by default;
+        /// PlayerController turns it on for the player only.
+        /// </summary>
+        public bool CornerCorrection { get; set; }
+
+        private const float CeilingNudge = 0.3f;   // furthest sideways slide around a ceiling corner
+        private const float LedgePop = 0.4f;       // highest lip a sideways move is lifted over
+        private static readonly Collider[] Overlaps = new Collider[8];
+        private int _solidMask = -2;
+
+        private int SolidMask
+        {
+            get
+            {
+                if (_solidMask != -2) return _solidMask;
+                // Whatever this body's layer collides with in the physics matrix.
+                var mask = 0;
+                for (var layer = 0; layer < 32; layer++)
+                    if (!Physics.GetIgnoreLayerCollision(gameObject.layer, layer)) mask |= 1 << layer;
+                return _solidMask = mask;
+            }
+        }
+
+        private void CorrectCorners(CollisionFlags flags, float dt)
+        {
+            // Head bonk while rising: look for a gap a few centimetres to either side.
+            if ((flags & CollisionFlags.Above) != 0 && Velocity.y > 0.5f)
+            {
+                var lift = Mathf.Max(0.05f, Velocity.y * dt);
+                for (var d = 0.06f; d <= CeilingNudge + 0.001f; d += 0.06f)
+                {
+                    for (var s = 0; s < 2; s++)
+                    {
+                        var offset = new Vector3((s == 0 ? 1f : -1f) * d, 0f, 0f);
+                        if (!Fits(offset) || !Fits(offset + Vector3.up * lift)) continue;
+                        MoveFree(offset);
+                        return;
+                    }
+                }
+            }
+
+            // Clipping the lip of a ledge while travelling sideways in the air: lift onto it.
+            if ((flags & CollisionFlags.Sides) != 0 && !Grounded && Mathf.Abs(Velocity.x) > 2f && Velocity.y < 2f)
+            {
+                var ahead = new Vector3(Mathf.Sign(Velocity.x) * 0.1f, 0f, 0f);
+                if (Fits(ahead)) return;   // not actually blocked ahead
+                for (var h = 0.08f; h <= LedgePop + 0.001f; h += 0.08f)
+                {
+                    var up = Vector3.up * h;
+                    if (!Fits(up) || !Fits(up + ahead)) continue;
+                    MoveFree(up);
+                    if (Velocity.y < 0f) Velocity.y = 0f;
+                    return;
+                }
+            }
+        }
+
+        /// <summary>True when the capsule, shifted by this much, touches nothing solid but itself.</summary>
+        private bool Fits(Vector3 offset)
+        {
+            var c = Controller;
+            var centre = transform.position + c.center + offset;
+            var half = Mathf.Max(0f, c.height * 0.5f - c.radius);
+            var count = Physics.OverlapCapsuleNonAlloc(centre + Vector3.up * half, centre - Vector3.up * half,
+                c.radius - 0.01f, Overlaps, SolidMask, QueryTriggerInteraction.Ignore);
+            for (var i = 0; i < count; i++)
+                if (Overlaps[i] != c && !Overlaps[i].transform.IsChildOf(transform)) return false;
+            return true;
+        }
+
+        private void MoveFree(Vector3 offset)
+        {
+            Controller.enabled = false;
+            transform.position += offset;
+            Controller.enabled = true;
         }
 
         /// <summary>Puts the character somewhere without the controller resisting.</summary>
