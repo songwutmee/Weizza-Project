@@ -54,10 +54,13 @@ namespace Weizza
         {
             var player = PlayerLocator.Player;
             if (player == null || enemy == null) return;
-            if (Mathf.Abs(enemy.transform.position.x - player.transform.position.x) > fightRadius) return;
-            if (EnemyController.CountAliveNear(player.transform.position, fightRadius) > 0) return;
-
             var boss = enemy.GetComponent<MiniBossBrain>() != null;
+            // A boss always gets its moment, even felled by a ward thrown from across the room.
+            if (!boss)
+            {
+                if (Mathf.Abs(enemy.transform.position.x - player.transform.position.x) > fightRadius) return;
+                if (EnemyController.CountAliveNear(player.transform.position, fightRadius) > 0) return;
+            }
             if (boss)
             {
                 // The boss going down is the biggest beat in Act 0: a soft impact flash,
