@@ -1679,6 +1679,10 @@ MonoBehaviour:
   lightBreath: 0.14
   banding: 1.2
   shimmer: 0
+  mistStrength: 0.14
+  mistHeight: 0.3
+  mistDrift: 0.04
+  mistSize: 2.4
   rayReach: 0.9
   shadeDepth: 0.22
   skyWindow: {x: 0.36, y: 0.68}
@@ -1706,6 +1710,9 @@ MonoBehaviour:
   gustSpeed: 3.5
   gustLength: 18
   blowsRight: 1
+  farBlur: 0.8
+  pushReach: 1.1
+  pushAmount: 0.35
 --- !u!1 &759257321
 GameObject:
   m_ObjectHideFlags: 0
@@ -2067,6 +2074,7 @@ GameObject:
   - component: {fileID: 869267023}
   - component: {fileID: 869267022}
   - component: {fileID: 869267021}
+  - component: {fileID: 869267024}
   m_Layer: 0
   m_Name: Spores
   m_TagString: Untagged
@@ -6905,6 +6913,21 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
+--- !u!114 &869267024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869267019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24575b81be10e864482096dcf7edad80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.GustParticles
+  calmRate: 0.4
+  gustRate: 2.2
+  gustPush: 1.6
 --- !u!1 &936282332
 GameObject:
   m_ObjectHideFlags: 0
@@ -7075,6 +7098,8 @@ MonoBehaviour:
   settleSeconds: 0.16
   followFallAfter: 1.2
   stepIgnoreHeight: 3
+  lookAhead: 1.4
+  lookAheadSeconds: 0.9
 --- !u!4 &950851614
 Transform:
   m_ObjectHideFlags: 0
@@ -7952,7 +7977,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c59bcfb30e3176040af8ad9084a39eb4, type: 2}
+  - {fileID: 2100000, guid: c0036420458e40a409105079b5ae4da9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8524,8 +8549,8 @@ ParticleSystem:
         m_RotationOrder: 4
     startRotation:
       serializedVersion: 2
-      minMaxState: 0
-      scalar: 0
+      minMaxState: 3
+      scalar: 6.2831855
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -9111,7 +9136,7 @@ ParticleSystem:
         m_RotationOrder: 4
     separateAxes: 0
   RotationModule:
-    enabled: 0
+    enabled: 1
     x:
       serializedVersion: 2
       minMaxState: 0
@@ -9220,9 +9245,9 @@ ParticleSystem:
         m_RotationOrder: 4
     curve:
       serializedVersion: 2
-      minMaxState: 0
-      scalar: 0.7853982
-      minScalar: 0.7853982
+      minMaxState: 3
+      scalar: 0.6
+      minScalar: -0.6
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -13145,6 +13170,7 @@ GameObject:
   - component: {fileID: 1434517356}
   - component: {fileID: 1434517355}
   - component: {fileID: 1434517354}
+  - component: {fileID: 1434517357}
   m_Layer: 0
   m_Name: Leaves
   m_TagString: Untagged
@@ -17983,6 +18009,21 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
+--- !u!114 &1434517357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1434517352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24575b81be10e864482096dcf7edad80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.GustParticles
+  calmRate: 0.4
+  gustRate: 2.2
+  gustPush: 1.6
 --- !u!1 &1507219013
 GameObject:
   m_ObjectHideFlags: 0
@@ -18401,6 +18442,10 @@ MonoBehaviour:
   landSquash: 0.22
   fullSquashSpeed: 14
   squashFrames: 8
+  jumpStretch: 0.14
+  stretchFrames: 9
+  hitPunch: 0.1
+  punchFrames: 7
 --- !u!114 &1625399734
 MonoBehaviour:
   m_ObjectHideFlags: 0
