@@ -362,6 +362,12 @@ namespace Weizza
             PhaseIndex++;
             ApplyPhase(PhaseIndex);
             PhaseChanged?.Invoke(PhaseIndex);
+
+            // A new phase is a turn in the fight, so it is felt as one: a soft flash, a
+            // ripple through the plants and a heavy rumble, before the entry move.
+            ScreenFlash.Play(0.25f, 0.3f);
+            WindField.Ripple(transform.position, 0.3f);
+            Rumble.Pulse(0.7f, 0.3f, 0.3f);
             StoryEvents.Raise(GameEvents.BossPhaseChanged, bossName);
 
             Enter(Phase.Transition);
