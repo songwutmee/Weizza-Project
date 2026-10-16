@@ -45,9 +45,23 @@ namespace Weizza
                  "only a real change of level, a cliff or a hill, should.")]
         [SerializeField] private float stepIgnoreHeight = 3f;
 
+        [TitleGroup("Ahead")]
+        [PropertyRange(0f, 4f)]
+        [Tooltip("Metres the camera leads the player in the direction they walk, so more of " +
+                 "what is coming is on screen than what is behind. 0 turns it off.")]
+        [SerializeField] private float lookAhead = 1.4f;
+
+        [TitleGroup("Ahead")]
+        [PropertyRange(0.1f, 2f)]
+        [Tooltip("Seconds to swing to the other side after turning. Slow on purpose: a quick " +
+                 "turn in a fight should not throw the frame from side to side.")]
+        [SerializeField] private float lookAheadSeconds = 0.9f;
+
         private float _floorY;
         private float _velocity;
         private bool _started;
+        private float _ahead;
+        private float _aheadVelocity;
 
         private void Reset() => player = FindAnyObjectByType<PlayerController>();
 
@@ -75,7 +89,18 @@ namespace Weizza
             }
 
             var y = Mathf.SmoothDamp(transform.position.y, _floorY, ref _velocity, settleSeconds);
-            transform.position = new Vector3(here.x, y, here.z);
+
+            // Lead toward where the player is going (Scroll Back's forward focus). Driven by
+            // facing, scaled by speed, so standing still slowly recentres a little and a
+            // brief turn to swing does not flip the whole view.
+            var target = 0f;
+            if (motor != null && lookAhead > 0f)
+            {
+                var speed = Mathf.Clamp01(Mathf.Abs(motor.Velocity.x) / 4f);
+                target = motor.Facing.Sign() * lookAhead * Mathf.Lerp(0.45f, 1f, speed);
+            }
+            _ahead = Mathf.SmoothDamp(_ahead, target, ref _aheadVelocity, lookAheadSeconds);
+            transform.position = new Vector3(here.x + _ahead, y, here.z);
         }
 
         /// <summary>
@@ -91,6 +116,8 @@ namespace Weizza
                 var here = anchor.player.transform.position;
                 anchor._floorY = here.y;
                 anchor._velocity = 0f;
+                anchor._ahead = 0f;
+                anchor._aheadVelocity = 0f;
                 anchor._started = true;
                 anchor.transform.position = here;
             }
