@@ -60,8 +60,23 @@ namespace Weizza
         private float _floorY;
         private float _velocity;
         private bool _started;
+        [TitleGroup("Look")]
+        [PropertyRange(0f, 5f)]
+        [Tooltip("Metres the view slides when the player stands still and holds up or down, " +
+                 "to see a drop before jumping into it (Hollow Knight does the same). 0 turns it off.")]
+        [SerializeField] private float lookDistance = 2.6f;
+
+        [TitleGroup("Look")]
+        [PropertyRange(0.1f, 1.5f)]
+        [Tooltip("Seconds the stick has to be held first, so a tap on up or down never moves the view.")]
+        [SerializeField] private float lookDelay = 0.45f;
+
         private float _ahead;
         private float _aheadVelocity;
+        private float _look;
+        private float _lookVelocity;
+        private float _lookHeld;
+        private float _baseY;
 
         private void Reset() => player = FindAnyObjectByType<PlayerController>();
 
@@ -74,6 +89,7 @@ namespace Weizza
             if (!_started)
             {
                 _floorY = here.y;
+                _baseY = here.y;
                 _started = true;
             }
 
@@ -88,7 +104,9 @@ namespace Weizza
                 _floorY = here.y;
             }
 
-            var y = Mathf.SmoothDamp(transform.position.y, _floorY, ref _velocity, settleSeconds);
+            // Settled from its own height, not the transform: the transform also carries the look offset.
+            var y = Mathf.SmoothDamp(_baseY, _floorY, ref _velocity, settleSeconds);
+            _baseY = y;
 
             // Lead toward where the player is going (Scroll Back's forward focus). Driven by
             // facing, scaled by speed, so standing still slowly recentres a little and a
@@ -100,7 +118,16 @@ namespace Weizza
                 target = motor.Facing.Sign() * lookAhead * Mathf.Lerp(0.45f, 1f, speed);
             }
             _ahead = Mathf.SmoothDamp(_ahead, target, ref _aheadVelocity, lookAheadSeconds);
-            transform.position = new Vector3(here.x + _ahead, y, here.z);
+
+            // Hold up or down while standing still to look. Only on the ground and only
+            // when the player is free to move, so a cutscene or a fight never pans away.
+            var stick = InputReader.Instance != null ? InputReader.Instance.Move.y : 0f;
+            var still = grounded && motor != null && Mathf.Abs(motor.Velocity.x) < 0.2f && !StoryKit.StoryControl.MovementLocked;
+            _lookHeld = still && Mathf.Abs(stick) > 0.6f ? _lookHeld + Time.deltaTime : 0f;
+            var lookTarget = _lookHeld >= lookDelay ? Mathf.Sign(stick) * lookDistance : 0f;
+            _look = Mathf.SmoothDamp(_look, lookTarget, ref _lookVelocity, 0.35f);
+
+            transform.position = new Vector3(here.x + _ahead, y + _look, here.z);
         }
 
         /// <summary>
@@ -117,6 +144,9 @@ namespace Weizza
                 anchor._floorY = here.y;
                 anchor._velocity = 0f;
                 anchor._ahead = 0f;
+                anchor._baseY = here.y;
+                anchor._look = 0f;
+                anchor._lookVelocity = 0f;
                 anchor._aheadVelocity = 0f;
                 anchor._started = true;
                 anchor.transform.position = here;
