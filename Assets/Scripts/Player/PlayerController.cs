@@ -188,6 +188,8 @@ namespace Weizza
         private void Awake()
         {
             Motor = GetComponent<CharacterMotor3D>();
+            // Near misses on ceilings and ledge lips count for the player, never for enemies.
+            if (Motor != null) Motor.CornerCorrection = true;
             Vitals = GetComponent<Vitals>();
 
             // The player's health is four butterfly wings, Hollow Knight style.
