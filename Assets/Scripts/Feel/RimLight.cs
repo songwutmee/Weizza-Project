@@ -56,7 +56,7 @@ namespace Weizza
             if (_material == null) _material = Resources.Load<Material>("SpriteRim");
             if (_material == null)
             {
-                var shader = Shader.Find("Weizza/SpriteRim");
+                var shader = RuntimeShaders.Find("Weizza/SpriteRim");
                 if (shader == null)
                 {
                     Debug.LogWarning("[RimLight] Weizza/SpriteRim shader not found, rim light is off.", this);

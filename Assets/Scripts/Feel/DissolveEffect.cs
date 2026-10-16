@@ -76,16 +76,24 @@ namespace Weizza
         {
             if (sprite == null) return;
 
-            sprite.sharedMaterial = SharedMaterial();
+            var material = SharedMaterial();
+            if (material == null) return;
+            sprite.sharedMaterial = material;
             Amount = Mathf.Clamp01(amount);
             Apply();
         }
 
         private void Animate(float from, float to, float seconds, System.Action onComplete)
         {
-            if (sprite == null) return;
+            var material = sprite != null ? SharedMaterial() : null;
+            if (material == null)
+            {
+                // No dissolve available: finish at once so whoever waits on it carries on.
+                onComplete?.Invoke();
+                return;
+            }
 
-            sprite.sharedMaterial = SharedMaterial();
+            sprite.sharedMaterial = material;
             Amount = from;
             Apply();
 
@@ -126,7 +134,10 @@ namespace Weizza
         private static Material SharedMaterial()
         {
             if (_sharedMaterial != null) return _sharedMaterial;
-            var shader = Shader.Find("Weizza/Dissolve");
+            // Missing from a build, the dissolve is skipped instead of throwing in the
+            // middle of the respawn beat, which would leave the player dead on the floor.
+            var shader = RuntimeShaders.Find("Weizza/Dissolve");
+            if (shader == null) return null;
             _sharedMaterial = new Material(shader) { name = "Dissolve (shared)" };
             return _sharedMaterial;
         }

@@ -82,7 +82,10 @@ namespace Weizza.Narrative
             if (art == null) art = GetComponent<SpriteRenderer>();
             if (art == null) return;
 
-            art.sharedMaterial = SharedMaterial();
+            // Without the shader (left out of a build) the art keeps its own material:
+            // no outline, but the pickup is still drawn and still works.
+            var material = SharedMaterial();
+            if (material != null) art.sharedMaterial = material;
             _block = new MaterialPropertyBlock();
 
             // Randomised so two pickups placed near each other do not pulse in
@@ -139,7 +142,8 @@ namespace Weizza.Narrative
         {
             if (_sharedMaterial != null) return _sharedMaterial;
 
-            _shader = Shader.Find("Weizza/SpriteOutline");
+            _shader = RuntimeShaders.Find("Weizza/SpriteOutline");
+            if (_shader == null) return null;
             _sharedMaterial = new Material(_shader) { name = "SpriteOutline (shared)" };
             return _sharedMaterial;
         }
