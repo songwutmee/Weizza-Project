@@ -130,6 +130,7 @@ namespace Weizza
             card.Add(Heading("Assist", 20));
             card.Add(SliderRow("Game speed", GameSettings.GameSpeed, v => GameSettings.GameSpeed = v, 0.5f, 1f));
             card.Add(ToggleRow("Longer enemy warnings", GameSettings.LongerWarnings, v => GameSettings.LongerWarnings = v));
+            card.Add(ToggleRow("Hold attack to keep swinging", GameSettings.HoldToAttack, v => GameSettings.HoldToAttack = v));
             card.Add(ToggleRow("Invincible", GameSettings.AssistInvincible, v => GameSettings.AssistInvincible = v));
 
             card.Add(Heading("Display", 20));

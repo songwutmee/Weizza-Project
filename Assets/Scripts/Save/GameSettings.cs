@@ -28,6 +28,7 @@ namespace Weizza
             public float rumble = 1f;
             public bool assistInvincible;
             public bool longerWarnings;
+            public bool holdToAttack;
             public bool damageNumbers;
             public bool frameData;
             public string language = "th";
@@ -90,6 +91,9 @@ namespace Weizza
 
         /// <summary>Assist: enemies hold their wind up half as long again before they swing.</summary>
         public static bool LongerWarnings { get => D.longerWarnings; set => Set(ref D.longerWarnings, value); }
+
+        /// <summary>Assist: holding the attack button keeps the combo going, for hands that cannot mash.</summary>
+        public static bool HoldToAttack { get => D.holdToAttack; set => Set(ref D.holdToAttack, value); }
 
         public static bool DamageNumbers { get => D.damageNumbers; set => Set(ref D.damageNumbers, value); }
 
