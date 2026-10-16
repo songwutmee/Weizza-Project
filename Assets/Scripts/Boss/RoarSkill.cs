@@ -91,6 +91,8 @@ namespace Weizza
                     var falloff = 1f - i / (float)rings;
                     ScreenShockwave.Play(Mouth(), 0.75f, Mathf.Lerp(0.025f, 0.06f, falloff), 1.5f);
                     CameraFeel.Instance?.Shake(Mathf.Lerp(0.08f, 0.28f, falloff), i % 2 == 0 ? Vector2.right : Vector2.up);
+                    // Each wave of the roar bends the plants back from the beetle.
+                    WindField.Ripple(Mouth(), Mathf.Lerp(0.15f, 0.4f, falloff));
                     await UniTask.Delay(TimeSpan.FromSeconds(gap), cancellationToken: ct);
                 }
 
