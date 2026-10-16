@@ -268,6 +268,11 @@ namespace Weizza
         [Tooltip("Metres behind the player an enemy can be for a swing with no direction held to turn and face it. 0 turns it off.")]
         [SerializeField] private float attackTurnReach = 1.8f;
 
+        [BoxGroup("Attack Help")]
+        [PropertyRange(0f, 0.6f)]
+        [Tooltip("Metres the player is pushed back when a swing lands (nearly twice that off armour that held). Never for a heavy stance. 0 turns it off.")]
+        [SerializeField] private float hitRecoil = 0.18f;
+
         // ---- Mercy frames ---------------------------------------------------------
 
         [BoxGroup("Getting Hit", centerLabel: true)]
@@ -341,6 +346,14 @@ namespace Weizza
 
             ApplyGravity(dt);
             ApplyWallSlide();
+            // Recoil is paid out as distance over a few frames, not as velocity: the
+            // attack's own braking would eat a velocity in two frames.
+            if (_recoilLeft > 0f && dt > 0f)
+            {
+                var step = Mathf.Min(_recoilLeft, 3.5f * dt);
+                Motor.AddDisplacement(new Vector3(_recoilDirection * step, 0f, 0f));
+                _recoilLeft -= step;
+            }
             Motor.Step(dt);
 
             if (_hitboxOpen) hitbox.Sweep();
@@ -923,6 +936,7 @@ namespace Weizza
             if (result is HitResult.Missed or HitResult.Ignored) return;
 
             ImpactFeel(victim, info, 1f);
+            Recoil(result);
 
             // Scaled off hit stop rather than off damage, because hit stop is
             // already the number tuned for how heavy a hit is meant to read.
@@ -982,6 +996,23 @@ namespace Weizza
             var along = Mathf.Abs(info.knockback.x) > 0.01f ? Mathf.Sign(info.knockback.x) : Motor.Facing.Sign();
             CameraFeel.Instance?.Shake(shake, new Vector2(along, -0.35f));
         }
+
+        /// <summary>
+        /// A small push back on a connected swing, the way Hollow Knight's nail does: the
+        /// blade meets something solid and the body gives a little. It also stops a lunge
+        /// from carrying the player into the enemy they just hit. Armour that held bounces
+        /// harder. Than does not give at all: weight is its whole school.
+        /// </summary>
+        private void Recoil(HitResult result)
+        {
+            if (hitRecoil <= 0f || !Motor.Grounded) return;
+            if (CurrentStance != null && CurrentStance.isHeavy) return;
+            _recoilLeft = result == HitResult.Armored ? hitRecoil * 1.8f : hitRecoil;
+            _recoilDirection = -Motor.Facing.Sign();
+        }
+
+        private float _recoilLeft;
+        private float _recoilDirection;
 
         private void HealIfKilled(IDamageable victim, HitResult result)
         {
