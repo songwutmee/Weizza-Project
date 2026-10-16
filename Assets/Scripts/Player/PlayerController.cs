@@ -261,6 +261,13 @@ namespace Weizza
             EndMercy();
         }
 
+        // ---- Attack help -----------------------------------------------------------
+
+        [BoxGroup("Attack Help", centerLabel: true)]
+        [PropertyRange(0f, 3f)]
+        [Tooltip("Metres behind the player an enemy can be for a swing with no direction held to turn and face it. 0 turns it off.")]
+        [SerializeField] private float attackTurnReach = 1.8f;
+
         // ---- Mercy frames ---------------------------------------------------------
 
         [BoxGroup("Getting Hit", centerLabel: true)]
@@ -364,7 +371,10 @@ namespace Weizza
             // buttons, and buffering a swing here as well would play a light
             // combo on top of every shot.
             var ranged = CurrentStance != null && CurrentStance.IsRanged;
-            if (!ranged && Input.LightPressed) BufferAttack(heavy: false);
+            // The hold to attack assist keeps the buffer topped up while the button is
+            // held, so the combo chains without mashing. Every swing still runs its full
+            // recovery: holding never buys back frames that mashing could not.
+            if (!ranged && (Input.LightPressed || (GameSettings.HoldToAttack && Input.LightHeld))) BufferAttack(heavy: false);
             if (!ranged && Input.HeavyPressed) BufferAttack(heavy: true);
 
             if (StoryControl.MovementLocked) return;
@@ -804,6 +814,20 @@ namespace Weizza
             _attack = attack;
             _hitboxOpen = false;
             EnterState(PlayerState.Attack);
+
+            // Swing at the enemy that is actually there. With no direction held and an
+            // enemy right behind, turn to it first, so a press in the middle of a crowd
+            // never whiffs into empty air. A held direction always wins: this only fills
+            // in when the player did not say.
+            if (Input == null || Mathf.Abs(Input.Move.x) < 0.3f)
+            {
+                var near = EnemyController.NearestAlive(transform.position, attackTurnReach, 1.6f);
+                if (near != null)
+                {
+                    var side = Mathf.Sign(near.transform.position.x - transform.position.x);
+                    if (side != Motor.Facing.Sign()) Motor.FaceMovement(side);
+                }
+            }
 
             if (Vitals != null) Vitals.SuperArmor = attack.superArmor;
 

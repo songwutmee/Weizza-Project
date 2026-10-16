@@ -49,6 +49,21 @@ namespace Weizza
             AnyDied = null;
         }
 
+        /// <summary>The closest enemy still alive within reach of a point, on the same lane, or null.</summary>
+        public static EnemyController NearestAlive(Vector3 point, float reachX, float reachY)
+        {
+            EnemyController best = null;
+            var bestDistance = float.MaxValue;
+            foreach (var enemy in Live)
+            {
+                if (enemy == null || enemy.Current == State.Dead) continue;
+                var d = enemy.transform.position - point;
+                if (Mathf.Abs(d.x) > reachX || Mathf.Abs(d.y) > reachY || Mathf.Abs(d.z) > 0.5f) continue;
+                if (Mathf.Abs(d.x) < bestDistance) { bestDistance = Mathf.Abs(d.x); best = enemy; }
+            }
+            return best;
+        }
+
         /// <summary>Enemies still alive within this distance of a point along x.</summary>
         public static int CountAliveNear(Vector3 point, float radius)
         {
