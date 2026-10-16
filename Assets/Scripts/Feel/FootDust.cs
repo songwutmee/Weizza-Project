@@ -190,9 +190,63 @@ namespace Weizza
     public static class SoftDust
     {
         private static Material _material;
+        private static ParticleSystem _burst;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => _material = null;
+        private static void ResetStatics()
+        {
+            _material = null;
+            _burst = null;
+        }
+
+        /// <summary>
+        /// A few soft specks at a point, from one shared world space system, for things
+        /// that are not characters: grit falling from a cracking plank, a crumbling edge.
+        /// </summary>
+        public static void Burst(Vector3 at, int count, Vector2 velocity, Vector2 spread, float size = 0.12f, float life = 0.8f)
+        {
+            if (_burst == null)
+            {
+                var go = new GameObject("Soft Dust Bursts");
+                Object.DontDestroyOnLoad(go);
+                _burst = go.AddComponent<ParticleSystem>();
+                _burst.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                var main = _burst.main;
+                main.loop = false;
+                main.playOnAwake = false;
+                main.maxParticles = 128;
+                main.simulationSpace = ParticleSystemSimulationSpace.World;
+                main.gravityModifier = 0.25f;
+                var emission = _burst.emission;
+                emission.enabled = false;
+                var shape = _burst.shape;
+                shape.enabled = false;
+                var fade = _burst.colorOverLifetime;
+                fade.enabled = true;
+                fade.color = new ParticleSystem.MinMaxGradient(new Gradient
+                {
+                    colorKeys = new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                    alphaKeys = new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 0.6f), new GradientAlphaKey(0f, 1f) },
+                });
+                var renderer = go.GetComponent<ParticleSystemRenderer>();
+                renderer.sharedMaterial = Material;
+                renderer.sortingLayerName = "Default";
+                renderer.sortingOrder = 2;
+                _burst.Play();
+            }
+
+            for (var i = 0; i < count; i++)
+            {
+                _burst.Emit(new ParticleSystem.EmitParams
+                {
+                    position = at + new Vector3(Random.Range(-spread.x, spread.x), Random.Range(-spread.y, spread.y), -0.05f),
+                    velocity = new Vector3(velocity.x + Random.Range(-0.3f, 0.3f), velocity.y + Random.Range(-0.2f, 0.2f), 0f),
+                    startSize = size * Random.Range(0.6f, 1.3f),
+                    startLifetime = life * Random.Range(0.7f, 1.2f),
+                    startColor = new Color(0.78f, 0.76f, 0.7f, 0.7f),
+                }, 1);
+            }
+        }
 
         public static Material Material
         {
