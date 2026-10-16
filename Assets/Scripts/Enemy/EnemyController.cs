@@ -149,6 +149,11 @@ namespace Weizza
         [Tooltip("Metres per second the killing blow throws the body back from the player (and a little up). 0 drops it where it stands.")]
         [SerializeField] private float deathLaunch = 3.2f;
 
+        [BoxGroup("Animation")]
+        [PropertyRange(0f, 0.8f)]
+        [Tooltip("Height in metres of the startled hop when it first spots the player. 0 turns it off.")]
+        [SerializeField] private float noticeHop = 0.22f;
+
         // ---- Live ------------------------------------------------------------
 
         [FoldoutGroup("Live", expanded: true)]
@@ -325,6 +330,22 @@ namespace Weizza
         // in the air where the last hit caught it.
         private float _deathFlightUntil;
 
+        private float _nextNotice;
+
+        /// <summary>
+        /// A little startled hop the moment it spots the player, the cartoon "!" without a
+        /// drawn mark. It says the creature noticed you, so the chase that follows reads
+        /// as a decision rather than as a trigger box. Once in a while only, or a creature
+        /// that loses and finds you again keeps bouncing.
+        /// </summary>
+        private void NoticeHop()
+        {
+            if (noticeHop <= 0f || data.flying || !_motor.Grounded || Time.time < _nextNotice) return;
+            _nextNotice = Time.time + 8f;
+            _motor.Velocity.y = Mathf.Sqrt(2f * Mathf.Abs(Physics.gravity.y) * (_reactor != null ? _reactor.GravityScale : 1f) * noticeHop);
+            spriteFeel?.Stretch();
+        }
+
         private void Update()
         {
             if (data != null && Current == State.Dead && Time.time < _deathFlightUntil && !Held)
@@ -408,7 +429,11 @@ namespace Weizza
             if (Time.time < _decideAt) return;
             _decideAt = Time.time + data.decisionInterval;
 
-            if (TargetOnSameLane && DistanceToTarget <= data.aggroRange) Enter(State.Chase);
+            if (TargetOnSameLane && DistanceToTarget <= data.aggroRange)
+            {
+                NoticeHop();
+                Enter(State.Chase);
+            }
         }
 
         private void TickChase(float dt)
