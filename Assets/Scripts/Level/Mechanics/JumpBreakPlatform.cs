@@ -85,6 +85,16 @@ namespace Weizza
 
             var heavy = player.CurrentStance != null && player.CurrentStance.isHeavy;
             _hintStrength = heavy ? 0.035f : 0.015f;
+
+            // Grit trickles from under the plank as it creaks: a weak floor shown, not
+            // labelled (Neva marks its breakable floors the same way, by how they look).
+            var under = GetComponentInChildren<Collider>();
+            if (under != null)
+            {
+                var b = under.bounds;
+                SoftDust.Burst(new Vector3(b.center.x, b.min.y, b.center.z), heavy ? 6 : 3,
+                    new Vector2(0f, -0.4f), new Vector2(b.extents.x * 0.8f, 0.02f));
+            }
             _hintUntil = Time.time + (heavy ? 0.22f : 0.14f);
             _nextHint = Time.time + hintEvery * Random.Range(0.8f, 1.25f);
         }
