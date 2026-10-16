@@ -93,6 +93,7 @@ namespace Weizza
 
         private void OnGUI()
         {
+            if (PhotoMode.Active) return;
             EnsureStyles();
             if (CombatGizmos.Enabled) DrawBoxes();
             if (!_visible) return;

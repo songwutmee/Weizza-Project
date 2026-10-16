@@ -50,7 +50,7 @@ namespace Weizza
 
         private void OnGUI()
         {
-            if (!GameSettings.FrameDataOverlay || _tracked == null) return;
+            if (!GameSettings.FrameDataOverlay || _tracked == null || PhotoMode.Active) return;
             var player = PlayerLocator.Player;
             var camera = Camera.main;
             if (player == null || camera == null) return;
