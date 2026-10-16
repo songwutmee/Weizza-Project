@@ -120,6 +120,7 @@ namespace Weizza.EditorTools
             BorrowedArtInOpenScenes();
             ArtImportSettings();
             LocalizationKeys();
+            WorldValidator.RunFromMenu();
         }
     }
 }
