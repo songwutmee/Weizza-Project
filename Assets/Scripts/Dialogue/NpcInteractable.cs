@@ -69,6 +69,24 @@ namespace Weizza.Narrative
                  "player hear the same lines as often as they like.")]
         [SerializeField] private bool onlyOnce;
 
+        [TitleGroup("Notice")]
+        [ToggleLeft, Tooltip("Turns to look at the player when they come near, the smallest sign that this person is alive and has seen you.")]
+        [SerializeField] private bool facePlayer = true;
+
+        [TitleGroup("Notice")]
+        [ShowIf(nameof(facePlayer))]
+        [PropertyRange(1f, 12f), Tooltip("How close, in metres, the player has to be before they turn.")]
+        [SerializeField] private float noticeRange = 6f;
+
+        [TitleGroup("Notice")]
+        [ShowIf(nameof(facePlayer))]
+        [ToggleLeft, Tooltip("Tick when the drawing looks to the left as drawn. Ignored when the character has a Sprite Facing, which already knows.")]
+        [SerializeField] private bool artFacesLeft;
+
+        private SpriteFacing _facing;
+        private float _turnAt = -1f;
+        private bool _wantRight;
+
         private Transform _player;
         private Camera _camera;
         private bool _spent;
@@ -84,10 +102,37 @@ namespace Weizza.Narrative
             _art = GetComponentInChildren<SpriteRenderer>();
             if (_art != null) _restingTint = _art.color;
             _restingScale = transform.localScale;
+            _facing = GetComponentInChildren<SpriteFacing>();
+        }
+
+        /// <summary>
+        /// Turns toward the player, after a short beat. Turning on the exact frame the
+        /// player crosses reads as a mechanism; a fifth of a second reads as a person.
+        /// A little dead band stops them flipping while the player stands right on top.
+        /// </summary>
+        private void NoticePlayer()
+        {
+            if (!facePlayer || _art == null) return;
+            var player = PlayerLocator.Player;
+            if (player == null) return;
+            var dx = player.transform.position.x - transform.position.x;
+            if (Mathf.Abs(dx) > noticeRange || Mathf.Abs(dx) < 0.3f) return;
+
+            var wantRight = dx > 0f;
+            if (wantRight != _wantRight || _turnAt < 0f)
+            {
+                _wantRight = wantRight;
+                _turnAt = Time.time + 0.2f;
+            }
+            if (Time.time < _turnAt) return;
+
+            if (_facing != null) _facing.SetFacing(wantRight ? Facing.Right : Facing.Left);
+            else _art.flipX = artFacesLeft ? wantRight : !wantRight;
         }
 
         private void Update()
         {
+            NoticePlayer();
             var ready = CanTalk();
             if (prompt != null && prompt.activeSelf != ready) prompt.SetActive(ready);
             Glow(ready);
