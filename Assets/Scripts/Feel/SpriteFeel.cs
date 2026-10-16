@@ -57,6 +57,24 @@ namespace Weizza
         [PropertyRange(1, 30)]
         [SerializeField] private int squashFrames = 8;
 
+        [BoxGroup("Squash")]
+        [PropertyRange(0f, 0.4f)]
+        [Tooltip("How much the sprite stretches tall on take off. The opposite of the landing squash, so a jump reads as a push off the ground.")]
+        [SerializeField] private float jumpStretch = 0.14f;
+
+        [BoxGroup("Squash")]
+        [PropertyRange(1, 30)]
+        [SerializeField] private int stretchFrames = 9;
+
+        [BoxGroup("Squash")]
+        [PropertyRange(0f, 0.3f)]
+        [Tooltip("How much the body squeezes when it is struck and staggers. 0 turns it off.")]
+        [SerializeField] private float hitPunch = 0.1f;
+
+        [BoxGroup("Squash")]
+        [PropertyRange(1, 20)]
+        [SerializeField] private int punchFrames = 7;
+
         private Color _baseColor = Color.white;
         private Vector3 _baseScale = Vector3.one;
         private CancellationTokenSource _flashLife;
@@ -100,6 +118,7 @@ namespace Weizza
             {
                 case HitResult.Hit:
                     Flash(hitTint);
+                    Punch();
                     break;
                 case HitResult.Armored:
                     Flash(armorTint);
@@ -196,7 +215,9 @@ namespace Weizza
         {
             sprite.color = tint;
             var white = tint.r > 0.9f && tint.g > 0.9f && tint.b > 0.9f;
-            if (white) GlowOverlay(1f);
+            // Softer flashes keeps the white tint (it carries the meaning) but drops the bright glow over it.
+            var glowStrength = GameSettings.ReduceFlashes ? 0.3f : 1f;
+            if (white) GlowOverlay(glowStrength);
             try
             {
                 var seconds = Timing.Frames(flashFrames);
@@ -211,7 +232,7 @@ namespace Weizza
                         _glow.transform.localScale = new Vector3(sprite.flipX ? -1f : 1f, 1f, 1f);
                         // Stays at full light for the first half so the flash reads as a burst, then drops.
                         var k = t / seconds;
-                        _glow.color = new Color(1f, 1f, 1f, k < 0.5f ? 1f : 1f - (k - 0.5f) * 2f);
+                        _glow.color = new Color(1f, 1f, 1f, glowStrength * (k < 0.5f ? 1f : 1f - (k - 0.5f) * 2f));
                     }
                     await UniTask.Yield(PlayerLoopTiming.Update, token);
                 }
@@ -228,6 +249,45 @@ namespace Weizza
             // A hit landing mid telegraph must not wipe the telegraph. The
             // flash is temporary, the held tint is the state underneath it.
             if (sprite != null) sprite.color = _holding ? _heldTint : _baseColor;
+        }
+
+        /// <summary>
+        /// A squeeze on being struck: narrower and taller for a few frames, then back.
+        /// The body gives under the blow, which a white flash alone does not say.
+        /// Runs on unscaled time so it plays during the hit stop it belongs to.
+        /// </summary>
+        public void Punch()
+        {
+            if (sprite == null || hitPunch <= 0f) return;
+
+            var facing = Mathf.Sign(sprite.transform.localScale.x);
+            _squashTween.Stop();
+            _squashTween = Tween.Custom(0f, 1f, Timing.Frames(punchFrames), t =>
+            {
+                var pulse = Mathf.Sin(t * Mathf.PI) * hitPunch;
+                sprite.transform.localScale = new Vector3(
+                    facing * Mathf.Abs(_baseScale.x) * (1f - pulse),
+                    _baseScale.y * (1f + pulse * 0.5f),
+                    _baseScale.z);
+            }, useUnscaledTime: true);
+        }
+
+        /// <summary>Stretches tall and thin for a moment, for a take off.</summary>
+        public void Stretch()
+        {
+            if (sprite == null || jumpStretch <= 0f) return;
+
+            var facing = Mathf.Sign(sprite.transform.localScale.x);
+            _squashTween.Stop();
+            _squashTween = Tween.Custom(0f, 1f, Timing.Frames(stretchFrames), t =>
+            {
+                // Sharp in, slow out: the push happens at once, the body settles after.
+                var pulse = (1f - t) * (1f - t) * jumpStretch;
+                sprite.transform.localScale = new Vector3(
+                    facing * Mathf.Abs(_baseScale.x) * (1f - pulse * 0.6f),
+                    _baseScale.y * (1f + pulse),
+                    _baseScale.z);
+            }, useUnscaledTime: true);
         }
 
         /// <summary>Squashes on landing, scaled by how hard the landing was.</summary>
