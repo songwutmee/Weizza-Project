@@ -154,6 +154,10 @@ namespace Weizza
         private void Rest()
         {
             _flash = 1f;
+            // Resting at the light mends you, the way a bench does: players expect a
+            // save spot to be safe in every sense. Through Heal, so the wings visibly regrow.
+            var vitals = PlayerLocator.Player != null ? PlayerLocator.Player.Vitals : null;
+            if (vitals != null && vitals.IsAlive) vitals.Heal(vitals.Max);
             _checkpoint.ClaimNow();
             SaveSystem.Instance?.Save();
             HudScreen.Instance?.Banner("Saved");
