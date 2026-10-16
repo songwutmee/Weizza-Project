@@ -150,6 +150,22 @@ namespace Weizza
         [PropertyRange(0f, 3f), Tooltip("Air wobbling around the sun, like heat over warm ground. Only near the sun.")]
         [SerializeField] private float shimmer = 0f;
 
+        [BoxGroup("Mist", centerLabel: true)]
+        [PropertyRange(0f, 0.6f), Tooltip("Low banks of haze drifting along the forest floor. 0 turns it off.")]
+        [SerializeField] private float mistStrength = 0.14f;
+
+        [BoxGroup("Mist")]
+        [PropertyRange(0.05f, 0.8f), Tooltip("How far up the screen the mist reaches, as a share of the screen height.")]
+        [SerializeField] private float mistHeight = 0.3f;
+
+        [BoxGroup("Mist")]
+        [PropertyRange(0f, 0.3f), Tooltip("How fast the banks drift.")]
+        [SerializeField] private float mistDrift = 0.04f;
+
+        [BoxGroup("Mist")]
+        [PropertyRange(0.5f, 8f), Tooltip("Size of the banks. Smaller numbers give bigger, softer shapes.")]
+        [SerializeField] private float mistSize = 2.4f;
+
         [BoxGroup("Sun")]
         [PropertyRange(0.3f, 1.2f), Tooltip("How far from each pixel toward the sun the light is traced. Longer reaches trees further from the sun.")]
         [SerializeField] private float rayReach = 0.9f;
@@ -192,6 +208,8 @@ namespace Weizza
         private static readonly int Shim = Shader.PropertyToID("_LookShimmer");
         private static readonly int Breath = Shader.PropertyToID("_LookBreath");
         private static readonly int Dither = Shader.PropertyToID("_LookDither");
+        private static readonly int Mist = Shader.PropertyToID("_LookMist");
+        private static readonly int MistCamX = Shader.PropertyToID("_LookMistCamX");
         private static readonly int TintL = Shader.PropertyToID("_LookTintLeft");
         private static readonly int TintR = Shader.PropertyToID("_LookTintRight");
 
@@ -244,6 +262,8 @@ namespace Weizza
             Shader.SetGlobalFloat(Shim, shimmer);
             Shader.SetGlobalFloat(Breath, lightBreath);
             Shader.SetGlobalFloat(Dither, banding);
+            Shader.SetGlobalVector(Mist, new Vector4(mistStrength, mistHeight, mistDrift, mistSize));
+            if (cam != null) Shader.SetGlobalFloat(MistCamX, cam.transform.position.x);
             Shader.SetGlobalColor(TintL, tintLeft);
             Shader.SetGlobalColor(TintR, tintRight);
             var zoneLight = 1f;

@@ -41,6 +41,8 @@ Shader "Weizza/SceneLook"
             float _LookContrast, _LookSaturation, _LookShimmer, _LookBreath;
             float4 _LookRay;         // x reach toward the sun, y z sky brightness window, w shade depth
             float _LookDither;       // noise size in 1/255 steps, 0 is off
+            float4 _LookMist;        // x strength, y height (share of the screen), z drift speed, w size
+            float _LookMistCamX;     // camera x in metres, so the mist stays put in the world as the view scrolls
 
             half Luma(half3 c) { return dot(c, half3(0.299, 0.587, 0.114)); }
 
@@ -49,6 +51,26 @@ Shader "Weizza/SceneLook"
             float InterleavedNoise(float2 pixel)
             {
                 return frac(52.9829189 * frac(dot(pixel, float2(0.06711056, 0.00583715))));
+            }
+
+            float MistHash(float2 p)
+            {
+                p = frac(p * float2(123.34, 456.21));
+                p += dot(p, p + 45.32);
+                return frac(p.x * p.y);
+            }
+
+            // Smooth value noise, for slow soft shapes rather than grain.
+            float MistNoise(float2 p)
+            {
+                float2 i = floor(p);
+                float2 f = frac(p);
+                f = f * f * (3.0 - 2.0 * f);
+                float a = MistHash(i);
+                float b = MistHash(i + float2(1, 0));
+                float c = MistHash(i + float2(0, 1));
+                float d = MistHash(i + float2(1, 1));
+                return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
             }
 
             half3 Ramp(half t)
@@ -135,6 +157,21 @@ Shader "Weizza/SceneLook"
                 col += _LookSunColor.rgb * shaft * reach * _LookShaft.x * haze * breath * 2.2;
                 // And the shade itself: where the sun is blocked the frame sits a little darker.
                 col *= lerp(1.0 - _LookRay.w, 1.0, saturate(openSky * 1.3));
+
+                // 3b. Ground mist: low banks of haze that drift slowly along the floor of the
+                //     forest. Anchored to the world through the camera x, so walking moves
+                //     past the mist instead of carrying it along. Thin on black silhouettes,
+                //     so the foreground stays a clean dark shape.
+                if (_LookMist.x > 0.001)
+                {
+                    float wx = uv.x * aspect + _LookMistCamX * 0.08;
+                    float2 mp = float2(wx * _LookMist.w + t * _LookMist.z, uv.y * _LookMist.w * 2.2);
+                    float banks = MistNoise(mp) * 0.65 + MistNoise(mp * 2.1 + 7.3 - t * _LookMist.z * 0.6) * 0.35;
+                    banks = smoothstep(0.35, 0.85, banks);
+                    float low = 1.0 - smoothstep(0.0, max(0.01, _LookMist.y), uv.y);
+                    float mist = banks * low * _LookMist.x * saturate(L * 2.2);
+                    col = lerp(col, _LookLight.rgb * light, mist);
+                }
 
                 // 4. The sun itself: a hot core and a wide glow, past 1 so bloom blows it out.
                 float2 d = (uv - _LookSunPos.xy) * float2(aspect, 1.0);
