@@ -35,6 +35,9 @@ namespace Weizza.EditorTools
         [MenuItem("Weizza/Validate World", priority = 5)]
         private static void ValidateMenu() => Run(fix: false, quiet: false);
 
+        /// <summary>For Weizza > Validate > Run Everything.</summary>
+        public static void RunFromMenu() => Run(fix: false, quiet: false);
+
         [MenuItem("Weizza/Validate World (Fix What It Can)", priority = 6)]
         private static void ValidateAndFix() => Run(fix: true, quiet: false);
 
