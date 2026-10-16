@@ -287,7 +287,7 @@ GameObject:
   - component: {fileID: 38203525}
   - component: {fileID: 38203528}
   - component: {fileID: 38203527}
-  - component: {fileID: 38203526}
+  - component: {fileID: 38203529}
   m_Layer: 0
   m_Name: L4_platform_buttress
   m_TagString: Untagged
@@ -310,27 +310,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717726263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &38203526
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 38203524}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4.444444, y: 2.1222222, z: 1}
-  m_Center: {x: 0.022222042, y: 1.4166666, z: 0}
 --- !u!114 &38203527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -404,6 +383,28 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!64 &38203529
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 38203524}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 9fe8502774717d047b0b9745e77ed3cc, type: 2}
 --- !u!1 &55713897
 GameObject:
   m_ObjectHideFlags: 0
@@ -415,7 +416,7 @@ GameObject:
   - component: {fileID: 55713898}
   - component: {fileID: 55713901}
   - component: {fileID: 55713900}
-  - component: {fileID: 55713899}
+  - component: {fileID: 55713902}
   m_Layer: 0
   m_Name: L4_platform_stone1
   m_TagString: Untagged
@@ -438,27 +439,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717726263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &55713899
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 55713897}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 3.6977775, y: 2.222222, z: 1}
-  m_Center: {x: -0.011111259, y: 1.3666666, z: 0}
 --- !u!114 &55713900
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -532,6 +512,28 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!64 &55713902
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 55713897}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: ce1461bbeacf34344b9300cea4ec880a, type: 2}
 --- !u!1 &79101893
 GameObject:
   m_ObjectHideFlags: 0
@@ -2456,7 +2458,7 @@ GameObject:
   - component: {fileID: 773530391}
   - component: {fileID: 773530394}
   - component: {fileID: 773530393}
-  - component: {fileID: 773530392}
+  - component: {fileID: 773530395}
   m_Layer: 0
   m_Name: L4_platform_stone1
   m_TagString: Untagged
@@ -2479,27 +2481,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717726263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &773530392
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 773530390}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 3.6977775, y: 2.222222, z: 1}
-  m_Center: {x: 0.011111259, y: 1.3666666, z: 0}
 --- !u!114 &773530393
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2573,6 +2554,28 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!64 &773530395
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773530390}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 9e991d66c3f81654686db92bfbb3accf, type: 2}
 --- !u!1 &778889212
 GameObject:
   m_ObjectHideFlags: 0
@@ -2660,7 +2663,7 @@ GameObject:
   - component: {fileID: 783856249}
   - component: {fileID: 783856252}
   - component: {fileID: 783856251}
-  - component: {fileID: 783856250}
+  - component: {fileID: 783856253}
   m_Layer: 0
   m_Name: L4_platform_stone1
   m_TagString: Untagged
@@ -2683,27 +2686,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717726263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &783856250
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 783856248}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 3.6977775, y: 2.222222, z: 1}
-  m_Center: {x: 0.011111259, y: 1.3666666, z: 0}
 --- !u!114 &783856251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2777,6 +2759,28 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!64 &783856253
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 783856248}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 9e991d66c3f81654686db92bfbb3accf, type: 2}
 --- !u!1 &804544422
 GameObject:
   m_ObjectHideFlags: 0
@@ -3457,7 +3461,7 @@ GameObject:
   - component: {fileID: 1081096974}
   - component: {fileID: 1081096977}
   - component: {fileID: 1081096976}
-  - component: {fileID: 1081096975}
+  - component: {fileID: 1081096978}
   m_Layer: 0
   m_Name: L4_platform_stone2
   m_TagString: Untagged
@@ -3480,27 +3484,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717726263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1081096975
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1081096973}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4.2400002, y: 1.9222223, z: 1}
-  m_Center: {x: 0.049999952, y: 1.238889, z: 0}
 --- !u!114 &1081096976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3574,6 +3557,28 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!64 &1081096978
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1081096973}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: db5b289d075e00e4da7a61d228dce424, type: 2}
 --- !u!1 &1116629448
 GameObject:
   m_ObjectHideFlags: 0
@@ -3585,7 +3590,7 @@ GameObject:
   - component: {fileID: 1116629449}
   - component: {fileID: 1116629452}
   - component: {fileID: 1116629451}
-  - component: {fileID: 1116629450}
+  - component: {fileID: 1116629453}
   m_Layer: 0
   m_Name: "\u0E20\u0E32\u0E1E\u0E27\u0E32\u0E14 20261010(2)"
   m_TagString: Untagged
@@ -3608,27 +3613,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717726263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1116629450
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1116629448}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4.444444, y: 3.4777775, z: 1}
-  m_Center: {x: -0, y: 2.6833334, z: 0}
 --- !u!114 &1116629451
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3702,6 +3686,28 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!64 &1116629453
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1116629448}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 2974fb6966fdf93468aa2f904ba46116, type: 2}
 --- !u!1 &1153658281
 GameObject:
   m_ObjectHideFlags: 0
@@ -4089,7 +4095,7 @@ GameObject:
   - component: {fileID: 1312854354}
   - component: {fileID: 1312854357}
   - component: {fileID: 1312854356}
-  - component: {fileID: 1312854355}
+  - component: {fileID: 1312854358}
   m_Layer: 0
   m_Name: L4_platform_stone2
   m_TagString: Untagged
@@ -4112,27 +4118,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717726263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1312854355
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1312854353}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4.2400002, y: 1.9222223, z: 1}
-  m_Center: {x: 0.049999952, y: 1.238889, z: 0}
 --- !u!114 &1312854356
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4206,6 +4191,28 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!64 &1312854358
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1312854353}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 87127492844b72241bfa5d61b7d2dfaa, type: 2}
 --- !u!1 &1339855108
 GameObject:
   m_ObjectHideFlags: 0
@@ -4380,7 +4387,7 @@ GameObject:
   - component: {fileID: 1361539801}
   - component: {fileID: 1361539804}
   - component: {fileID: 1361539803}
-  - component: {fileID: 1361539802}
+  - component: {fileID: 1361539805}
   m_Layer: 0
   m_Name: L4_platform_stone1
   m_TagString: Untagged
@@ -4403,27 +4410,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717726263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1361539802
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1361539800}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 3.6977775, y: 2.222222, z: 1}
-  m_Center: {x: 0.011111259, y: 1.3666666, z: 0}
 --- !u!114 &1361539803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4497,6 +4483,28 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!64 &1361539805
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1361539800}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 9e991d66c3f81654686db92bfbb3accf, type: 2}
 --- !u!1 &1433217715
 GameObject:
   m_ObjectHideFlags: 0
@@ -7108,7 +7116,7 @@ GameObject:
   - component: {fileID: 2075626612}
   - component: {fileID: 2075626615}
   - component: {fileID: 2075626614}
-  - component: {fileID: 2075626613}
+  - component: {fileID: 2075626616}
   m_Layer: 0
   m_Name: L4_platform_buttress
   m_TagString: Untagged
@@ -7131,27 +7139,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717726263}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &2075626613
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2075626611}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4.444444, y: 2.1222222, z: 1}
-  m_Center: {x: 0.022222042, y: 1.4166666, z: 0}
 --- !u!114 &2075626614
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7225,6 +7212,28 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!64 &2075626616
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075626611}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 9fe8502774717d047b0b9745e77ed3cc, type: 2}
 --- !u!1 &2146890140
 GameObject:
   m_ObjectHideFlags: 0
