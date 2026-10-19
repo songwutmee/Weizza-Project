@@ -596,12 +596,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Narrative.BubbleDialogueScreen
   useBubbles: 1
-  font: {fileID: 11400000, guid: 8a89fa14b10d46a99122fd4f73fca9a2, type: 2}
-  textSize: 19
-  maxWidth: 380
-  paper: {r: 0.97, g: 0.95, b: 0.9, a: 0.96}
-  ink: {r: 0.16, g: 0.14, b: 0.13, a: 1}
-  nameInk: {r: 0.55, g: 0.36, b: 0.24, a: 1}
+  font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  textSize: 24
+  maxWidth: 560
+  slip: {fileID: 21300000, guid: ba1ce88f27429e94fa673a0e22e00406, type: 3}
+  nameSlip: {fileID: 21300000, guid: 7e827d66144fd1b48b460320724fd113, type: 3}
+  tailSprite: {fileID: 21300000, guid: 2693b59a1006beb4891133fd4442fe6b, type: 3}
+  pinSprite: {fileID: 21300000, guid: 8a47cf57dc875e54084cf4806a45de63, type: 3}
+  edgeThinness: 1.2
+  paper: {r: 1, g: 1, b: 1, a: 1}
+  ink: {r: 0.11, g: 0.13, b: 0.3, a: 1}
+  nameInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   headroom: 0.15
   lettersPerSecond: 40
   stopPause: 0.28
@@ -1463,10 +1468,10 @@ MonoBehaviour:
   pitchDegrees: 16
   laneCount: 1
   laneSpacing: 2.5
-  orthographicSize: 6
+  orthographicSize: 4.35
   pixelsPerUnit: 150
   characterHeight: 1.8
-  groundInFramePercent: 9
+  groundInFramePercent: 22.3
   cameraDistance: 24
   farClipPlane: 250
   cameras: []
@@ -2082,7 +2087,7 @@ SpriteRenderer:
   m_SortingOrder: -2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
-  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.62}
+  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.6014}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -19555,7 +19560,7 @@ MonoBehaviour:
   CameraDistance: 24
   DeadZoneDepth: 0
   Composition:
-    ScreenPosition: {x: 0, y: 0.3479}
+    ScreenPosition: {x: 0, y: 0.21490002}
     DeadZone:
       Enabled: 1
       Size: {x: 0.22, y: 0.02}
@@ -19596,7 +19601,7 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 40
-    OrthographicSize: 6
+    OrthographicSize: 4.35
     NearClipPlane: 0.1
     FarClipPlane: 250
     Dutch: 0
