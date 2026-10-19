@@ -266,6 +266,7 @@ MonoBehaviour:
     to: 410
     size: 9.5
     ease: 14
+  talkZoom: 0.86
 --- !u!1 &61362758
 GameObject:
   m_ObjectHideFlags: 0
@@ -461,6 +462,7 @@ GameObject:
   - component: {fileID: 223665387}
   - component: {fileID: 223665386}
   - component: {fileID: 223665390}
+  - component: {fileID: 223665391}
   m_Layer: 0
   m_Name: Dialogue Canvas
   m_TagString: Untagged
@@ -581,6 +583,33 @@ MonoBehaviour:
   fadeSeconds: 0.18
   portraitFadeSeconds: 0.16
   firstPressCompletesLine: 1
+--- !u!114 &223665391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 223665385}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23eb55dc57fed3644999d76cb889496f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Narrative.BubbleDialogueScreen
+  useBubbles: 1
+  font: {fileID: 11400000, guid: 8a89fa14b10d46a99122fd4f73fca9a2, type: 2}
+  textSize: 19
+  maxWidth: 380
+  paper: {r: 0.97, g: 0.95, b: 0.9, a: 0.96}
+  ink: {r: 0.16, g: 0.14, b: 0.13, a: 1}
+  nameInk: {r: 0.55, g: 0.36, b: 0.24, a: 1}
+  headroom: 0.15
+  lettersPerSecond: 40
+  stopPause: 0.28
+  commaPause: 0.1
+  playerSpeakerIds:
+  - PLAYER
+  - MORI
+  speakers: {fileID: 11400000, guid: cf6f2990d0b58344f800cb56246da534, type: 2}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -669,7 +698,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.13917312, y: 0, z: 0, w: 0.9902681}
-  m_LocalPosition: {x: 10.67, y: 11.43, z: -21.95}
+  m_LocalPosition: {x: 37.333332, y: 11.808373, z: -21.919548}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7100,6 +7129,8 @@ MonoBehaviour:
   stepIgnoreHeight: 3
   lookAhead: 1.4
   lookAheadSeconds: 0.9
+  lookDistance: 2.6
+  lookDelay: 0.45
 --- !u!4 &950851614
 Transform:
   m_ObjectHideFlags: 0
@@ -7807,6 +7838,8 @@ MonoBehaviour:
   hurtClip: Hurt
   deathClip: Common_Death
   runThreshold: 0.35
+  attackTurnReach: 1.8
+  hitRecoil: 0.18
   mercySeconds: 1.1
 --- !u!114 &1309629270
 MonoBehaviour:
