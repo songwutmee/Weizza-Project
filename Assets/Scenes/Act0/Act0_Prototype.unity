@@ -602,7 +602,7 @@ MonoBehaviour:
   slip: {fileID: 21300000, guid: ba1ce88f27429e94fa673a0e22e00406, type: 3}
   nameSlip: {fileID: 21300000, guid: 7e827d66144fd1b48b460320724fd113, type: 3}
   tailSprite: {fileID: 21300000, guid: 2693b59a1006beb4891133fd4442fe6b, type: 3}
-  pinSprite: {fileID: 21300000, guid: 8a47cf57dc875e54084cf4806a45de63, type: 3}
+  pinSprite: {fileID: 0}
   edgeThinness: 1.2
   paper: {r: 1, g: 1, b: 1, a: 1}
   ink: {r: 0.11, g: 0.13, b: 0.3, a: 1}
@@ -678,7 +678,7 @@ Camera:
   far clip plane: 250
   field of view: 40
   orthographic: 1
-  orthographic size: 6
+  orthographic size: 4.35
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -703,7 +703,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.13917312, y: 0, z: 0, w: 0.9902681}
-  m_LocalPosition: {x: 37.333332, y: 11.808373, z: -21.919548}
+  m_LocalPosition: {x: 37.333332, y: 9.592502, z: -22.55494}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -19628,7 +19628,7 @@ Transform:
   m_GameObject: {fileID: 2135174174}
   serializedVersion: 2
   m_LocalRotation: {x: 0.13917312, y: 0, z: 0, w: 0.9902681}
-  m_LocalPosition: {x: 0, y: 11.808373, z: -21.919548}
+  m_LocalPosition: {x: 0, y: 9.592502, z: -22.55494}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
