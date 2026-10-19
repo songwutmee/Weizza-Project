@@ -45,15 +45,35 @@ namespace Weizza.Narrative
         [PropertyRange(200f, 900f), Tooltip("Widest a bubble may get, in reference pixels at 1920 wide. Longer lines wrap.")]
         [SerializeField] private float maxWidth = 380f;
 
-        [TitleGroup("Look")]
-        [SerializeField] private Color paper = new(0.97f, 0.95f, 0.9f, 0.96f);
+        [TitleGroup("Art")]
+        [PreviewField(40), Tooltip("The paper slip the line is written on. Nine sliced, so its torn edge keeps its size at any width.")]
+        [SerializeField] private Sprite slip;
+
+        [TitleGroup("Art")]
+        [PreviewField(40), Tooltip("The dark slip the speaker's name sits on, pinned to the corner of the paper.")]
+        [SerializeField] private Sprite nameSlip;
+
+        [TitleGroup("Art")]
+        [PreviewField(40), Tooltip("The thread from the paper down to the speaker. Its round end sits on the speaker's head.")]
+        [SerializeField] private Sprite tailSprite;
+
+        [TitleGroup("Art")]
+        [PreviewField(40)]
+        [SerializeField] private Sprite pinSprite;
+
+        [TitleGroup("Art")]
+        [PropertyRange(0.5f, 3f), Tooltip("Above 1 makes the torn edge thinner. The slip art carries a wide margin.")]
+        [SerializeField] private float edgeThinness = 1.5f;
 
         [TitleGroup("Look")]
-        [SerializeField] private Color ink = new(0.16f, 0.14f, 0.13f, 1f);
+        [SerializeField] private Color paper = Color.white;
+
+        [TitleGroup("Look")]
+        [SerializeField] private Color ink = new(0.11f, 0.13f, 0.3f, 1f);
 
         [TitleGroup("Look")]
         [Tooltip("Colour of the speaker's name above the text.")]
-        [SerializeField] private Color nameInk = new(0.55f, 0.36f, 0.24f, 1f);
+        [SerializeField] private Color nameInk = new(0.97f, 0.96f, 0.93f, 1f);
 
         [TitleGroup("Look")]
         [PropertyRange(0f, 1.5f), Tooltip("Metres between the top of the speaker's drawing and the tail.")]
@@ -83,6 +103,7 @@ namespace Weizza.Narrative
         private RectTransform _bubble;
         private CanvasGroup _bubbleGroup;
         private TextMeshProUGUI _name;
+        private RectTransform _nameTag;
         private TextMeshProUGUI _body;
         private RectTransform _tail;
         private RectTransform _next;
@@ -92,7 +113,7 @@ namespace Weizza.Narrative
         private string _speakerId;
         private bool _built;
 
-        private const float Pad = 14f;
+        private const float Pad = 58f;
         private const float ScreenMargin = 24f;
 
         public bool UseBubbles
@@ -168,7 +189,7 @@ namespace Weizza.Narrative
             _speakerId = speakerId;
             _speaker = FindSpeaker(speakerId);
             _name.text = NameOf(speakerId);
-            _name.gameObject.SetActive(!string.IsNullOrEmpty(_name.text));
+            _nameTag.gameObject.SetActive(!string.IsNullOrEmpty(_name.text));
             Layout(text);
 
             if (changed)
@@ -269,15 +290,21 @@ namespace Weizza.Narrative
             var target = _speaker != null ? HeadOf(_speaker) : cam.transform.position + cam.transform.forward * 10f;
             var anchor = ToCanvas(cam, target);
 
-            // Keep the whole bubble on screen; the tail keeps pointing at the speaker.
+            // The paper hangs off to one side of the speaker with the thread dropping
+            // from its lower edge, a quarter of the way in, the way a note is pinned
+            // above someone rather than balanced on their head. The whole slip stays
+            // on screen; the thread keeps its end on the speaker.
             var size = _bubble.sizeDelta;
             var half = _canvasRect.rect.size * 0.5f;
-            var x = Mathf.Clamp(anchor.x, -half.x + ScreenMargin + size.x * 0.5f, half.x - ScreenMargin - size.x * 0.5f);
-            var y = Mathf.Clamp(anchor.y + 18f, -half.y + ScreenMargin, half.y - ScreenMargin - size.y);
+            // The slip art has a clear margin under its torn edge, so the paper sits lower
+            // than the thread is long and the thread disappears under it.
+            var drop = _tail.sizeDelta.y - 34f;
+            var x = Mathf.Clamp(anchor.x + size.x * 0.25f, -half.x + ScreenMargin + size.x * 0.5f, half.x - ScreenMargin - size.x * 0.5f);
+            var y = Mathf.Clamp(anchor.y + drop, -half.y + ScreenMargin, half.y - ScreenMargin - size.y);
             _bubble.anchoredPosition = new Vector2(x, y);
 
-            var tailX = Mathf.Clamp(anchor.x - x, -size.x * 0.5f + 26f, size.x * 0.5f - 26f);
-            _tail.anchoredPosition = new Vector2(tailX, 2f);
+            var tailX = Mathf.Clamp(anchor.x - x, -size.x * 0.5f + 30f, size.x * 0.5f - 30f);
+            _tail.anchoredPosition = new Vector2(tailX, anchor.y - y);
         }
 
         private void PlaceChoices()
@@ -313,20 +340,26 @@ namespace Weizza.Narrative
         {
             var inner = maxWidth - Pad * 2f;
             var body = _body.GetPreferredValues(text ?? string.Empty, inner, 0f);
-            var name = _name.gameObject.activeSelf ? _name.GetPreferredValues(_name.text) : Vector2.zero;
-            var width = Mathf.Clamp(Mathf.Max(body.x, name.x), 60f, inner);
+            var width = Mathf.Clamp(body.x, 80f, inner);
             body = _body.GetPreferredValues(text ?? string.Empty, width, 0f);
 
-            var nameHeight = _name.gameObject.activeSelf ? name.y + 4f : 0f;
-            _bubble.sizeDelta = new Vector2(width + Pad * 2f, body.y + nameHeight + Pad * 2f);
-
-            var nameRect = _name.rectTransform;
-            nameRect.anchoredPosition = new Vector2(Pad, -Pad + 6f);
-            nameRect.sizeDelta = new Vector2(width, Mathf.Max(0f, name.y));
+            // The text sits a little lower when a name tag is pinned over the top edge.
+            var tagged = _nameTag.gameObject.activeSelf;
+            var top = Pad + (tagged ? 6f : 0f);
+            _bubble.sizeDelta = new Vector2(width + Pad * 2f, body.y + top + Pad);
 
             var bodyRect = _body.rectTransform;
-            bodyRect.anchoredPosition = new Vector2(Pad, -Pad - nameHeight);
+            bodyRect.anchoredPosition = new Vector2(Pad, -top);
             bodyRect.sizeDelta = new Vector2(width + 2f, body.y);
+
+            if (tagged)
+            {
+                var name = _name.GetPreferredValues(_name.text);
+                _nameTag.sizeDelta = new Vector2(name.x + 56f, name.y + 34f);
+                var nameRect = _name.rectTransform;
+                nameRect.anchoredPosition = new Vector2(30f, -16f);
+                nameRect.sizeDelta = new Vector2(name.x + 2f, name.y);
+            }
 
             _body.text = text;
             _body.maxVisibleCharacters = 0;
@@ -462,21 +495,60 @@ namespace Weizza.Narrative
             _bubble.pivot = new Vector2(0.5f, 0f);
             _bubbleGroup = _bubble.gameObject.AddComponent<CanvasGroup>();
             _bubbleGroup.blocksRaycasts = false;
-            var back = _bubble.gameObject.AddComponent<Image>();
-            back.sprite = RoundedSprite;
-            back.type = Image.Type.Sliced;
-            back.color = paper;
-
-            _tail = NewRect("Tail", _bubble);
+            // The thread goes in first so the paper draws over its top end.
+            _tail = NewRect("Thread", _bubble);
             _tail.anchorMin = _tail.anchorMax = new Vector2(0.5f, 0f);
-            _tail.pivot = new Vector2(0.5f, 1f);
-            _tail.sizeDelta = new Vector2(30f, 18f);
+            _tail.pivot = new Vector2(0.5f, 0f);
             var tailImage = _tail.gameObject.AddComponent<Image>();
-            tailImage.sprite = TriangleSprite(down: true);
-            tailImage.color = paper;
+            if (tailSprite != null)
+            {
+                tailImage.sprite = tailSprite;
+                tailImage.preserveAspect = true;
+                // The art's round end sits on the speaker; its height sets how far the paper floats.
+                _tail.sizeDelta = new Vector2(52f, 52f * tailSprite.rect.height / tailSprite.rect.width);
+            }
+            else
+            {
+                tailImage.sprite = TriangleSprite(down: true);
+                tailImage.color = paper;
+                _tail.sizeDelta = new Vector2(30f, 18f);
+            }
 
-            _name = NewLabel("Name", _bubble, textSize * 0.72f, nameInk, FontStyles.Bold);
+            var back = NewRect("Paper", _bubble);
+            back.anchorMin = Vector2.zero;
+            back.anchorMax = Vector2.one;
+            back.offsetMin = back.offsetMax = Vector2.zero;
+            var paperImage = back.gameObject.AddComponent<Image>();
+            paperImage.sprite = slip != null ? slip : RoundedSprite;
+            paperImage.type = Image.Type.Sliced;
+            paperImage.pixelsPerUnitMultiplier = slip != null ? edgeThinness : 1f;
+            paperImage.color = paper;
+
             _body = NewLabel("Text", _bubble, textSize, ink, FontStyles.Normal);
+            _body.lineSpacing = 12f;
+
+            // The name is a dark slip pinned over the top left corner, tilted a little,
+            // the way a label gets tacked onto a note in a hurry.
+            _nameTag = NewRect("Name Tag", _bubble);
+            _nameTag.anchorMin = _nameTag.anchorMax = new Vector2(0f, 1f);
+            _nameTag.pivot = new Vector2(0f, 0.35f);
+            _nameTag.anchoredPosition = new Vector2(8f, -24f);
+            _nameTag.localRotation = Quaternion.Euler(0f, 0f, 4f);
+            var tagImage = _nameTag.gameObject.AddComponent<Image>();
+            tagImage.sprite = nameSlip != null ? nameSlip : RoundedSprite;
+            tagImage.type = Image.Type.Sliced;
+            tagImage.pixelsPerUnitMultiplier = nameSlip != null ? edgeThinness * 2.2f : 1f;
+            tagImage.color = nameSlip != null ? Color.white : ink;
+            _name = NewLabel("Name", _nameTag, textSize * 0.92f, nameInk, FontStyles.Bold | FontStyles.Italic);
+
+            if (pinSprite != null)
+            {
+                var pin = NewRect("Pin", _nameTag);
+                pin.anchorMin = pin.anchorMax = new Vector2(0f, 0.5f);
+                pin.anchoredPosition = new Vector2(20f, -2f);
+                pin.sizeDelta = new Vector2(18f, 18f);
+                pin.gameObject.AddComponent<Image>().sprite = pinSprite;
+            }
 
             _next = NewRect("Next", _bubble);
             _next.anchorMin = _next.anchorMax = new Vector2(1f, 0f);
@@ -484,7 +556,7 @@ namespace Weizza.Narrative
             _next.sizeDelta = new Vector2(14f, 9f);
             var nextImage = _next.gameObject.AddComponent<Image>();
             nextImage.sprite = TriangleSprite(down: true);
-            nextImage.color = nameInk;
+            nextImage.color = ink;
 
             _choiceRoot = NewRect("Choices", _canvasRect);
             _choiceRoot.anchorMin = _choiceRoot.anchorMax = new Vector2(0.5f, 0.5f);
@@ -507,8 +579,9 @@ namespace Weizza.Narrative
         {
             var rect = NewRect("Choice", _choiceRoot);
             var image = rect.gameObject.AddComponent<Image>();
-            image.sprite = RoundedSprite;
+            image.sprite = slip != null ? slip : RoundedSprite;
             image.type = Image.Type.Sliced;
+            image.pixelsPerUnitMultiplier = slip != null ? edgeThinness * 1.4f : 1f;
             image.color = paper;
             var button = rect.gameObject.AddComponent<Button>();
             var colours = button.colors;
@@ -518,7 +591,7 @@ namespace Weizza.Narrative
             colours.pressedColor = new Color(0.9f, 0.85f, 0.75f, 1f);
             button.colors = colours;
             var pad = rect.gameObject.AddComponent<HorizontalLayoutGroup>();
-            pad.padding = new RectOffset(18, 18, 10, 10);
+            pad.padding = new RectOffset(30, 30, 20, 22);
             pad.childControlWidth = pad.childControlHeight = true;
             var label = NewLabel("Label", rect, textSize * 0.9f, ink, FontStyles.Normal);
             label.alignment = TextAlignmentOptions.Center;
