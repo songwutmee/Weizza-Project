@@ -213,7 +213,7 @@ namespace Weizza.Narrative
 
             _spent = true;
             if (prompt != null) prompt.SetActive(false);
-            director.Play(conversation);
+            director.Play(conversation, transform);
         }
 
         private Transform Player()

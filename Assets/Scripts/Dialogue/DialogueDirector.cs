@@ -73,8 +73,18 @@ namespace Weizza.Narrative
         /// <summary>True while a conversation owns the screen.</summary>
         public static bool Talking { get; private set; }
 
+        /// <summary>
+        /// Who started the conversation, so a speech bubble knows whose head to sit
+        /// over when a line names a speaker with no Story Stage Id of their own.
+        /// </summary>
+        public static Transform Speaker { get; private set; }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetTalking() => Talking = false;
+        private static void ResetTalking()
+        {
+            Talking = false;
+            Speaker = null;
+        }
 
         private void Awake()
         {
@@ -98,9 +108,10 @@ namespace Weizza.Narrative
         /// second call is dropped rather than queued, because the usual cause is
         /// a second interact press landing on the same NPC.
         /// </summary>
-        public void Play(Conversation conversation)
+        public void Play(Conversation conversation, Transform speaker = null)
         {
             if (conversation == null || Talking) return;
+            Speaker = speaker;
 
             _running?.Dispose();
             _running = CancellationTokenSource.CreateLinkedTokenSource(
@@ -121,6 +132,15 @@ namespace Weizza.Narrative
             Talking = true;
             Suspend(true);
 
+            // Locked through StoryControl as well as by switching the controller off:
+            // the lock is what every other system asks (the actor goes idle and keeps
+            // its gravity, enemies and tools see that a scene is running), and it is
+            // counted, so a cutscene that also locks cannot be released by this one.
+            var movementLock = StoryControl.Lock("dialogue");
+
+            // A bubble keeps the world in view on purpose, so it gets no blur.
+            var blurs = ui is not BubbleDialogueScreen;
+
             try
             {
                 // Dressed before the fade, so the face and the frame arrive as
@@ -131,7 +151,7 @@ namespace Weizza.Narrative
                     screen.Prime(opening.speakerId, opening.emotion);
                 }
 
-                var blur = FadeBlur(1f, ct);
+                var blur = blurs ? FadeBlur(1f, ct) : UniTask.CompletedTask;
                 await ui.OpenAsync(ct);
                 await blur;
 
@@ -145,7 +165,7 @@ namespace Weizza.Narrative
                 }
 
                 await ui.CloseAsync(ct);
-                await FadeBlur(0f, ct);
+                if (blurs) await FadeBlur(0f, ct);
             }
             catch (System.OperationCanceledException)
             {
@@ -154,8 +174,10 @@ namespace Weizza.Narrative
             }
             finally
             {
+                movementLock.Dispose();
                 Suspend(false);
                 Talking = false;
+                Speaker = null;
                 if (blurVolume != null) blurVolume.weight = 0f;
             }
         }
