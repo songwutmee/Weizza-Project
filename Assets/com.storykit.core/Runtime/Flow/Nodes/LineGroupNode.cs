@@ -191,16 +191,23 @@ namespace StoryKit.Flow
         public override NodeEffect Effect => NodeEffect.Presentation;
         public override string GetSummary() => $"{_stageId}: bark pool";
 
+        private static readonly Dictionary<string, float> ReadyAt = new();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => ReadyAt.Clear();
+
         public override UniTask ExecuteAsync(FlowContext context, CancellationToken ct)
         {
-            string cooldownKey = "_barkReady." + _stageId;
-            if (StoryTime.Time < StoryState.Global.Get<float>(cooldownKey))
+            // Kept in memory, not on the global board. The board is what gets saved,
+            // and the clock restarts at zero every session, so a ready time saved
+            // late in one session silenced this bark for most of the next one.
+            if (ReadyAt.TryGetValue(_stageId ?? string.Empty, out var readyAt) && StoryTime.Time < readyAt)
                 return UniTask.CompletedTask;
 
             var variant = _group.Select(context.Board);
             if (variant == null) return UniTask.CompletedTask;
 
-            StoryState.Global.Set(cooldownKey, StoryTime.Time + _cooldown);
+            ReadyAt[_stageId ?? string.Empty] = StoryTime.Time + _cooldown;
 
             string text = StoryServices.Get<ILocalizationService>()?.Resolve(variant.lineKey)
                           ?? variant.lineKey;
