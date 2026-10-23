@@ -43,7 +43,9 @@ namespace Weizza
     {
         [SerializeField] private string _roomId = "forest_02";
 
-        public override NodeEffect Effect => NodeEffect.Presentation;
+        // A gate in the story, not a piece of presentation: skipping a cutscene must
+        // not let the graph run ahead of the player into a room they never reached.
+        public override NodeEffect Effect => NodeEffect.Consequence;
         public override string GetSummary() => _roomId;
 
         public override async UniTask ExecuteAsync(FlowContext context, CancellationToken ct)
