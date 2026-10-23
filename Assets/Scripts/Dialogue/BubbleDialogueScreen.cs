@@ -131,10 +131,18 @@ namespace Weizza.Narrative
             if (_canvasRoot != null) Destroy(_canvasRoot);
         }
 
-        private void OnEnable() => Apply();
+        private System.IDisposable _barkSubscription;
+
+        private void OnEnable()
+        {
+            Apply();
+            _barkSubscription = StoryEvents.Subscribe("Dialogue.Bark", OnBark);
+        }
 
         private void OnDisable()
         {
+            _barkSubscription?.Dispose();
+            _barkSubscription = null;
             if (!useBubbles) return;
             // Hand the lines back to the panel rather than leaving nobody listening.
             var panel = FindFirstObjectByType<DialogueScreen>(FindObjectsInactive.Include);
@@ -239,6 +247,78 @@ namespace Weizza.Narrative
             _choiceRoot.gameObject.SetActive(false);
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
             return picked;
+        }
+
+        // ---- Barks -----------------------------------------------------------
+
+        /// <summary>
+        /// A line said in passing: a small note over someone's head that fades by
+        /// itself and never stops the player. StoryKit's bark nodes raise it as
+        /// "stage id|text|seconds". Works whether bubbles or the panel are on, since a
+        /// bark is never a conversation.
+        /// </summary>
+        private void OnBark(object payload)
+        {
+            var parts = payload?.ToString().Split('|');
+            if (parts == null || parts.Length < 2) return;
+            var target = StoryStageId.FindTransform(parts[0]);
+            if (target == null) return;
+            var seconds = parts.Length > 2 && float.TryParse(parts[2], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var s) ? s : 2.2f;
+            Build();
+            ShowBarkAsync(target, parts[1], seconds, destroyCancellationToken).Forget();
+        }
+
+        private async UniTaskVoid ShowBarkAsync(Transform target, string text, float seconds, CancellationToken ct)
+        {
+            var note = NewRect("Bark", _canvasRect);
+            note.anchorMin = note.anchorMax = new Vector2(0.5f, 0.5f);
+            note.pivot = new Vector2(0.5f, 0f);
+            var group = note.gameObject.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            group.alpha = 0f;
+
+            var back = note.gameObject.AddComponent<Image>();
+            back.sprite = slip != null ? slip : RoundedSprite;
+            back.type = Image.Type.Sliced;
+            back.pixelsPerUnitMultiplier = slip != null ? edgeThinness * 1.4f : 1f;
+            back.color = paper;
+
+            var label = NewLabel("Text", note, textSize * 0.8f, ink, FontStyles.Italic);
+            const float pad = 40f;
+            var size = label.GetPreferredValues(text, maxWidth * 0.7f, 0f);
+            size.x = Mathf.Min(size.x, maxWidth * 0.7f);
+            size = label.GetPreferredValues(text, size.x, 0f);
+            label.text = text;
+            label.rectTransform.anchoredPosition = new Vector2(pad, -pad + 6f);
+            label.rectTransform.sizeDelta = new Vector2(size.x + 2f, size.y);
+            note.sizeDelta = new Vector2(size.x + pad * 2f, size.y + pad * 2f - 12f);
+
+            try
+            {
+                var t = 0f;
+                var life = seconds + 0.5f;
+                while (t < life && target != null)
+                {
+                    t += Time.unscaledDeltaTime;
+                    // In over a fifth of a second, out over the last third, no pop:
+                    // a bark should drift past, not ask to be read.
+                    group.alpha = Mathf.Min(Mathf.Clamp01(t / 0.2f), Mathf.Clamp01((life - t) / 0.35f));
+                    var cam = Camera.main;
+                    if (cam != null)
+                    {
+                        var anchor = ToCanvas(cam, HeadOf(target));
+                        var half = _canvasRect.rect.size * 0.5f;
+                        var x = Mathf.Clamp(anchor.x, -half.x + ScreenMargin + note.sizeDelta.x * 0.5f, half.x - ScreenMargin - note.sizeDelta.x * 0.5f);
+                        note.anchoredPosition = new Vector2(x, anchor.y + 6f + t * 4f);
+                    }
+                    await UniTask.Yield(PlayerLoopTiming.Update, ct);
+                }
+            }
+            finally
+            {
+                if (note != null) Destroy(note.gameObject);
+            }
         }
 
         // ---- Following the speaker -------------------------------------------
