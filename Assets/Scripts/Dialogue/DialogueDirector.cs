@@ -46,6 +46,10 @@ namespace Weizza.Narrative
         [SerializeField] private float blurSeconds = 0.25f;
 
         [TitleGroup("Scene")]
+        [ToggleLeft, Tooltip("Blur the world behind the dialogue panel. Off by default: the camera lifts the player and the speaker above the panel so both stay readable.")]
+        [SerializeField] private bool blurBehindPanel;
+
+        [TitleGroup("Scene")]
         [Tooltip("Optional. A StoryKit screen service, if this game has one, so " +
                  "that a HUD it owns goes away with the rest. The two lists above " +
                  "cover everything else.")]
@@ -138,8 +142,10 @@ namespace Weizza.Narrative
             // counted, so a cutscene that also locks cannot be released by this one.
             var movementLock = StoryControl.Lock("dialogue");
 
-            // A bubble keeps the world in view on purpose, so it gets no blur.
-            var blurs = ui is not BubbleDialogueScreen;
+            // A bubble keeps the world in view on purpose, so it gets no blur, and the
+            // panel only blurs when asked: the camera now lifts the two speakers above
+            // the panel, and a blur would hide the very people talking.
+            var blurs = blurBehindPanel && ui is not BubbleDialogueScreen;
 
             try
             {
