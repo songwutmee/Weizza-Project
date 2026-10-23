@@ -10,6 +10,9 @@ namespace Weizza
     /// change from the scripts that already drive it; this copies those across and turns
     /// each clip name into a pose, so no boss script had to learn about bones.
     /// </summary>
+    // Runs in edit mode too, but only to hide the old drawing: without it the Scene view
+    // showed the flat sheet beetle and the rig on top of each other.
+    [ExecuteAlways]
     [AddComponentMenu("Weizza/Boss/Beetle Rig")]
     public sealed class BeetleRig : MonoBehaviour
     {
@@ -121,6 +124,14 @@ namespace Weizza
             _lastX = transform.position.x;
         }
 
+        private void OnEnable()
+        {
+            // Hidden straight away, not on the next LateUpdate: in edit mode LateUpdate
+            // only runs when the editor happens to repaint, so the old drawing could sit
+            // on top of the rig until then.
+            if (source != null) source.forceRenderingOff = useRig;
+        }
+
         private void OnDisable()
         {
             if (source != null) source.forceRenderingOff = false;
@@ -155,6 +166,10 @@ namespace Weizza
                 plate.sortingLayerID = source.sortingLayerID;
                 plate.sortingOrder = source.sortingOrder - 1;
             }
+
+            // Edit mode stops here: the old drawing is hidden and the rig shows in its
+            // rest pose, nothing animates while someone is laying out a level.
+            if (!Application.isPlaying) return;
 
             var facingLeft = source.flipX;
             var flip = facingLeft == artFacesLeft ? 1f : -1f;
