@@ -360,8 +360,19 @@ namespace StoryKit.Flow
                 ? context.Runner.SourceAsset.name : "");
             board.Set(StorySave.CheckpointNodeKey, Id);
             board.Set(StorySave.CheckpointIdKey, _checkpointId ?? "");
-            StoryServices.Get<ISaveService>()?.SetCheckpoint(_checkpointId);
-            StorySave.SaveToDisk();
+            // The game's own save service owns the file and the slot. Writing the
+            // default StoryKit file here instead put the checkpoint in a file the
+            // game never loads, so the progress looked saved and was not.
+            var save = StoryServices.Get<ISaveService>();
+            if (save != null)
+            {
+                save.SetCheckpoint(_checkpointId);
+                save.RequestAutoSave();
+            }
+            else
+            {
+                StorySave.SaveToDisk();
+            }
             return UniTask.CompletedTask;
         }
     }
