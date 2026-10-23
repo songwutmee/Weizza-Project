@@ -143,7 +143,12 @@ namespace StoryKit.Flow
                 if (changedKey == _key || string.IsNullOrEmpty(changedKey))
                     Check();
             };
-            _observed.KeyChanged += _handler;
+            // A board only announces its own writes. Game code usually writes the
+            // global board, which is this graph board's parent, so listening to the
+            // graph board alone meant the node slept through the very change it was
+            // waiting for. Every board up the chain is watched.
+            for (var board = _observed; board != null; board = board.Parent)
+                board.KeyChanged += _handler;
             Check();
             return UniTask.CompletedTask;
         }
@@ -163,8 +168,9 @@ namespace StoryKit.Flow
 
         public override UniTask OnFinallyAsync(FlowContext context, CancellationToken ct)
         {
-            if (_observed != null && _handler != null)
-                _observed.KeyChanged -= _handler;
+            if (_handler != null)
+                for (var board = _observed; board != null; board = board.Parent)
+                    board.KeyChanged -= _handler;
             _observed = null;
             _handler = null;
             _signal = null;
