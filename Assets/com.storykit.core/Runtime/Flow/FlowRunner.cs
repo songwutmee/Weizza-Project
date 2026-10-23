@@ -142,7 +142,7 @@ namespace StoryKit.Flow
                     ? startNodeId
                     : _runtimeGraph.ResolvedEntryNodeId;
                 await RunNodeAsync(entry,
-                    new HashSet<string>(StringComparer.Ordinal), _cts.Token);
+                    new Dictionary<string, int>(StringComparer.Ordinal), _cts.Token);
                 finishedNormally = true;
             }
             catch (OperationCanceledException)
@@ -265,65 +265,88 @@ namespace StoryKit.Flow
             _activeNodes.Clear();
         }
 
-        private async UniTask RunNodeAsync(string nodeId, HashSet<string> visited, CancellationToken ct)
+        /// <summary>
+        /// How many times one path may pass through the same node. Loops are allowed
+        /// ("ask again" dialogue, a patrol that repeats), this only stops a loop that
+        /// was never meant to end from running forever unseen.
+        /// </summary>
+        private const int MaxVisitsPerNode = 10000;
+
+        private async UniTask RunNodeAsync(string nodeId, Dictionary<string, int> visits, CancellationToken ct)
         {
-            if (string.IsNullOrEmpty(nodeId)) return;
-            if (!visited.Add(nodeId)) return; // loop guard
-
-            var node = _runtimeGraph.FindNode(nodeId);
-            if (node == null)
+            // A straight chain is walked in this loop rather than by calling itself
+            // once per node, so a long or looping graph does not grow the call chain.
+            while (!string.IsNullOrEmpty(nodeId))
             {
-                Debug.LogWarning($"[StoryKit] Node id '{nodeId}' not found in '{_runtimeGraph.name}'.", this);
-                return;
-            }
-
-            ct.ThrowIfCancellationRequested();
-
-            if (node is EndNode)
-            {
-                RequestEnd();
-                return;
-            }
-
-            NodeEntered?.Invoke(nodeId);
-
-            using var nodeCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            _activeNodes[nodeId] = nodeCts;
-
-            List<string> nextIds;
-            try
-            {
-                nextIds = await ExecuteNodeAsync(node, visited, ct, nodeCts.Token);
-            }
-            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
-            {
-                // Node-local cancel of a non-task node: stop this branch only.
-                return;
-            }
-            finally
-            {
-                _activeNodes.Remove(nodeId);
-                NodeExited?.Invoke(nodeId);
-            }
-
-            ct.ThrowIfCancellationRequested();
-
-            switch (nextIds.Count)
-            {
-                case 0:
+                visits.TryGetValue(nodeId, out var seen);
+                visits[nodeId] = seen + 1;
+                if (seen >= MaxVisitsPerNode)
+                {
+                    Debug.LogError($"[StoryKit] '{_runtimeGraph.name}' passed through node '{nodeId}' {MaxVisitsPerNode} times on one path. " +
+                                   "Stopping that path; a loop needs a node that waits (a choice, a wait, an event) or a way out.", this);
                     return;
-                case 1:
-                    await RunNodeAsync(nextIds[0], visited, ct);
+                }
+
+                // Coming back to a node always waits one frame first, so a loop made
+                // only of instant nodes runs once a frame instead of freezing the game.
+                if (seen > 0) await UniTask.Yield(PlayerLoopTiming.Update, ct);
+
+                var node = _runtimeGraph.FindNode(nodeId);
+                if (node == null)
+                {
+                    Debug.LogWarning($"[StoryKit] Node id '{nodeId}' not found in '{_runtimeGraph.name}'.", this);
                     return;
-                default:
-                    await UniTask.WhenAll(nextIds.Select(id =>
-                        RunNodeAsync(id, new HashSet<string>(visited, StringComparer.Ordinal), ct)));
+                }
+
+                ct.ThrowIfCancellationRequested();
+
+                if (node is EndNode)
+                {
+                    RequestEnd();
                     return;
+                }
+
+                NodeEntered?.Invoke(nodeId);
+
+                using var nodeCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                _activeNodes[nodeId] = nodeCts;
+
+                List<string> nextIds;
+                try
+                {
+                    nextIds = await ExecuteNodeAsync(node, visits, ct, nodeCts.Token);
+                }
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                {
+                    // Node-local cancel of a non-task node: stop this branch only.
+                    return;
+                }
+                finally
+                {
+                    _activeNodes.Remove(nodeId);
+                    NodeExited?.Invoke(nodeId);
+                }
+
+                ct.ThrowIfCancellationRequested();
+
+                switch (nextIds.Count)
+                {
+                    case 0:
+                        return;
+                    case 1:
+                        nodeId = nextIds[0];
+                        continue;
+                    default:
+                        // Each branch counts its own visits from here on.
+                        await UniTask.WhenAll(nextIds.Select(id =>
+                            RunNodeAsync(id, new Dictionary<string, int>(visits, StringComparer.Ordinal), ct)));
+                        return;
+                }
             }
         }
 
         private async UniTask<List<string>> ExecuteNodeAsync(
-            StoryNode node, HashSet<string> visited,
+            StoryNode node, Dictionary<string, int> visited,
             CancellationToken graphToken, CancellationToken nodeToken)
         {
             bool skip = _context.FastForward && node.Effect == NodeEffect.Presentation;
@@ -350,11 +373,26 @@ namespace StoryKit.Flow
         }
 
         private async UniTask<List<string>> ExecuteTaskAsync(
-            TaskNode task, HashSet<string> visited,
+            TaskNode task, Dictionary<string, int> visited,
             CancellationToken graphToken, CancellationToken nodeToken, bool skip)
         {
             using var branchCts = CancellationTokenSource.CreateLinkedTokenSource(nodeToken);
             bool started = false;
+
+            async UniTask RunBranch()
+            {
+                try
+                {
+                    await RunNodeAsync(task.RunningNextId,
+                        new Dictionary<string, int>(visited, StringComparer.Ordinal),
+                        branchCts.Token);
+                }
+                catch (OperationCanceledException) when (!graphToken.IsCancellationRequested)
+                {
+                    // The task ended and took its Running branch with it: that is the
+                    // design, not an error.
+                }
+            }
 
             try
             {
@@ -367,21 +405,20 @@ namespace StoryKit.Flow
                 // The Running branch always executes: it may contain consequence
                 // nodes (rewards, flags) that must survive a skip. In skip mode the
                 // presentation nodes inside it fast-forward to nothing anyway.
-                if (!string.IsNullOrEmpty(task.RunningNextId))
-                {
-                    try
-                    {
-                        await RunNodeAsync(task.RunningNextId,
-                            new HashSet<string>(visited, StringComparer.Ordinal),
-                            branchCts.Token);
-                    }
-                    catch (OperationCanceledException) when (!graphToken.IsCancellationRequested)
-                    {
-                        // Branch-local cancel: task continues to Completed.
-                    }
-                }
+                //
+                // It runs alongside the task, not before it. Awaiting the branch first
+                // meant a task only began holding after its branch had finished, so an
+                // event a WaitForEvent was listening for could arrive and still leave the
+                // graph stuck until an unrelated branch ended.
+                var branch = string.IsNullOrEmpty(task.RunningNextId) ? UniTask.CompletedTask : RunBranch();
 
-                if (!skip)
+                if (skip)
+                {
+                    // Skipping: nothing holds the task open, so let the branch play out
+                    // its consequences before moving on.
+                    await branch;
+                }
+                else
                 {
                     try
                     {
@@ -399,6 +436,12 @@ namespace StoryKit.Flow
                     {
                         Debug.LogException(ex, this);
                     }
+
+                    // The task is over, so its Running branch ends with it. Waiting for
+                    // the branch to unwind first means its own cleanups (a lock, a
+                    // camera) are released before the Completed branch starts.
+                    try { branchCts.Cancel(); } catch (ObjectDisposedException) { }
+                    await branch;
                 }
 
                 var list = new List<string>(1);
