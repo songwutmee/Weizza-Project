@@ -369,6 +369,19 @@ namespace Weizza.EditorTools
 
         private static bool HasWorld => ChunkPainting.Atlas != null;
 
+        // ---- Ground paths -----------------------------------------------------
+
+        [TitleGroup("Ground Path", "Hills, ledges and slopes, so the ground is not one flat line", TitleAlignments.Centered)]
+        [ShowInInspector, HideLabel, DisplayAsString(false)]
+        private string GroundPathHelp =>
+            "Makes a hill where the Scene view is looking, filed into that stretch's chunk.\n" +
+            "Then drag the white points. Shift click the line to add a point, Ctrl click a point to remove it.\n" +
+            "Keep slopes under 30 degrees for a natural walk; 40 is the most the player can climb.";
+
+        [TitleGroup("Ground Path")]
+        [Button("New Ground Path here", ButtonSizes.Large, Icon = SdfIconType.GraphUp), GUIColor(0.55f, 0.85f, 0.45f)]
+        private void NewGroundPath() => GroundPathFactory.CreateAtSceneView();
+
         // ---- Chunks ---------------------------------------------------------
 
         [TitleGroup("Chunks", "Every stretch of the map, left to right", TitleAlignments.Centered, Order = -10)]

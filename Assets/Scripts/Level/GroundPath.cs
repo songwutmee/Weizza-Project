@@ -112,6 +112,31 @@ namespace Weizza
             Rebuild();
         }
 
+        public void InsertPoint(int index, Vector2 value)
+        {
+            points.Insert(Mathf.Clamp(index, 0, points.Count), value);
+            Rebuild();
+        }
+
+        public void RemovePoint(int index)
+        {
+            // Two points is the shortest line there is.
+            if (points.Count <= 2 || index < 0 || index >= points.Count) return;
+            points.RemoveAt(index);
+            Rebuild();
+        }
+
+        /// <summary>Fills the art and collision settings in one go, for tools that create paths.</summary>
+        public void Setup(Sprite groundStrip, Material groundMaterial, int layer, string layerName, int order)
+        {
+            strip = groundStrip;
+            material = groundMaterial;
+            groundLayer = layer;
+            sortingLayer = layerName;
+            sortingOrder = order;
+            Rebuild();
+        }
+
         [Button("Rebuild", ButtonSizes.Large), GUIColor(0.6f, 0.85f, 0.6f)]
         public void Rebuild()
         {
