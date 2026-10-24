@@ -648,6 +648,10 @@ MonoBehaviour:
   landSquash: 0.22
   fullSquashSpeed: 14
   squashFrames: 8
+  jumpStretch: 0.14
+  stretchFrames: 9
+  hitPunch: 0.1
+  punchFrames: 7
 --- !u!1 &6177438589769837427
 GameObject:
   m_ObjectHideFlags: 0
@@ -970,6 +974,7 @@ GameObject:
   - component: {fileID: 8388004611458676952}
   - component: {fileID: 7322449705426593143}
   - component: {fileID: 8274822268670172982}
+  - component: {fileID: 3782307571101505709}
   m_Layer: 7
   m_Name: Beetle
   m_TagString: Untagged
@@ -1034,6 +1039,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.CharacterMotor3D
   art: {fileID: 0}
   groundStick: 2
+  followSlopes: 1
+  snapDistance: 0.5
   lane: 0
   Velocity: {x: 0, y: 0, z: 0}
 --- !u!114 &4384444851336382294
@@ -1115,6 +1122,8 @@ MonoBehaviour:
   hurtClip: Idle
   deathClip: Idle
   despawnDelay: 0.6
+  deathLaunch: 3.2
+  noticeHop: 0.22
 --- !u!114 &704642974478240366
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1199,6 +1208,7 @@ MonoBehaviour:
   volleyRest: 0.55
   stabRadius: 0.85
   stabDamage: 12
+  airHeight: {x: 2.1, y: 3.2}
   ringTint: {r: 1, g: 1, b: 1, a: 1}
   groundMask:
     serializedVersion: 2
@@ -1244,6 +1254,23 @@ MonoBehaviour:
   groundMask:
     serializedVersion: 2
     m_Bits: 1
+--- !u!114 &3782307571101505709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019507601037716238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d307f8d70d1cd34588e8b54eb8ccd49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.BodyContactDamage
+  damage: 12
+  knockback: {x: 7, y: 6}
+  repeatDelay: 0.6
+  harmlessWhenStaggered: 1
+  touchReach: 0
 --- !u!1 &7636933464423914833
 GameObject:
   m_ObjectHideFlags: 0

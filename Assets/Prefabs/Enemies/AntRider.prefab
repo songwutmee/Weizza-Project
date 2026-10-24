@@ -217,6 +217,10 @@ MonoBehaviour:
   landSquash: 0.22
   fullSquashSpeed: 14
   squashFrames: 8
+  jumpStretch: 0.14
+  stretchFrames: 9
+  hitPunch: 0.1
+  punchFrames: 7
 --- !u!1 &7204054621780092082
 GameObject:
   m_ObjectHideFlags: 0
@@ -232,6 +236,7 @@ GameObject:
   - component: {fileID: 8501851130933939382}
   - component: {fileID: 2470251246175344424}
   - component: {fileID: 4509825781473146965}
+  - component: {fileID: 1074424187474984801}
   m_Layer: 7
   m_Name: AntRider
   m_TagString: Untagged
@@ -296,6 +301,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.CharacterMotor3D
   art: {fileID: 0}
   groundStick: 2
+  followSlopes: 1
+  snapDistance: 0.5
   lane: 0
   Velocity: {x: 0, y: 0, z: 0}
 --- !u!114 &1057914901656542885
@@ -360,6 +367,8 @@ MonoBehaviour:
   hurtClip: Idle
   deathClip: Idle
   despawnDelay: 0.45
+  deathLaunch: 3.2
+  noticeHop: 0.22
 --- !u!114 &4509825781473146965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -375,12 +384,36 @@ MonoBehaviour:
   backOffAfterSwing: {x: 0.45, y: 0.75}
   backOffAfterHit: {x: 0.5, y: 0.8}
   shakenMultiplier: 1.7
-  holdGround: 0.4
+  holdGround: {x: 0.1, y: 0.45}
+  followUpChance: 0.25
+  longBackOffChance: 0.3
+  longBackOff: {x: 0.7, y: 1.1}
+  dodgeChance: 0.3
+  dodgeSeconds: 0.3
+  dodgeCooldown: 2.2
+  punishRange: 3.2
   drawing: {fileID: 7770485406504108811}
   stepBob: 0.05
   groundMask:
     serializedVersion: 2
     m_Bits: 1
+--- !u!114 &1074424187474984801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7204054621780092082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d307f8d70d1cd34588e8b54eb8ccd49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.BodyContactDamage
+  damage: 8
+  knockback: {x: 7, y: 6}
+  repeatDelay: 0.6
+  harmlessWhenStaggered: 1
+  touchReach: 0
 --- !u!1 &8345275860017046368
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,8 +9,8 @@ namespace Weizza
     /// enemies worth placing.
     ///
     /// CharacterController raises no collision event against another body, so this
-    /// measures the touch itself each frame. The Player and Enemy layers do collide,
-    /// which stops the two capsules at each other's surface, hence the reach.
+    /// measures the touch itself each frame. The Player and Enemy layers pass through
+    /// each other, so a touch is a real overlap and the knockback is what separates them.
     /// </summary>
     [AddComponentMenu("Weizza/Enemy/Body Contact Damage")]
     [RequireComponent(typeof(Vitals))]
@@ -35,9 +35,7 @@ namespace Weizza
 
         [BoxGroup("Hurt")]
         [PropertyRange(-0.3f, 0.3f)]
-        [Tooltip("Grows (positive) or shrinks (negative) the touch area. The Player and Enemy layers collide, so " +
-                 "the two capsules stop at each other's surface and never overlap: a touch has to reach a little " +
-                 "past the body to count at all.")]
+        [Tooltip("Grows (positive) or shrinks (negative) the touch area. The bodies overlap freely, so 0 means a real touch.")]
         [SerializeField] private float touchReach = 0.1f;
 
         private Vitals _vitals;
