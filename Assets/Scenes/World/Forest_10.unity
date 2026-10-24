@@ -5328,7 +5328,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!1 &861683050
+--- !u!1 &863648658
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5336,8 +5336,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 861683051}
-  - component: {fileID: 861683052}
+  - component: {fileID: 863648659}
+  - component: {fileID: 863648660}
   m_Layer: 0
   m_Name: Segment 1
   m_TagString: Untagged
@@ -5345,13 +5345,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &861683051
+--- !u!4 &863648659
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 861683050}
+  m_GameObject: {fileID: 863648658}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 32, y: -0.5, z: 0}
@@ -5360,13 +5360,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1658401629}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &861683052
+--- !u!65 &863648660
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 861683050}
+  m_GameObject: {fileID: 863648658}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -10049,7 +10049,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 861683051}
+  - {fileID: 863648659}
   m_Father: {fileID: 1423526475}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1658401630
