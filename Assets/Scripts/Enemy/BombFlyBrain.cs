@@ -27,6 +27,12 @@ namespace Weizza
         [PropertyRange(2f, 15f)]
         [SerializeField] private float noticeRange = 7f;
 
+        [Tooltip("Metres above where it is placed that it hovers while idle. Place it on the ground; it lifts itself.")]
+        [SerializeField] private float hoverHeight = 1.6f;
+
+        [Tooltip("How far it drifts while idle, across and up and down.")]
+        [SerializeField] private Vector2 idleDrift = new(1.2f, 0.35f);
+
         [BoxGroup("Senses")]
         [Tooltip("Pause after noticing, random between the two. A swarm wakes a beat apart, not as one.")]
         [SerializeField] private Vector2 noticeDelay = new(0.2f, 0.7f);
@@ -83,6 +89,7 @@ namespace Weizza
         private bool _blew;
         private Vector3 _velocity;
         private float _phase;
+        private Vector3 _noticeFrom;
 
         private void Awake()
         {
@@ -109,7 +116,7 @@ namespace Weizza
 
         private void OnEnable()
         {
-            _home = transform.position;
+            _home = transform.position + Vector3.up * hoverHeight;
             _blew = false;
             _body.AutoBrain = false;
             _body.Held = true;
@@ -141,12 +148,16 @@ namespace Weizza
 
         private void TickPerched()
         {
-            // Sitting still, breathing a little. Fireflies blink on their own beat.
-            Place(_home + Vector3.up * Mathf.Sin(Time.time * 2.1f + _phase) * 0.02f);
+            // Idles in the air on a lazy figure eight, the way a firefly wanders. Blinks on its own beat.
+            var t = Time.time + _phase;
+            var drift = new Vector3(Mathf.Sin(t * 0.7f) * idleDrift.x, Mathf.Sin(t * 1.4f) * idleDrift.y, 0f);
+            Place(_home + drift);
+            Face(Mathf.Cos(t * 0.7f));
             var player = PlayerLocator.Player;
             if (player == null || !_body.TargetOnSameLane) return;
             if (Vector3.Distance(player.transform.position, transform.position) > noticeRange) return;
             Face(player.transform.position.x - transform.position.x);
+            _noticeFrom = transform.position;
             Enter(Mode.Notice, Random.Range(noticeDelay.x, noticeDelay.y));
         }
 
@@ -154,7 +165,7 @@ namespace Weizza
         {
             // A startled hop up, then it commits.
             var k = Mathf.Clamp01((Time.time - _modeStarted) / Mathf.Max(0.01f, _modeUntil - _modeStarted));
-            Place(_home + Vector3.up * Mathf.Sin(k * Mathf.PI) * 0.35f);
+            Place(_noticeFrom + Vector3.up * Mathf.Sin(k * Mathf.PI) * 0.35f);
             if (Time.time < _modeUntil) return;
 
             var player = PlayerLocator.Player;
