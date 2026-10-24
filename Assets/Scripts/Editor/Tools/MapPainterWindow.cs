@@ -345,6 +345,16 @@ namespace Weizza.EditorTools
                  "in front of the other.")]
         [SerializeField] private int sortingOrder = -5;
 
+        /// <summary>Ground strips and Ground Paths draw at -5; one below sits behind their grass.</summary>
+        public const int BehindGroundOrder = -6;
+
+        [TitleGroup("Placing")]
+        [ToggleLeft]
+        [Tooltip("Stumps, rocks and anything standing on the ground: drawn behind the ground strip, so " +
+                 "the grass line runs across its foot and it grows out of the earth instead of sitting on it. " +
+                 "Fix pieces already placed with Weizza > Level > Send Behind Ground.")]
+        [SerializeField] private bool behindGround = true;
+
         [TitleGroup("Placing")]
         [ToggleLeft]
         [Tooltip("Mirrors every other piece as it is placed, so a long run does " +
@@ -1297,7 +1307,9 @@ namespace Weizza.EditorTools
             var renderer = go.AddComponent<SpriteRenderer>();
             renderer.sprite = sprite;
             renderer.sortingLayerName = numbers.Layer;
-            renderer.sortingOrder = sortingOrder;
+            // The ground strip itself is what the others go behind.
+            renderer.sortingOrder = behindGround && role == SceneryRole.GroundMoss && !sprite.name.StartsWith("L51_ground")
+                ? Mathf.Min(sortingOrder, BehindGroundOrder) : sortingOrder;
 
             // The mark the eraser and eyedropper find pieces by.
             var mark = go.AddComponent<PaintedPiece>();
