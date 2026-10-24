@@ -93,6 +93,11 @@ namespace Weizza
         [SerializeField] private float stabDamage = 12f;
 
         [BoxGroup("Stabs (Ultimate 2)")]
+        [MinMaxSlider(1f, 4f, true)]
+        [Tooltip("Metres above the floor an air stab may hang. Low end clears a standing player's head, high end catches a full jump.")]
+        [SerializeField] private Vector2 airHeight = new(2.1f, 3.2f);
+
+        [BoxGroup("Stabs (Ultimate 2)")]
         [SerializeField] private Color ringTint = new(1f, 0.93f, 0.5f, 1f);
 
         [BoxGroup("Senses")]
@@ -146,7 +151,12 @@ namespace Weizza
                 // ---- Loom at the top of the screen ---------------------------------
                 var loom = SpawnLoom(cam);
                 await Tween(0.45f, t => PlaceLoom(loom, cam, Mathf.Lerp(-2.5f, 0f, EaseOut(t)), 0f), ct);
-                CameraFeel.Instance?.Shake(0.35f, Vector2.down);
+                // It grabs the frame like a building's roof: a short quake, a hit and two aftershocks.
+                CameraFeel.Instance?.Shake(0.6f, Vector2.down);
+                await UniTask.Delay(TimeSpan.FromSeconds(0.18f), cancellationToken: ct);
+                CameraFeel.Instance?.Shake(0.3f, Vector2.right);
+                await UniTask.Delay(TimeSpan.FromSeconds(0.14f), cancellationToken: ct);
+                CameraFeel.Instance?.Shake(0.2f, Vector2.left);
 
                 // ---- Ultimate 1: shake the head, ink lands on the screen -----------
                 var blotsLanded = 0;
@@ -232,6 +242,7 @@ namespace Weizza
             Checker,  // every other spot, then the spots between: step across once, at the right time
             Rain,     // singles falling one after another all over, one always on the player
             Cage,     // a ring of stabs around the player, then the centre: get out through the side that opens late
+            Skyfall,  // floor and air at once: stand under an air ring, never jump; one spot is clear of both
         }
 
         private int PickPattern(int last, int volleyIndex)
@@ -258,7 +269,9 @@ namespace Weizza
                 case StabPattern.Hunt:
                     for (var i = 0; i < 3; i++)
                     {
-                        await Strike(cam, loom, new[] { LeadAim(i) }, warning * (i == 0 ? 1f : 0.85f), ct);
+                        // A player who jumps to dodge gets the next one in the air, where they are.
+                        var aim = LeadAim(i);
+                        await Strike(cam, loom, new[] { aim }, warning * (i == 0 ? 1f : 0.85f), ct, i == 0 ? 0f : AimHeight(cam, aim));
                         await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: ct);
                     }
                     break;
@@ -338,8 +351,9 @@ namespace Weizza
                     var drops = new List<UniTask>();
                     for (var i = 0; i < 8; i++)
                     {
-                        var x = i % 3 == 2 ? LeadAim(0) : px + UnityEngine.Random.Range(-6f, 6f);
-                        drops.Add(Strike(cam, loom, new[] { x }, warning * 0.95f, ct));
+                        var aimed = i % 3 == 2;
+                        var x = aimed ? LeadAim(0) : px + UnityEngine.Random.Range(-6f, 6f);
+                        drops.Add(Strike(cam, loom, new[] { x }, warning * 0.95f, ct, aimed ? AimHeight(cam, x) : 0f));
                         await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
                         var p = PlayerLocator.Player;
                         if (p != null) px = p.transform.position.x;
@@ -357,22 +371,51 @@ namespace Weizza
                     var shut = Strike(cam, loom, new[] { px + door * gap }, warning * 1.6f, ct);
                     await UniTask.WhenAll(cage, centre, shut);
                     break;
+
+                case StabPattern.Skyfall:
+                    // Every spot near the player is either floor or air, except one that is clear.
+                    // Jumping over the floor rings walks into the air ones; the answer is the ground
+                    // under an air ring, or the clear spot.
+                    var clear = (UnityEngine.Random.value < 0.5f ? -1 : 1) * UnityEngine.Random.Range(1, 3);
+                    var floor = new List<float>();
+                    var air = new List<float>();
+                    for (var k = -4; k <= 4; k++)
+                    {
+                        if (k == clear) continue;
+                        // The player's own spot is always floor, so standing still is never the answer.
+                        (k != 0 && UnityEngine.Random.value < 0.4f ? air : floor).Add(px + k * gap);
+                    }
+                    var height = UnityEngine.Random.Range(airHeight.x, airHeight.y);
+                    var floorStrike = Strike(cam, loom, floor.ToArray(), warning * 1.15f, ct);
+                    var airStrike = Strike(cam, loom, air.ToArray(), warning * 1.15f, ct, height);
+                    await UniTask.WhenAll(floorStrike, airStrike);
+                    break;
             }
         }
 
         /// <summary>Warns at every x at once, then lands on all of them together.</summary>
-        private async UniTask Strike(Camera cam, GameObject loom, float[] xs, float warning, CancellationToken ct)
+        private async UniTask Strike(Camera cam, GameObject loom, float[] xs, float warning, CancellationToken ct, float height = 0f)
         {
             if (xs == null || xs.Length == 0) return;
             var tasks = new UniTask[xs.Length];
-            for (var i = 0; i < xs.Length; i++) tasks[i] = Stab(cam, i == 0 ? loom : null, xs[i], warning, ct);
+            for (var i = 0; i < xs.Length; i++) tasks[i] = Stab(cam, i == 0 ? loom : null, xs[i], warning, ct, height);
             await UniTask.WhenAll(tasks);
         }
 
-        private async UniTask Stab(Camera cam, GameObject loom, float x, float warning, CancellationToken ct)
+        /// <summary>Height above the floor to aim at: the player's own when they are up in the air, else the floor.</summary>
+        private float AimHeight(Camera cam, float x)
+        {
+            var player = PlayerLocator.Player;
+            if (player == null || player.Motor.Grounded) return 0f;
+            var up = player.transform.position.y + 0.8f - GroundAt(x, cam.transform.position.y + cam.orthographicSize);
+            return up > 1.2f ? Mathf.Min(up, airHeight.y) : 0f;
+        }
+
+        private async UniTask Stab(Camera cam, GameObject loom, float x, float warning, CancellationToken ct, float height = 0f)
         {
             var ground = GroundAt(x, cam.transform.position.y + cam.orthographicSize);
-            var ring = SpawnRing(new Vector3(x, ground + 0.03f, -0.6f));
+            var inAir = height > 0f;
+            var ring = SpawnRing(new Vector3(x, ground + 0.03f + height, -0.6f), inAir);
             var fill = ring.transform.GetChild(0);
             var ringSprite = ring.GetComponent<SpriteRenderer>();
 
@@ -389,10 +432,11 @@ namespace Weizza
             // The stinger drops from the top of the frame onto the ring.
             var spike = SpawnSpike(cam, x, ground);
             var from = spike.transform.position;
-            var to = new Vector3(x, ground + 0.05f, from.z);
+            var to = new Vector3(x, ground + 0.05f + height, from.z);
             await Tween(0.07f, t => spike.transform.position = Vector3.Lerp(from, to, t * t), ct);
 
-            Impact(x, ground);
+            if (inAir) ImpactAir(x, ground + height);
+            else Impact(x, ground);
             Destroy(ring);
             await UniTask.Delay(TimeSpan.FromSeconds(0.22f), cancellationToken: ct);
             await Tween(0.18f, t => spike.transform.position = Vector3.Lerp(to, from, t), ct);
@@ -412,6 +456,26 @@ namespace Weizza
             var p = player.transform.position;
             if (Mathf.Abs(p.x - x) > stabRadius || p.y > ground + 2.2f) return;
 
+            Hurt(player, x);
+        }
+
+        // An air stab only hurts inside its own circle: standing under it is safe, jumping into it is not.
+        private void ImpactAir(float x, float y)
+        {
+            HitStop.Freeze(4);
+            CameraFeel.Instance?.Shake(0.3f, Vector2.down);
+            HitSpark.Play(new Vector3(x, y, -0.5f), Vector2.up, 1.2f, new Color(0.2f, 0.18f, 0.2f));
+
+            var player = PlayerLocator.Player;
+            if (player == null || player.Vitals == null || !player.Vitals.IsAlive) return;
+            var body = (Vector2)player.transform.position + Vector2.up * 0.8f;
+            if (Vector2.Distance(body, new Vector2(x, y)) > stabRadius + 0.35f) return;
+            Hurt(player, x);
+        }
+
+        private void Hurt(PlayerController player, float x)
+        {
+            var p = player.transform.position;
             var away = Mathf.Sign(p.x - x);
             if (away == 0f) away = 1f;
             player.Vitals.Receive(new DamageInfo
@@ -542,12 +606,13 @@ namespace Weizza
             foreach (var sr in mine) if (sr != null) Destroy(sr.gameObject);
         }
 
-        private GameObject SpawnRing(Vector3 at)
+        private GameObject SpawnRing(Vector3 at, bool inAir)
         {
             var go = new GameObject("Stab Warning");
             go.transform.position = at;
-            // Flattened: a circle lying on the floor seen from the side.
-            go.transform.localScale = new Vector3(stabRadius * 2f, stabRadius * 0.7f, 1f);
+            // On the floor it is flattened, a circle lying down seen from the side; in the air it
+            // faces the camera, round, so the two can never be mistaken for each other.
+            go.transform.localScale = new Vector3(stabRadius * 2f, stabRadius * (inAir ? 2f : 0.7f), 1f);
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = ProceduralSprites.Ring(96, 0.14f);
             sr.color = ringTint;
