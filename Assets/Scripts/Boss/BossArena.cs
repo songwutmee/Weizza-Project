@@ -24,6 +24,19 @@ namespace Weizza
         [Tooltip("Hold the camera inside the room while the fight is on. Needs a wall on each side.")]
         [ToggleLeft, SerializeField] private bool lockCamera = true;
 
+        [Tooltip("Pull the camera back until the whole room fits, then stop following: the fight reads as one picture, every ring and every exit on screen at once.")]
+        [ToggleLeft, ShowIf(nameof(lockCamera)), SerializeField] private bool fixedCamera = true;
+
+        [PropertyRange(4.35f, 10f), ShowIf(nameof(fixedCamera))]
+        [Tooltip("Widest the fight camera may go. A room wider than this still scrolls, inside its walls.")]
+        [SerializeField] private float maxFightSize = 7.5f;
+
+        /// <summary>Ortho size the fight wants, 0 when no fight holds the camera. CameraZoomZone eases toward it.</summary>
+        public static float HeldSize { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => HeldSize = 0f;
+
         private Collider _previousBounds;
         private BoxCollider _cameraBox;
         private IDisposable _started;
@@ -67,6 +80,7 @@ namespace Weizza
             {
                 if (_previousBounds != null) confiner.BoundingVolume = _previousBounds;
                 _previousBounds = null;
+                HeldSize = 0f;
                 return;
             }
             if (_previousBounds != null) return;
@@ -81,7 +95,16 @@ namespace Weizza
                 if (wall.bounds.center.x > rightWall.bounds.center.x) rightWall = wall;
             }
             var cam = Camera.main;
-            var halfWidth = cam != null && cam.orthographic ? cam.orthographicSize * cam.aspect : 6f * 16f / 9f;
+            var aspect = cam != null ? cam.aspect : 16f / 9f;
+            var size = ViewRig.Instance != null ? ViewRig.Instance.OrthographicSize : 4.35f;
+            if (fixedCamera)
+            {
+                // Fit the room's width; the confiner is then left with no room to slide, so the view holds still.
+                var room = rightWall.bounds.min.x - leftWall.bounds.max.x;
+                size = Mathf.Clamp(room * 0.5f / aspect, size, maxFightSize);
+                HeldSize = size;
+            }
+            var halfWidth = size * aspect;
             var left = leftWall.bounds.max.x + halfWidth;
             var right = Mathf.Max(left + 0.1f, rightWall.bounds.min.x - halfWidth);
 

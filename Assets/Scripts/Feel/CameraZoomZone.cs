@@ -36,6 +36,8 @@ namespace Weizza
         [SerializeField] private float talkLift = -0.22f;
 
         private float _talk;
+        private float _fight;
+        private float _fightSize;
         private bool _lifted;
 
         public float CurrentSize { get; private set; }
@@ -58,6 +60,11 @@ namespace Weizza
                          * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(zone.to, zone.to + ease, x)));
                 size = Mathf.Lerp(size, zone.size, on);
             }
+
+            // A boss room widens the view to fit itself, eased so the pull back reads as the fight starting.
+            if (BossArena.HeldSize > 0f) _fightSize = BossArena.HeldSize;
+            _fight = Mathf.MoveTowards(_fight, BossArena.HeldSize > 0f ? 1f : 0f, Time.unscaledDeltaTime / 1.2f);
+            if (_fight > 0f) size = Mathf.Lerp(size, _fightSize, Mathf.SmoothStep(0f, 1f, _fight));
 
             // Lean in while a conversation runs, on unscaled time since talking may slow the world.
             var talking = Narrative.DialogueDirector.Talking ? 1f : 0f;
