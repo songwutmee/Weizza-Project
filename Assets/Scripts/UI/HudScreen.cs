@@ -379,6 +379,19 @@ namespace Weizza
             TickBoss(dt);
             TickBanner();
             TickTitle();
+            TickConversationFade(dt);
+        }
+
+        private float _talkHide;
+
+        // A conversation is its own screen: health and stance step back while someone talks,
+        // and come back the moment it ends.
+        private void TickConversationFade(float dt)
+        {
+            var target = Narrative.DialogueDirector.Talking ? 1f : 0f;
+            if (Mathf.Approximately(_talkHide, target)) return;
+            _talkHide = Mathf.MoveTowards(_talkHide, target, dt / 0.3f);
+            _root.style.opacity = 1f - _talkHide;
         }
 
         private void TickHealth(float dt)
