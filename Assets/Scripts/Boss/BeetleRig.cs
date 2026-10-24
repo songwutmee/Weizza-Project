@@ -250,7 +250,10 @@ namespace Weizza
         private void Turn(Transform bone, float degrees)
         {
             if (bone == null) return;
-            bone.localRotation = _rest[bone] * Quaternion.Euler(0f, 0f, degrees);
+            // The rest table is not serialized, so a script reload in the editor can leave it
+            // empty while the bones survive; the pose the rig was saved in is the rest pose.
+            if (!_rest.TryGetValue(bone, out var rest)) _rest[bone] = rest = bone.localRotation;
+            bone.localRotation = rest * Quaternion.Euler(0f, 0f, degrees);
         }
 
 
