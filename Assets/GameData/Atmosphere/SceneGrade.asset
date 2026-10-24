@@ -16,6 +16,8 @@ MonoBehaviour:
   - {fileID: 7773759742215675771}
   - {fileID: 6262851531451815118}
   - {fileID: 5937110316097628517}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!114 &5937110316097628517
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -74,7 +76,7 @@ MonoBehaviour:
     m_Value: 65472
   tint:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 0.95, b: 0.72, a: 1}
+    m_Value: {r: 1, g: 0.78, b: 0.5, a: 1}
   highQualityFiltering:
     m_OverrideState: 0
     m_Value: 0
@@ -109,16 +111,16 @@ MonoBehaviour:
   active: 1
   postExposure:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.15
   contrast:
     m_OverrideState: 1
     m_Value: 8
   colorFilter:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 0.97, b: 0.86, a: 1}
+    m_Value: {r: 1, g: 0.92, b: 0.82, a: 1}
   hueShift:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: -9
   saturation:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 16
