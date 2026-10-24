@@ -28,6 +28,10 @@ namespace Weizza
         [ListDrawerSettings(ShowFoldout = true, DefaultExpandedState = true)]
         [SerializeField] private List<Vector2> points = new() { new Vector2(0f, 0f), new Vector2(4f, 1.5f), new Vector2(7f, 1.5f), new Vector2(16f, 0f) };
 
+        [BoxGroup("Shape")]
+        [PropertyRange(0f, 1f), Tooltip("Rounds every bend. 0 keeps sharp corners, 1 turns each bend into a curve as wide as the shorter of its two sides. Hills read as mounds of earth instead of folded paper.")]
+        [SerializeField] private float smooth = 0.6f;
+
         [BoxGroup("Art")]
         [Tooltip("The ground strip drawn along the line. Its top edge sits on the line.")]
         [SerializeField] private Sprite strip;
@@ -45,11 +49,19 @@ namespace Weizza
         [SerializeField] private float edgeFade = 1.5f;
 
         [BoxGroup("Art")]
+        [Tooltip("Multiplies the picture. A darker, hazier tint on a path drawn behind makes a far ridge.")]
+        [SerializeField] private Color tint = Color.white;
+
+        [BoxGroup("Art")]
         [SerializeField] private string sortingLayer = "Default";
 
         [BoxGroup("Art")]
         [Tooltip("Draws in front of the flat ground pieces (they use -5), so a hill covers the flat strip's grass line instead of having it run across its foot.")]
         [SerializeField] private int sortingOrder = -4;
+
+        [BoxGroup("Collision")]
+        [Tooltip("Off for a ridge that is only scenery: drawn, never stood on.")]
+        [SerializeField] private bool walkable = true;
 
         [BoxGroup("Collision")]
         [PropertyRange(0.3f, 3f), Tooltip("Thickness of each box under the line. Around 1 m stops a fast fall from tunnelling through.")]
@@ -141,6 +153,7 @@ namespace Weizza
         public void Rebuild()
         {
             if (points == null || points.Count < 2) return;
+            BuildShape();
             BuildMesh();
             BuildColliders();
         }
@@ -187,7 +200,7 @@ namespace Weizza
             var end = points[^1].x;
             var fadeFrom = start - edgeFade;
             var fadeTo = end + edgeFade;
-            foreach (var p in points) xs.Add(p.x);
+            foreach (var p in _shape) xs.Add(p.x);
             xs.Add(fadeFrom);
             xs.Add(fadeTo);
             for (var x = start + width; x < fadeTo; x += width) xs.Add(x);
@@ -215,8 +228,8 @@ namespace Weizza
                 verts.Add(new Vector3(a, ya, 0f));          uvs.Add(new Vector2(ua, v1));
                 verts.Add(new Vector3(b, yb, 0f));          uvs.Add(new Vector2(ub, v1));
                 verts.Add(new Vector3(b, yb - height, 0f)); uvs.Add(new Vector2(ub, v0));
-                var ca = new Color(1f, 1f, 1f, Alpha(a));
-                var cb = new Color(1f, 1f, 1f, Alpha(b));
+                var ca = new Color(tint.r, tint.g, tint.b, tint.a * Alpha(a));
+                var cb = new Color(tint.r, tint.g, tint.b, tint.a * Alpha(b));
                 colours.Add(ca); colours.Add(ca); colours.Add(cb); colours.Add(cb);
                 tris.Add(k); tris.Add(k + 1); tris.Add(k + 2);
                 tris.Add(k); tris.Add(k + 2); tris.Add(k + 3);
@@ -240,15 +253,42 @@ namespace Weizza
         /// <summary>Height of the walkable line at a local x, flat beyond either end.</summary>
         public float HeightAt(float x)
         {
-            if (x <= points[0].x) return points[0].y;
-            for (var i = 1; i < points.Count; i++)
+            if (_shape.Count < 2) BuildShape();
+            if (x <= _shape[0].x) return _shape[0].y;
+            for (var i = 1; i < _shape.Count; i++)
             {
-                if (x > points[i].x) continue;
-                var a = points[i - 1];
-                var b = points[i];
+                if (x > _shape[i].x) continue;
+                var a = _shape[i - 1];
+                var b = _shape[i];
                 return Mathf.Lerp(a.y, b.y, Mathf.InverseLerp(a.x, b.x, x));
             }
-            return points[^1].y;
+            return _shape[^1].y;
+        }
+
+        private readonly List<Vector2> _shape = new();
+
+        // The walked line: the points with every bend swapped for a short curve. Picture, boxes
+        // and HeightAt all read this, so what you see is what you stand on.
+        private void BuildShape()
+        {
+            _shape.Clear();
+            if (points == null || points.Count < 2) return;
+            _shape.Add(points[0]);
+            for (var i = 1; i < points.Count - 1; i++)
+            {
+                Vector2 a = points[i - 1], p = points[i], c = points[i + 1];
+                var r = smooth * 0.5f * Mathf.Min((p - a).magnitude, (c - p).magnitude);
+                if (r < 0.05f) { _shape.Add(p); continue; }
+                var from = p + (a - p).normalized * r;
+                var to = p + (c - p).normalized * r;
+                const int steps = 8;
+                for (var k = 0; k <= steps; k++)
+                {
+                    var t = k / (float)steps;
+                    _shape.Add((1f - t) * (1f - t) * from + 2f * (1f - t) * t * p + t * t * to);
+                }
+            }
+            _shape.Add(points[^1]);
         }
 
         // ---- Collision ------------------------------------------------------------
@@ -266,10 +306,11 @@ namespace Weizza
                 else DestroyImmediate(child.gameObject);
             }
 
-            for (var i = 1; i < points.Count; i++)
+            if (!walkable) return;
+            for (var i = 1; i < _shape.Count; i++)
             {
-                var a = points[i - 1];
-                var b = points[i];
+                var a = _shape[i - 1];
+                var b = _shape[i];
                 var along = b - a;
                 var length = along.magnitude;
                 if (length < 0.01f) continue;
