@@ -49,6 +49,10 @@ namespace Weizza
         [SerializeField] private float edgeFade = 1.5f;
 
         [BoxGroup("Art")]
+        [Tooltip("Local height the soil under the strip is filled down to. Deep enough that no camera ever sees under it.")]
+        [SerializeField] private float fillDownTo = -10f;
+
+        [BoxGroup("Art")]
         [Tooltip("Multiplies the picture. A darker, hazier tint on a path drawn behind makes a far ridge.")]
         [SerializeField] private Color tint = Color.white;
 
@@ -203,8 +207,10 @@ namespace Weizza
             foreach (var p in _shape) xs.Add(p.x);
             xs.Add(fadeFrom);
             xs.Add(fadeTo);
-            for (var x = start + width; x < fadeTo; x += width) xs.Add(x);
-            for (var x = start - width; x > fadeFrom; x -= width) xs.Add(x);
+            // Copies are laid from world x 0, not from this path's start, so two paths that
+            // meet at a chunk seam carry on the same grass without a jump in the pattern.
+            var origin = -transform.position.x;
+            for (var x = origin + Mathf.Ceil((fadeFrom - origin) / width) * width; x < fadeTo; x += width) xs.Add(x);
             xs.Sort();
             float Alpha(float x) => edgeFade <= 0f ? 1f
                 : Mathf.Clamp01(Mathf.Min((x - fadeFrom) / edgeFade, (fadeTo - x) / edgeFade));
@@ -217,9 +223,9 @@ namespace Weizza
             {
                 float a = xs[i], b = xs[i + 1];
                 if (b - a < 0.0005f) continue;
-                var copy = Mathf.Floor(((a + b) * 0.5f - start) / width);
-                var ua = Mathf.Lerp(u0, u1, (a - start) / width - copy);
-                var ub = Mathf.Lerp(u0, u1, (b - start) / width - copy);
+                var copy = Mathf.Floor(((a + b) * 0.5f - origin) / width);
+                var ua = Mathf.Lerp(u0, u1, (a - origin) / width - copy);
+                var ub = Mathf.Lerp(u0, u1, (b - origin) / width - copy);
                 var ya = HeightAt(a) + grassAbove;
                 var yb = HeightAt(b) + grassAbove;
 
@@ -230,6 +236,21 @@ namespace Weizza
                 verts.Add(new Vector3(b, yb - height, 0f)); uvs.Add(new Vector2(ub, v0));
                 var ca = new Color(tint.r, tint.g, tint.b, tint.a * Alpha(a));
                 var cb = new Color(tint.r, tint.g, tint.b, tint.a * Alpha(b));
+                colours.Add(ca); colours.Add(ca); colours.Add(cb); colours.Add(cb);
+                tris.Add(k); tris.Add(k + 1); tris.Add(k + 2);
+                tris.Add(k); tris.Add(k + 2); tris.Add(k + 3);
+
+                // Below the strip, its bottom row of soil stretched down, so a high hill
+                // never shows sky under its picture.
+                var fa = ya - height;
+                var fb = yb - height;
+                if (Mathf.Min(fa, fb) <= fillDownTo) continue;
+                var vSoil = v0 + (v1 - v0) * 0.02f;
+                k = verts.Count;
+                verts.Add(new Vector3(a, fillDownTo, 0f)); uvs.Add(new Vector2(ua, v0));
+                verts.Add(new Vector3(a, fa, 0f));         uvs.Add(new Vector2(ua, vSoil));
+                verts.Add(new Vector3(b, fb, 0f));         uvs.Add(new Vector2(ub, vSoil));
+                verts.Add(new Vector3(b, fillDownTo, 0f)); uvs.Add(new Vector2(ub, v0));
                 colours.Add(ca); colours.Add(ca); colours.Add(cb); colours.Add(cb);
                 tris.Add(k); tris.Add(k + 1); tris.Add(k + 2);
                 tris.Add(k); tris.Add(k + 2); tris.Add(k + 3);
