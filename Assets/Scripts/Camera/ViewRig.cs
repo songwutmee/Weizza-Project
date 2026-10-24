@@ -298,6 +298,19 @@ namespace Weizza
             }
         }
 
+        /// <summary>Slides the framing sideways: positive puts the followed target further right on screen. 0 is the authored framing.</summary>
+        public void SetPanSide(float extra)
+        {
+            foreach (var camera in Cameras())
+            {
+                var composer = camera != null ? camera.GetComponent<CinemachinePositionComposer>() : null;
+                if (composer == null) continue;
+                var composition = composer.Composition;
+                composition.ScreenPosition = new Vector2(extra, composition.ScreenPosition.y);
+                composer.Composition = composition;
+            }
+        }
+
         private IEnumerable<CinemachineCamera> Cameras()
         {
             if (cameras != null && cameras.Count > 0) return cameras;

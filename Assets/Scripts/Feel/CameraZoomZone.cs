@@ -40,6 +40,24 @@ namespace Weizza
         private float _fightSize;
         private bool _lifted;
 
+        [PropertyRange(0f, 0.3f), Tooltip("Where the middle of the two speakers sits while talking, right of centre as a share of the screen, so the portrait on the left never covers either of them.")]
+        [SerializeField] private float talkCentre = 0.13f;
+
+        private float _side;
+
+        // Screen offset that puts the midpoint of the player and the speaker at talkCentre.
+        // Kept after the talk ends, so the frame eases back from where it was.
+        private float TalkSide(Camera cam, float size)
+        {
+            if (!Narrative.DialogueDirector.Talking) return _side;
+            var player = PlayerLocator.Player;
+            if (player == null) return _side = talkCentre;
+            var speaker = Narrative.DialogueDirector.Speaker;
+            var px = player.transform.position.x;
+            var mid = speaker != null ? (px + speaker.position.x) * 0.5f : px;
+            return _side = talkCentre + (px - mid) / (2f * size * cam.aspect);
+        }
+
         public float CurrentSize { get; private set; }
 
         private float _last = -1f;
@@ -77,6 +95,7 @@ namespace Weizza
             if (_talk > 0f || _lifted)
             {
                 rig.SetPanUp(talkLift * eased);
+                rig.SetPanSide(TalkSide(cam, size) * eased);
                 _lifted = _talk > 0f;
             }
 
