@@ -97,7 +97,33 @@ namespace Weizza
         private MeshRenderer _renderer;
         private Mesh _mesh;
 
-        private void OnEnable() => Rebuild();
+        private static readonly List<GroundPath> Live = new();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => Live.Clear();
+
+        /// <summary>Height of the terrain at a world x, ignoring stones and anything else stood on. False where no path covers x.</summary>
+        public static bool TryTerrainHeight(float worldX, out float height)
+        {
+            foreach (var path in Live)
+            {
+                if (path == null || !path.walkable || path.points.Count < 2) continue;
+                var local = worldX - path.transform.position.x;
+                if (local < path.points[0].x || local > path.points[^1].x) continue;
+                height = path.transform.position.y + path.HeightAt(local);
+                return true;
+            }
+            height = 0f;
+            return false;
+        }
+
+        private void OnEnable()
+        {
+            if (!Live.Contains(this)) Live.Add(this);
+            Rebuild();
+        }
+
+        private void OnDisable() => Live.Remove(this);
 
         private void OnValidate()
         {

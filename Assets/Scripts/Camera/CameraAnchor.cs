@@ -99,7 +99,16 @@ namespace Weizza
             // Falling past the threshold counts as a new floor even in mid air.
             // A long drop is the one case where the player genuinely needs to
             // see where they are going before they get there.
-            if ((grounded && Mathf.Abs(here.y - _floorY) > stepIgnoreHeight) || here.y < _floorY - followFallAfter)
+            if (GroundPath.TryTerrainHeight(here.x, out var terrain))
+            {
+                // Rolling ground: follow the terrain itself, so a hill is a smooth glide and a
+                // rock or a jump never moves the frame. Only a real platform well above the
+                // terrain, or a fall below it, takes over.
+                _floorY = terrain;
+                if ((grounded && here.y - terrain > stepIgnoreHeight) || here.y < terrain - followFallAfter)
+                    _floorY = here.y;
+            }
+            else if ((grounded && Mathf.Abs(here.y - _floorY) > stepIgnoreHeight) || here.y < _floorY - followFallAfter)
             {
                 _floorY = here.y;
             }
