@@ -186,7 +186,7 @@ namespace Weizza
                 await Tween(0.35f, t => PlaceLoom(loom, cam, Mathf.Lerp(0f, -3f, t * t), 0f), ct);
                 Destroy(loom);
                 await DropDown(cam, ct);
-                FadeInkLater(inkLingers).Forget();
+                FadeInkLater(inkLingers);
             }
             finally
             {
@@ -199,8 +199,8 @@ namespace Weizza
         {
             foreach (var go in _spawned) if (go != null) Destroy(go);
             _spawned.Clear();
-            foreach (var blot in _ink) if (blot != null) Destroy(blot.gameObject);
-            _ink.Clear();
+            // Ink never vanishes in one frame: cut short, it still drips away.
+            FadeAllInk(0f);
             if (_body != null && _body.Held)
             {
                 _body.Held = false;
@@ -567,7 +567,9 @@ namespace Weizza
             go.transform.localRotation = Quaternion.Euler(0f, 0f, UnityEngine.Random.Range(0f, 360f));
             var size = UnityEngine.Random.Range(h * 0.45f, h * 0.85f);
             Splat(go.transform, size).Forget();
+            go.AddComponent<InkBlotFade>();
             _ink.Add(sr);
+            _allInk.Add(sr);
         }
 
         private async UniTaskVoid Splat(Transform blot, float size)
@@ -584,27 +586,36 @@ namespace Weizza
             if (blot != null) blot.localScale = Vector3.one * size;
         }
 
-        private async UniTaskVoid FadeInkLater(float delay)
+        private void FadeInkLater(float delay)
         {
-            var mine = new List<SpriteRenderer>(_ink);
+            foreach (var sr in _ink)
+                if (sr != null) sr.GetComponent<InkBlotFade>().FadeAfter(delay, 1.6f);
             _ink.Clear();
-            await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: destroyCancellationToken);
-            var t = 0f;
-            const float fade = 1.6f;
-            while (t < fade)
-            {
-                t += Time.deltaTime;
-                foreach (var sr in mine)
-                {
-                    if (sr == null) continue;
-                    var c = sr.color;
-                    c.a = inkOpacity * (1f - t / fade);
-                    sr.color = c;
-                }
-                await UniTask.Yield(PlayerLoopTiming.Update, destroyCancellationToken);
-            }
-            foreach (var sr in mine) if (sr != null) Destroy(sr.gameObject);
         }
+
+        // Every blot still on screen, lingering or fresh. Dying or leaving clears them all.
+        private readonly List<SpriteRenderer> _allInk = new();
+
+        private void FadeAllInk(float delay)
+        {
+            foreach (var sr in _allInk)
+                if (sr != null) sr.GetComponent<InkBlotFade>().FadeAfter(delay, 1.2f);
+            _allInk.Clear();
+            _ink.Clear();
+        }
+
+        private void OnDisable()
+        {
+            if (_vitals != null) _vitals.Died -= OnBodyDied;
+            FadeAllInk(0f);
+        }
+
+        private void OnEnable()
+        {
+            if (_vitals != null) _vitals.Died += OnBodyDied;
+        }
+
+        private void OnBodyDied() => FadeAllInk(0f);
 
         private GameObject SpawnRing(Vector3 at, bool inAir)
         {
