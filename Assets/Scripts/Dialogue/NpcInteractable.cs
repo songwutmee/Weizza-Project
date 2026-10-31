@@ -171,6 +171,17 @@ namespace Weizza.Narrative
         /// player crosses reads as a mechanism; a fifth of a second reads as a person.
         /// A little dead band stops them flipping while the player stands right on top.
         /// </summary>
+        /// <summary>Turns the drawing to face a side, the same way noticing the player does.</summary>
+        public void Face(bool right)
+        {
+            if (_art == null) return;
+            if (_facing != null) _facing.SetFacing(right ? Facing.Right : Facing.Left);
+            else _art.flipX = artFacesLeft ? right : !right;
+        }
+
+        /// <summary>How close the player must be before this character turns to them.</summary>
+        public float NoticeRange => noticeRange;
+
         private void NoticePlayer()
         {
             if (!facePlayer || _art == null) return;
