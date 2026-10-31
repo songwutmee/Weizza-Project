@@ -33,6 +33,15 @@ namespace Weizza
             return Mathf.Clamp01((1f - d) * r * 0.5f);
         });
 
+        /// <summary>A pool of light: brightest in the middle, fading smoothly to nothing at the rim.</summary>
+        public static Sprite Glow(int size = 256) => Get($"glow{size}", size, (x, y, r) =>
+        {
+            // Gaussian, faded to exactly zero at the rim, so no edge and no ring ever shows.
+            var d2 = x * x + y * y;
+            var g = Mathf.Exp(-d2 * 4.5f);
+            return Mathf.Clamp01(g * (1f - Mathf.Clamp01(d2)));
+        });
+
         /// <summary>A pointed diamond, longer than it is tall, for a thrown ward.</summary>
         public static Sprite Diamond(int size = 32) => Get($"diamond{size}", size, (x, y, r) =>
         {

@@ -44,6 +44,8 @@ Shader "Weizza/SceneLook"
             float4 _LookMist;        // x strength, y height (share of the screen), z drift speed, w size
             float _LookMistCamX;     // camera x in metres, so the mist stays put in the world as the view scrolls
             float _LookCvd;          // colour blind preview: 0 off, 1 protan, 2 deutan, 3 tritan (editor tool only)
+            float4 _LookLamp;        // a light a character carries: xy screen uv, z radius (screen heights), w strength
+            float4 _LookLampColor;   // rgb
 
             half Luma(half3 c) { return dot(c, half3(0.299, 0.587, 0.114)); }
 
@@ -181,6 +183,18 @@ Shader "Weizza/SceneLook"
                 float core = exp(-r2 / (rad * rad * 0.08));
                 float glow = exp(-r2 / (rad * rad));
                 col += _LookSunColor.rgb * _LookSunColor.a * (core * 2.5 + glow * 0.22) * (0.35 + L) * breath;
+
+                // 4b. A carried light. After the grade, so its falloff stays a smooth gradient and
+                //     never turns into rings. Mostly multiplied: lit surfaces brighten and dark
+                //     silhouettes stay dark, which reads as light falling on the trees behind.
+                if (_LookLamp.w > 0.001)
+                {
+                    float2 fromLamp = (uv - _LookLamp.xy) * float2(aspect, 1.0);
+                    float lr = max(0.01, _LookLamp.z);
+                    float pool = exp(-dot(fromLamp, fromLamp) / (lr * lr * 0.5));
+                    float k = pool * _LookLamp.w;
+                    col = col * (1.0 + _LookLampColor.rgb * k * 2.2) + _LookLampColor.rgb * k * 0.06;
+                }
 
                 // Colour blind preview, Machado, Oliveira and Fernandes 2009, table 1 at
                 // severity 1.0. Lets the team check that the one colour, one meaning cues

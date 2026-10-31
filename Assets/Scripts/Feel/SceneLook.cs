@@ -270,8 +270,15 @@ namespace Weizza
 
         private float _glare = 1f;
 
+        /// <summary>How much light the stretch the camera is in has, 1 being the ordinary forest. Lights carried by characters read it.</summary>
+        public static float CurrentLight { get; private set; } = 1f;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => Shader.SetGlobalFloat(On, 0f);
+        private static void ResetStatics()
+        {
+            Shader.SetGlobalFloat(On, 0f);
+            CurrentLight = 1f;
+        }
 
         private void OnDisable() => Shader.SetGlobalFloat(On, 0f);
 
@@ -334,6 +341,7 @@ namespace Weizza
                 zoneLight *= Mathf.Lerp(1f, zone.multiplier, on);
             }
             Shader.SetGlobalFloat(World, Mathf.Lerp(worldBrightness.x, worldBrightness.y, progress) * zoneLight * moodLight);
+            CurrentLight = zoneLight * moodLight;
         }
     }
 }

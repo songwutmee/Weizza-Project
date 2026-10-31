@@ -2200,6 +2200,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  brightnessVariance: 0.12
+  saturationVariance: 0.15
 --- !u!1 &759257321
 GameObject:
   m_ObjectHideFlags: 0
@@ -8555,6 +8557,7 @@ GameObject:
   - component: {fileID: 1309629272}
   - component: {fileID: 1309629273}
   - component: {fileID: 1309629274}
+  - component: {fileID: 1309629275}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -8718,6 +8721,25 @@ MonoBehaviour:
   landId: land
   fallbackInterval: 0.3
   volume: 0.6
+--- !u!114 &1309629275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1309629266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcb425e2e48eed448b96bdabf3993cd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.CharacterLight
+  colour: {r: 1, g: 0.86, b: 0.6, a: 1}
+  size: 11
+  height: 1.1
+  daylight: 0
+  dark: 0.6
+  fullAt: 0.45
+  flicker: 0.08
 --- !u!1 &1317922438
 GameObject:
   m_ObjectHideFlags: 0
