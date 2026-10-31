@@ -284,6 +284,30 @@ namespace Weizza
             }, useUnscaledTime: true);
         }
 
+        /// <summary>
+        /// The second beat of a wind up: "now". A white glint at the top of the body and a quick
+        /// swell, once, near the end. The pulsing tint says something is coming; this says when,
+        /// so a dodge can be timed instead of guessed.
+        /// </summary>
+        public void Imminent()
+        {
+            if (sprite == null) return;
+
+            var b = sprite.bounds;
+            HitSpark.Play(new Vector3(b.center.x, b.max.y - b.size.y * 0.2f, b.center.z - 0.3f), Vector2.up, 0.55f, Color.white);
+
+            var facing = Mathf.Sign(sprite.transform.localScale.x);
+            _squashTween.Stop();
+            _squashTween = Tween.Custom(0f, 1f, Timing.Frames(6), t =>
+            {
+                var swell = Mathf.Sin(t * Mathf.PI) * 0.07f;
+                sprite.transform.localScale = new Vector3(
+                    facing * Mathf.Abs(_baseScale.x) * (1f + swell),
+                    _baseScale.y * (1f + swell),
+                    _baseScale.z);
+            }, useUnscaledTime: true);
+        }
+
         /// <summary>Stretches tall and thin for a moment, for a take off.</summary>
         public void Stretch()
         {

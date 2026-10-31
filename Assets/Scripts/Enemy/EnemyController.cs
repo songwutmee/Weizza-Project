@@ -273,6 +273,11 @@ namespace Weizza
         private bool _hitboxOpen;
         private bool _fired;
         private bool _leapt;
+        private bool _imminentShown;
+
+        [Tooltip("Share of the wind up after which the 'now' glint shows. 0.75 leaves a quarter of the wind up to react.")]
+        [Range(0.4f, 0.95f)]
+        [SerializeField] private float imminentAt = 0.75f;
         private Vector2 _travelDirection = Vector2.right;
         private float _homeY;
 
@@ -670,6 +675,7 @@ namespace Weizza
 
             Brake();
             Enter(State.Telegraph);
+            _imminentShown = false;
 
             if (spriteFeel != null && move.telegraphFrames > 0)
             {
@@ -686,6 +692,13 @@ namespace Weizza
             // The longer warnings assist holds every wind up half as long again.
             var warning = Timing.Frames(_move.telegraphFrames) * (GameSettings.LongerWarnings ? 1.5f : 1f);
             spriteFeel?.SetHoldProgress(warning > 0f ? _stateTimer / warning : 1f);
+            // Two beats, like a fencer's: the tint says a swing is coming, the glint says now.
+            // Only on wind ups long enough to have two beats; a short jab stays one.
+            if (!_imminentShown && warning >= 0.25f && _stateTimer >= warning * imminentAt)
+            {
+                _imminentShown = true;
+                spriteFeel?.Imminent();
+            }
             if (_stateTimer < warning) return;
 
             spriteFeel?.ReleaseTint();
