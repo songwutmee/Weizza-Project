@@ -290,6 +290,19 @@ namespace Weizza.Narrative
         {
             if (bodyLabel == null) return;
 
+            // With a TMPWriter on the label, tags in the line (<shake>, <wave>, <!delay=0.4>)
+            // animate the letters; the writer types the line itself.
+            if (_writer == null)
+            {
+                _writer = bodyLabel.GetComponent<TMPEffects.Components.TMPWriter>();
+                _animator = bodyLabel.GetComponent<TMPEffects.Components.TMPAnimator>();
+            }
+            if (_writer != null && lettersPerSecond > 0f)
+            {
+                await WriteWithEffects(text, ct);
+                return;
+            }
+
             bodyLabel.text = text;
 
             if (lettersPerSecond <= 0f || string.IsNullOrEmpty(text))
@@ -316,6 +329,47 @@ namespace Weizza.Narrative
             }
 
             bodyLabel.maxVisibleCharacters = int.MaxValue;
+        }
+
+        private TMPEffects.Components.TMPWriter _writer;
+        private TMPEffects.Components.TMPAnimator _animator;
+
+        private async UniTask WriteWithEffects(string text, CancellationToken ct)
+        {
+            // Measured: whenever the panel switches on, the writer wakes after the animator and
+            // takes over the tag parser, so tags print as plain text. Waking the animator again
+            // before each line puts it back.
+            // The first line can start before the panel is switched on, and waking an animator
+            // on an inactive object does nothing; wait for the label to be live first.
+            while (!bodyLabel.isActiveAndEnabled)
+                await UniTask.Yield(PlayerLoopTiming.Update, ct);
+            if (_animator != null)
+            {
+                // Measured: the animator sits switched off after load, and with it off no tag is
+                // read (they print as plain text). Cycle both, writer last, every line.
+                _writer.enabled = false;
+                _animator.enabled = false;
+                _animator.enabled = true;
+                _writer.enabled = true;
+            }
+            // Conversations may slow the world, so the writer runs on real time.
+            _writer.UseScaledTime = false;
+            _writer.WriteOnNewText = false;
+            _writer.DefaultDelays.delay = 1f / lettersPerSecond;
+            bodyLabel.maxVisibleCharacters = int.MaxValue;
+            bodyLabel.text = text;
+            _writer.StartWriter();
+            await UniTask.Yield(PlayerLoopTiming.Update, ct);
+
+            while (_writer.IsWriting)
+            {
+                if (firstPressCompletesLine && AdvanceWanted())
+                {
+                    _writer.SkipWriter();
+                    break;
+                }
+                await UniTask.Yield(PlayerLoopTiming.Update, ct);
+            }
         }
 
         private async UniTask WaitForAdvance(CancellationToken ct)
