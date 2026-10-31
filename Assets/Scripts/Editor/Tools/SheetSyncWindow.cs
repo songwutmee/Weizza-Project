@@ -61,6 +61,12 @@ namespace Weizza.EditorTools
         [SerializeField] private List<string> languages = new() { "en", "th" };
 
         [TitleGroup("Tabs and assets/Text")]
+        [LabelText("Effect tab")]
+        [Tooltip("Moods a line can wear (angry, whisper, sad...). A Text tab's effect column picks one, and the " +
+                 "mood's open and close tags are put around the whole line while it is pulled. Empty turns moods off.")]
+        [SerializeField] private string effectTab = "Effect";
+
+        [TitleGroup("Tabs and assets/Text")]
         [Required("Make one with Assets > Create > StoryKit > Localization Table.")]
         [SerializeField] private LocalizationTableAsset table;
 
@@ -136,6 +142,14 @@ namespace Weizza.EditorTools
             merged.Append("id");
             foreach (var language in languages) merged.Append(',').Append(language);
             merged.Append('\n');
+
+            // Moods first, so a line's effect column can be turned into tags as it is copied.
+            _effects = new Dictionary<string, (string open, string close)>();
+            if (!string.IsNullOrWhiteSpace(effectTab))
+            {
+                if (!Download(workbook, effectTab, out var effectCsv)) return;
+                ReadEffects(effectCsv);
+            }
 
             var pulled = 0;
             foreach (var tab in textTabs)
@@ -215,13 +229,70 @@ namespace Weizza.EditorTools
                 var id = Cell(row, header, "id");
                 if (string.IsNullOrEmpty(id)) continue;
 
+                var effect = Cell(row, header, "effect");
+                if (effect.StartsWith("<"))
+                {
+                    // A tag typed straight into the cell: used as the opening, and the closing is
+                    // worked out from it, so a writer never has to remember to close anything.
+                    var key = "custom:" + effect;
+                    _effects[key] = (effect, CloseFor(effect));
+                    effect = key;
+                }
+                if (!string.IsNullOrEmpty(effect) && !_effects.ContainsKey(effect))
+                {
+                    // A typo in the sheet should never reach the player as a pile of raw tags.
+                    Debug.LogWarning($"[Weizza] Sheet Sync: line {id} asks for the effect \"{effect}\", which is not in the {effectTab} tab, so it is left plain.");
+                    effect = string.Empty;
+                }
+
                 into.Append(Quote(id));
-                foreach (var language in languages) into.Append(',').Append(Quote(Cell(row, header, language)));
+                foreach (var language in languages)
+                    into.Append(',').Append(Quote(Dress(Cell(row, header, language), effect)));
                 into.Append('\n');
                 written++;
             }
 
             return written;
+        }
+
+        private Dictionary<string, (string open, string close)> _effects = new();
+
+        private void ReadEffects(string csv)
+        {
+            var rows = ParseCsv(csv);
+            if (rows.Count < 2) return;
+
+            var header = Header(rows[0]);
+            foreach (var row in Body(rows))
+            {
+                var effectId = Cell(row, header, "effectId");
+                if (string.IsNullOrEmpty(effectId)) continue;
+                _effects[effectId] = (Cell(row, header, "open"), Cell(row, header, "close"));
+            }
+        }
+
+        /// <summary>
+        /// The closing tags for a run of opening ones, innermost first: "&lt;size=80%&gt;&lt;i&gt;"
+        /// closes as "&lt;/i&gt;&lt;/size&gt;".
+        /// </summary>
+        private static string CloseFor(string open)
+        {
+            var names = new List<string>();
+            foreach (System.Text.RegularExpressions.Match m in
+                     System.Text.RegularExpressions.Regex.Matches(open, @"<\s*([A-Za-z][A-Za-z0-9]*)"))
+                names.Add(m.Groups[1].Value);
+
+            var close = new StringBuilder();
+            for (var i = names.Count - 1; i >= 0; i--) close.Append("</").Append(names[i]).Append('>');
+            return close.ToString();
+        }
+
+        /// <summary>Wraps a whole line in its mood. An empty line stays empty, so a missing translation is still missing.</summary>
+        private string Dress(string text, string effect)
+        {
+            if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(effect)) return text;
+            var (open, close) = _effects[effect];
+            return open + text + close;
         }
 
         /// <summary>
