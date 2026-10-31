@@ -77,6 +77,28 @@ namespace Weizza
 
         public void Shake(float strength) => Shake(strength, Vector2.right);
 
+        /// <summary>
+        /// A shake from something that happened somewhere in the world: full strength within
+        /// <see cref="fullShakeWithin"/> metres of the player, fading to a quarter far away.
+        /// A stab landing across the room should be felt, but less than one at the player's feet.
+        /// </summary>
+        public void ShakeAt(Vector3 where, float strength, Vector2 direction)
+        {
+            var player = PlayerLocator.Player;
+            if (player != null)
+            {
+                var d = Vector2.Distance(player.transform.position, where);
+                strength *= Mathf.Lerp(1f, 0.25f, Mathf.InverseLerp(fullShakeWithin, fadeShakeBy, d));
+            }
+            Shake(strength, direction);
+        }
+
+        [FoldoutGroup("Distance"), Tooltip("Metres from the player within which a world shake is felt in full.")]
+        [SerializeField] private float fullShakeWithin = 3f;
+
+        [FoldoutGroup("Distance"), Tooltip("Metres at which a world shake has faded to a quarter.")]
+        [SerializeField] private float fadeShakeBy = 16f;
+
         [Button("Test shake"), FoldoutGroup("Live")]
         private void TestShake() => Shake(0.4f, Vector2.right);
     }

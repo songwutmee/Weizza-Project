@@ -215,7 +215,7 @@ namespace Weizza
             var at = transform.position;
 
             HitStop.Freeze(5);
-            CameraFeel.Instance?.Shake(0.35f, Vector2.up);
+            CameraFeel.Instance?.ShakeAt(at, 0.35f, Vector2.up);
             for (var i = 0; i < 6; i++)
             {
                 var dir = Quaternion.Euler(0f, 0f, i * 60f + Random.Range(-20f, 20f)) * Vector2.up;

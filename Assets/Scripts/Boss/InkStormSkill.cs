@@ -448,7 +448,7 @@ namespace Weizza
         private void Impact(float x, float ground)
         {
             HitStop.Freeze(5);
-            CameraFeel.Instance?.Shake(0.4f, Vector2.down);
+            CameraFeel.Instance?.ShakeAt(new Vector3(x, ground, 0f), 0.4f, Vector2.down);
             HitSpark.Play(new Vector3(x, ground + 0.1f, -0.5f), Vector2.up, 1.4f, new Color(0.2f, 0.18f, 0.2f));
 
             var player = PlayerLocator.Player;
@@ -463,7 +463,7 @@ namespace Weizza
         private void ImpactAir(float x, float y)
         {
             HitStop.Freeze(4);
-            CameraFeel.Instance?.Shake(0.3f, Vector2.down);
+            CameraFeel.Instance?.ShakeAt(new Vector3(x, y, 0f), 0.3f, Vector2.down);
             HitSpark.Play(new Vector3(x, y, -0.5f), Vector2.up, 1.2f, new Color(0.2f, 0.18f, 0.2f));
 
             var player = PlayerLocator.Player;
@@ -511,7 +511,7 @@ namespace Weizza
             await MoveBody(new Vector3(landX, ground + 0.02f, _groundedAt.z), 0.28f, ct, accelerate: true);
             _body.Held = false;
             Physics.SyncTransforms();
-            CameraFeel.Instance?.Shake(0.45f, Vector2.down);
+            CameraFeel.Instance?.ShakeAt(new Vector3(landX, ground, 0f), 0.45f, Vector2.down);
             HitSpark.Play(new Vector3(landX, ground + 0.1f, -0.5f), Vector2.up, 1.2f, new Color(0.35f, 0.3f, 0.25f));
             GetComponentInChildren<SpriteFeel>()?.Land(12f);
         }
