@@ -153,6 +153,8 @@ namespace Weizza
                 await Tween(0.45f, t => PlaceLoom(loom, cam, Mathf.Lerp(-2.5f, 0f, EaseOut(t)), 0f), ct);
                 // It grabs the frame like a building's roof: a short quake, a hit and two aftershocks.
                 CameraFeel.Instance?.Shake(0.6f, Vector2.down);
+                // The whole frame leans under its weight, then rights itself while the ink lands.
+                CameraFeel.Instance?.Tilt(2.5f, 2.2f);
                 await UniTask.Delay(TimeSpan.FromSeconds(0.18f), cancellationToken: ct);
                 CameraFeel.Instance?.Shake(0.3f, Vector2.right);
                 await UniTask.Delay(TimeSpan.FromSeconds(0.14f), cancellationToken: ct);

@@ -99,6 +99,52 @@ namespace Weizza
         [FoldoutGroup("Distance"), Tooltip("Metres at which a world shake has faded to a quarter.")]
         [SerializeField] private float fadeShakeBy = 16f;
 
+        // ---- Dutch tilt ------------------------------------------------------------
+
+        private float _tiltFrom, _tiltTo, _tiltStart, _tiltLength = -1f;
+        private CinemachineCamera _vcam;
+
+        /// <summary>
+        /// Leans the horizon a few degrees and lets it come back over <paramref name="seconds"/>.
+        /// For a moment when the world itself feels wrong; a degree or three is plenty.
+        /// Off when the player has turned shake off, since it unsettles in the same way.
+        /// </summary>
+        public void Tilt(float degrees, float seconds)
+        {
+            if (GameSettings.ShakeScale <= 0f) return;
+            _tiltFrom = CurrentTilt();
+            _tiltTo = degrees;
+            _tiltStart = Time.unscaledTime;
+            _tiltLength = Mathf.Max(0.1f, seconds);
+        }
+
+        private float CurrentTilt()
+        {
+            if (_vcam == null) _vcam = FindAnyObjectByType<CinemachineCamera>();
+            return _vcam != null ? _vcam.Lens.Dutch : 0f;
+        }
+
+        private void LateUpdate()
+        {
+            if (_tiltLength < 0f) return;
+            if (_vcam == null) _vcam = FindAnyObjectByType<CinemachineCamera>();
+            if (_vcam == null) return;
+
+            // Leans in over the first fifth, then settles back to level over the rest.
+            var t = (Time.unscaledTime - _tiltStart) / _tiltLength;
+            float dutch;
+            if (t < 0.2f) dutch = Mathf.Lerp(_tiltFrom, _tiltTo, Mathf.SmoothStep(0f, 1f, t / 0.2f));
+            else dutch = Mathf.Lerp(_tiltTo, 0f, Mathf.SmoothStep(0f, 1f, (t - 0.2f) / 0.8f));
+            if (t >= 1f)
+            {
+                dutch = 0f;
+                _tiltLength = -1f;
+            }
+            var lens = _vcam.Lens;
+            lens.Dutch = dutch;
+            _vcam.Lens = lens;
+        }
+
         [Button("Test shake"), FoldoutGroup("Live")]
         private void TestShake() => Shake(0.4f, Vector2.right);
     }
