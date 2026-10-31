@@ -21,7 +21,7 @@ namespace Weizza.Narrative
     public sealed class NpcInteractable : MonoBehaviour
     {
         [TitleGroup("Talk")]
-        [Required("Nothing to say without one.")]
+        [Tooltip("The one conversation, when the Lines list below is empty.")]
         [SerializeField] private Conversation conversation;
 
         [TitleGroup("Talk")]
@@ -68,6 +68,67 @@ namespace Weizza.Narrative
         [Tooltip("Plays once the first time and then goes quiet. Off lets the " +
                  "player hear the same lines as often as they like.")]
         [SerializeField] private bool onlyOnce;
+
+        public enum Occurrence { Always, OnceEver, OncePerSession, Cooldown }
+
+        [System.Serializable]
+        public sealed class Line
+        {
+            [Required] public Conversation conversation;
+            [Tooltip("Always: every time. Once Ever: the first time only, remembered in the save. " +
+                     "Once Per Session: once each time the game is started. Cooldown: then rests a while.")]
+            public Occurrence occurrence = Occurrence.Always;
+            [ShowIf(nameof(occurrence), Occurrence.Cooldown), Tooltip("Seconds before it can play again.")]
+            public float cooldown = 60f;
+            [Tooltip("Of the conversations free to play, the highest priority wins; equal ones go in list order.")]
+            public int priority;
+        }
+
+        [TitleGroup("Talk")]
+        [InfoBox("When this list has anything in it, it replaces the single conversation above: each talk " +
+                 "picks the most important conversation that is free to play. A first meeting set to Once " +
+                 "Ever with a high priority, then an Always one for every visit after, is the usual pair.")]
+        [ListDrawerSettings(ShowFoldout = true)]
+        [SerializeField] private Line[] lines = System.Array.Empty<Line>();
+
+        // Per session memory of what was said when, shared by every NPC.
+        private static readonly System.Collections.Generic.Dictionary<string, float> SaidAt = new();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => SaidAt.Clear();
+
+        private static string SaveKey(Conversation c) => "talk.said." + c.name;
+
+        private static bool Free(Line line)
+        {
+            if (line?.conversation == null) return false;
+            var key = SaveKey(line.conversation);
+            switch (line.occurrence)
+            {
+                case Occurrence.OnceEver: return !StoryKit.StoryState.Global.Get(key, false);
+                case Occurrence.OncePerSession: return !SaidAt.ContainsKey(key);
+                case Occurrence.Cooldown: return !SaidAt.TryGetValue(key, out var at) || Time.unscaledTime - at >= line.cooldown;
+                default: return true;
+            }
+        }
+
+        /// <summary>The conversation this NPC would start right now, or null when they have nothing to say.</summary>
+        private Conversation Pick()
+        {
+            if (lines == null || lines.Length == 0) return onlyOnce && _spent ? null : conversation;
+
+            Line best = null;
+            foreach (var line in lines)
+                if (Free(line) && (best == null || line.priority > best.priority)) best = line;
+            return best?.conversation;
+        }
+
+        private static void Remember(Conversation c)
+        {
+            var key = SaveKey(c);
+            SaidAt[key] = Time.unscaledTime;
+            StoryKit.StoryState.Global.Set(key, true);
+        }
 
         [TitleGroup("Notice")]
         [ToggleLeft, Tooltip("Turns to look at the player when they come near, the smallest sign that this person is alive and has seen you.")]
@@ -179,8 +240,7 @@ namespace Weizza.Narrative
 
         private bool CanTalk()
         {
-            if (conversation == null || DialogueDirector.Talking) return false;
-            if (onlyOnce && _spent) return false;
+            if (DialogueDirector.Talking || Pick() == null) return false;
 
             var player = Player();
             if (player == null) return false;
@@ -211,9 +271,12 @@ namespace Weizza.Narrative
                 return;
             }
 
+            var chosen = Pick();
+            if (chosen == null) return;
             _spent = true;
+            Remember(chosen);
             if (prompt != null) prompt.SetActive(false);
-            director.Play(conversation, transform);
+            director.Play(chosen, transform);
         }
 
         private Transform Player()
