@@ -2618,7 +2618,7 @@ SpriteRenderer:
   m_SortingOrder: -2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
-  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.62}
+  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.6014}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -14829,7 +14829,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 40
+    maxNumParticles: 90
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 1
     rotation3D: 0
@@ -18993,9 +18993,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24575b81be10e864482096dcf7edad80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.GustParticles
-  calmRate: 0.4
-  gustRate: 2.2
-  gustPush: 1.6
+  calmRate: 1.2
+  gustRate: 5.5
+  gustPush: 2.4
 --- !u!1 &1507219013
 GameObject:
   m_ObjectHideFlags: 0
