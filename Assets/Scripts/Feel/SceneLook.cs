@@ -186,6 +186,61 @@ namespace Weizza
         [PropertyRange(0.5f, 8f), Tooltip("Seconds to ease into and out of a glare, so it feels like walking into light.")]
         [SerializeField] private float glareEase = 2.5f;
 
+        /// <summary>
+        /// How a stretch of the world feels, laid over the look above. White and 1 change nothing,
+        /// so a new mood starts neutral and is pushed one way from there.
+        /// </summary>
+        [Serializable]
+        public sealed class Mood
+        {
+            [Tooltip("Name, for whoever reads the list.")] public string name = "neutral";
+            [Tooltip("World x where this mood is fully on. Between two moods the look blends by distance.")]
+            public float x;
+            [Tooltip("Multiplies the whole picture's colour, both sides of the screen.")]
+            public Color tint = Color.white;
+            [Tooltip("Multiplies the sun and its glow.")]
+            public Color sun = Color.white;
+            [Range(0.3f, 1.6f), Tooltip("Overall brightness. Below 1 darkens the stretch.")]
+            public float light = 1f;
+            [Range(0.3f, 1.6f)] public float saturation = 1f;
+            [Range(0.7f, 1.5f)] public float contrast = 1f;
+            [Range(0f, 2f), Tooltip("How strong the sunbeams are.")]
+            public float beams = 1f;
+            [Range(-0.2f, 0.4f), Tooltip("Mist added on top of the base mist.")]
+            public float mist;
+        }
+
+        [BoxGroup("Moods along the way", centerLabel: true)]
+        [InfoBox("Each mood is pinned to a world x. Walking between two of them blends the look from one to the " +
+                 "other, so colour tells the player where the story is: warm and safe, then dimming toward danger.")]
+        [ListDrawerSettings(ShowFoldout = true)]
+        [SerializeField] private Mood[] moods = Array.Empty<Mood>();
+
+        // The blended mood at a world x. Sorted on the fly; a handful of moods costs nothing.
+        private void MoodAt(float x, out Color tint, out Color sun, out float light, out float sat,
+            out float con, out float beams, out float mist)
+        {
+            tint = Color.white; sun = Color.white; light = 1f; sat = 1f; con = 1f; beams = 1f; mist = 0f;
+            Mood before = null, after = null;
+            foreach (var m in moods)
+            {
+                if (m == null) continue;
+                if (m.x <= x && (before == null || m.x > before.x)) before = m;
+                if (m.x >= x && (after == null || m.x < after.x)) after = m;
+            }
+            if (before == null && after == null) return;
+            before ??= after;
+            after ??= before;
+            var k = after.x > before.x ? Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(before.x, after.x, x)) : 0f;
+            tint = Color.Lerp(before.tint, after.tint, k);
+            sun = Color.Lerp(before.sun, after.sun, k);
+            light = Mathf.Lerp(before.light, after.light, k);
+            sat = Mathf.Lerp(before.saturation, after.saturation, k);
+            con = Mathf.Lerp(before.contrast, after.contrast, k);
+            beams = Mathf.Lerp(before.beams, after.beams, k);
+            mist = Mathf.Lerp(before.mist, after.mist, k);
+        }
+
         private static readonly int On = Shader.PropertyToID("_LookOn");
         private static readonly int Shadow = Shader.PropertyToID("_LookShadow");
         private static readonly int Mid = Shader.PropertyToID("_LookMid");
@@ -240,6 +295,8 @@ namespace Weizza
                 : target;
 
             var progress = Mathf.InverseLerp(worldRange.x, worldRange.y, x);
+            MoodAt(x, out var moodTint, out var moodSun, out var moodLight, out var moodSat,
+                out var moodCon, out var moodBeams, out var moodMist);
 
             Shader.SetGlobalFloat(On, 1f);
             Shader.SetGlobalColor(Shadow, shadow);
@@ -250,22 +307,23 @@ namespace Weizza
             Shader.SetGlobalFloat(Bias, bias);
             Shader.SetGlobalFloat(Keep, keepSaturated);
             Shader.SetGlobalVector(SunPos, new Vector4(sunPosition.x, sunPosition.y, sunRadius * (0.8f + _glare * 0.2f), 0f));
-            Shader.SetGlobalColor(SunCol, new Color(sunColour.r, sunColour.g, sunColour.b, sunIntensity * _glare));
+            Shader.SetGlobalColor(SunCol, new Color(sunColour.r * moodSun.r, sunColour.g * moodSun.g,
+                sunColour.b * moodSun.b, sunIntensity * _glare));
             Shader.SetGlobalFloat(Left, leftEdge);
             Shader.SetGlobalFloat(Right, rightEdge);
             Shader.SetGlobalFloat(Bottom, groundShadow);
             Shader.SetGlobalFloat(Reach, groundReach);
-            Shader.SetGlobalVector(Shaft, new Vector4(beamIntensity * _glare, beamAngle, beamCount, beamDrift));
+            Shader.SetGlobalVector(Shaft, new Vector4(beamIntensity * _glare * moodBeams, beamAngle, beamCount, beamDrift));
             Shader.SetGlobalVector(Ray, new Vector4(rayReach, skyWindow.x, skyWindow.y, shadeDepth));
-            Shader.SetGlobalFloat(Sat, saturation);
-            Shader.SetGlobalFloat(Con, contrast);
+            Shader.SetGlobalFloat(Sat, saturation * moodSat);
+            Shader.SetGlobalFloat(Con, contrast * moodCon);
             Shader.SetGlobalFloat(Shim, shimmer);
             Shader.SetGlobalFloat(Breath, lightBreath);
             Shader.SetGlobalFloat(Dither, banding);
-            Shader.SetGlobalVector(Mist, new Vector4(mistStrength, mistHeight, mistDrift, mistSize));
+            Shader.SetGlobalVector(Mist, new Vector4(Mathf.Max(0f, mistStrength + moodMist), mistHeight, mistDrift, mistSize));
             if (cam != null) Shader.SetGlobalFloat(MistCamX, cam.transform.position.x);
-            Shader.SetGlobalColor(TintL, tintLeft);
-            Shader.SetGlobalColor(TintR, tintRight);
+            Shader.SetGlobalColor(TintL, tintLeft * moodTint);
+            Shader.SetGlobalColor(TintR, tintRight * moodTint);
             var zoneLight = 1f;
             foreach (var zone in brightZones)
             {
@@ -275,7 +333,7 @@ namespace Weizza
                          * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(zone.to, zone.to + fade, x)));
                 zoneLight *= Mathf.Lerp(1f, zone.multiplier, on);
             }
-            Shader.SetGlobalFloat(World, Mathf.Lerp(worldBrightness.x, worldBrightness.y, progress) * zoneLight);
+            Shader.SetGlobalFloat(World, Mathf.Lerp(worldBrightness.x, worldBrightness.y, progress) * zoneLight * moodLight);
         }
     }
 }

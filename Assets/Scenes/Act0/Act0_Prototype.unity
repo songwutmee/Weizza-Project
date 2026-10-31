@@ -2075,6 +2075,70 @@ MonoBehaviour:
     to: 116
     boost: 3
   glareEase: 2.5
+  moods:
+  - name: afternoon
+    x: 0
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    sun: {r: 1, g: 1, b: 1, a: 1}
+    light: 1
+    saturation: 1
+    contrast: 1
+    beams: 1
+    mist: 0
+  - name: near Soka
+    x: 100
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    sun: {r: 1, g: 1, b: 1, a: 1}
+    light: 1
+    saturation: 1
+    contrast: 1
+    beams: 1
+    mist: 0
+  - name: golden crest
+    x: 142
+    tint: {r: 1.06, g: 1, b: 0.88, a: 1}
+    sun: {r: 1, g: 0.82, b: 0.62, a: 1}
+    light: 1.1
+    saturation: 1.12
+    contrast: 1
+    beams: 1.45
+    mist: -0.03
+  - name: dimming
+    x: 162
+    tint: {r: 0.86, g: 0.88, b: 0.96, a: 1}
+    sun: {r: 0.9, g: 0.78, b: 0.88, a: 1}
+    light: 0.86
+    saturation: 0.86
+    contrast: 1.05
+    beams: 0.6
+    mist: 0.06
+  - name: beetle lair
+    x: 184
+    tint: {r: 0.72, g: 0.72, b: 0.92, a: 1}
+    sun: {r: 0.72, g: 0.6, b: 0.86, a: 1}
+    light: 0.72
+    saturation: 0.74
+    contrast: 1.15
+    beams: 0.25
+    mist: 0.11
+  - name: lair end
+    x: 206
+    tint: {r: 0.72, g: 0.72, b: 0.92, a: 1}
+    sun: {r: 0.72, g: 0.6, b: 0.86, a: 1}
+    light: 0.72
+    saturation: 0.74
+    contrast: 1.15
+    beams: 0.25
+    mist: 0.11
+  - name: relief
+    x: 226
+    tint: {r: 1.04, g: 1, b: 0.9, a: 1}
+    sun: {r: 1, g: 0.88, b: 0.7, a: 1}
+    light: 1.04
+    saturation: 1.05
+    contrast: 1
+    beams: 1.1
+    mist: 0
 --- !u!114 &697706303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2510,7 +2574,7 @@ SpriteRenderer:
   m_SortingOrder: -2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
-  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.6014}
+  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.62}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
