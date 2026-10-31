@@ -20314,6 +20314,7 @@ GameObject:
   - component: {fileID: 2032587853}
   - component: {fileID: 2032587852}
   - component: {fileID: 2032587851}
+  - component: {fileID: 2032587854}
   m_Layer: 0
   m_Name: HUD
   m_TagString: Untagged
@@ -20377,6 +20378,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2032587854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2032587850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c09cdb8841145a48a86764bf8e242ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.HintSystem
+  storyHintSeconds: 5
+  tipsAfterDeath: 1
+  tipDelay: 1.2
+  tipSeconds: 5
+  tips:
+  - A warm yellow pulse means a swing is coming. The white glint means now.
+  - Than takes a hit without flinching. Use it to stand your ground.
+  - Se's dash passes straight through an attack.
+  - In heals a little with every enemy it finishes.
+  - Lost what someone told you? Press J to read the log.
+  - Touching an enemy hurts. Jump over the small ones.
 --- !u!1 &2082847230
 GameObject:
   m_ObjectHideFlags: 0

@@ -230,6 +230,43 @@ namespace Weizza
             _titleRule.style.backgroundColor = new Color(1f, 1f, 1f, 0.8f);
             _title.Add(_titleRule);
             _root.Add(_title);
+
+            // Hint card, low centre, above where the dialogue panel would sit. Fades and rises
+            // in, so it reads as the game offering help rather than an alert.
+            _hint = new Label("") { pickingMode = PickingMode.Ignore };
+            Anchor(_hint, left: 0, right: 0, bottom: 150);
+            _hint.style.alignSelf = Align.Center;
+            _hint.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _hint.style.fontSize = 26;
+            _hint.style.color = new Color(0.97f, 0.95f, 0.88f);
+            _hint.style.opacity = 0f;
+            _hint.style.whiteSpace = WhiteSpace.Normal;
+            _root.Add(_hint);
+        }
+
+        private Label _hint;
+        private float _hintShown;
+        private bool _hintWanted;
+
+        /// <summary>Shows a hint until <see cref="HideHint"/>. Replaces any hint already up.</summary>
+        public void ShowHint(string text)
+        {
+            if (_hint == null || string.IsNullOrEmpty(text)) return;
+            _hint.text = text;
+            _hintWanted = true;
+        }
+
+        public void HideHint() => _hintWanted = false;
+
+        public bool HintShowing => _hintWanted;
+
+        private void TickHint(float dt)
+        {
+            if (_hint == null) return;
+            _hintShown = Mathf.MoveTowards(_hintShown, _hintWanted ? 1f : 0f, dt / 0.35f);
+            var eased = Mathf.SmoothStep(0f, 1f, _hintShown);
+            _hint.style.opacity = eased;
+            _hint.style.translate = new Translate(0, (1f - eased) * 14f);
         }
 
 
@@ -380,6 +417,7 @@ namespace Weizza
             TickBanner();
             TickTitle();
             TickConversationFade(dt);
+            TickHint(dt);
         }
 
         private float _talkHide;
