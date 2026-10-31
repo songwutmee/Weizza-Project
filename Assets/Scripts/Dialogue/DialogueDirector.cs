@@ -70,7 +70,26 @@ namespace Weizza.Narrative
         private IScreenUI screenUI => screenService as IScreenUI;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => _instance = null;
+        private static void ResetStatics()
+        {
+            _instance = null;
+            HistoryLines.Clear();
+        }
+
+        /// <summary>Everything said this session, oldest first, effect tags removed. The log screen reads it.</summary>
+        public static IReadOnlyList<(string speakerId, string text)> History => HistoryLines;
+
+        private static readonly List<(string speakerId, string text)> HistoryLines = new();
+        private const int HistoryLimit = 80;
+
+        private static void Record(string speakerId, string text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            // Mood and shake tags are for the moment of speaking, not for reading back.
+            var plain = System.Text.RegularExpressions.Regex.Replace(text, "<[^>]*>", string.Empty);
+            HistoryLines.Add((speakerId, plain));
+            if (HistoryLines.Count > HistoryLimit) HistoryLines.RemoveAt(0);
+        }
 
         public static DialogueDirector Instance => _instance;
 
@@ -167,6 +186,7 @@ namespace Weizza.Narrative
                     if (line == null) continue;
 
                     var text = loca != null ? loca.Resolve(line.textKey) : line.textKey;
+                    Record(line.speakerId, text);
                     await ui.SayAsync(line.speakerId, line.emotion, text, ct);
                 }
 

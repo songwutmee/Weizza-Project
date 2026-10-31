@@ -2618,7 +2618,7 @@ SpriteRenderer:
   m_SortingOrder: -2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
-  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.6014}
+  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.62}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -8391,6 +8391,7 @@ GameObject:
   - component: {fileID: 1196270881}
   - component: {fileID: 1196270880}
   - component: {fileID: 1196270879}
+  - component: {fileID: 1196270882}
   m_Layer: 0
   m_Name: Narrative
   m_TagString: Untagged
@@ -8447,6 +8448,24 @@ Transform:
   - {fileID: 1034271765}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1196270882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1196270878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc77ff57589784f44bb15285fa580169, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.Narrative.ConversationLog
+  paper: {fileID: 21300000, guid: fe06d04d0459ef14ca99e8a48db766b7, type: 3}
+  inkTag: {fileID: 21300000, guid: 505a75e2923c2bd4e97ec4cc0a82fc8c, type: 3}
+  font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  speakers: {fileID: 11400000, guid: cf6f2990d0b58344f800cb56246da534, type: 2}
+  linesShown: 14
+  ink: {r: 0.11, g: 0.13, b: 0.3, a: 1}
 --- !u!1 &1251074814
 GameObject:
   m_ObjectHideFlags: 0
@@ -20391,6 +20410,8 @@ MonoBehaviour:
   impulse: {fileID: 0}
   globalScale: 0.4
   axisWeight: {x: 1, y: 0.55}
+  fullShakeWithin: 3
+  fadeShakeBy: 16
 --- !u!114 &2082847232
 MonoBehaviour:
   m_ObjectHideFlags: 0
