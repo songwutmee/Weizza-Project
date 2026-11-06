@@ -41,7 +41,6 @@ namespace Weizza
 
             var motor = player.Motor;
             var input = InputReader.Instance;
-            var top = SurfaceAt(player.transform.position.x);
             var feet = player.transform.position.y;
 
             var standingOnMe = LevelPiece.Owns(this, motor.GroundCollider);
@@ -50,9 +49,31 @@ namespace Weizza
                 _dropUntil = Time.time + dropSeconds;
             }
 
-            var below = feet < top - tolerance;
-            var rising = motor.Velocity.y > 0.01f;
-            var ignore = Time.time < _dropUntil || below || (rising && feet < top + 0.05f);
+            bool ignore;
+            if (standingOnMe)
+            {
+                // Already on it: stay on, even near a rounded edge, until a deliberate drop.
+                ignore = Time.time < _dropUntil;
+            }
+            else
+            {
+                // Only solid to a body coming down onto it from fully above. Judged by the
+                // highest point under the whole capsule, not just its centre: walking in at
+                // ground level, the low lip at the edge used to switch the rock on while the
+                // body was already half inside it, and the controller climbed it or snagged.
+                // Beside the rock, its nearest edge counts: a body at ground level next to it is
+                // below that lip and so walks in, never into a wall.
+                var radius = motor.Controller.radius;
+                var b = _collider.bounds;
+                var x = player.transform.position.x;
+                // Sampled a little inside the rim: the drawn outline curls down to the ground at
+                // its ends, and a lip that low would turn on under a body walking past it.
+                var inset = Mathf.Min(0.6f, b.extents.x * 0.5f);
+                float Under(float at) => SurfaceAt(Mathf.Clamp(at, b.min.x + inset, b.max.x - inset));
+                var highest = Mathf.Max(Under(x), Mathf.Max(Under(x - radius), Under(x + radius)));
+                var falling = motor.Velocity.y <= 0.01f;
+                ignore = Time.time < _dropUntil || !falling || feet < highest - tolerance;
+            }
 
             if (ignore == _ignoring) return;
             _ignoring = ignore;
