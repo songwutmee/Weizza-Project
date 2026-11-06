@@ -29,6 +29,20 @@ namespace Weizza.EditorTools
             Debug.Log($"[Weizza] {changed} piece(s) are solid walls again.");
         }
 
+        [MenuItem("Weizza/Level/Make Crumble Floor", priority = 46)]
+        private static void MakeCrumble()
+        {
+            var changed = 0;
+            foreach (var go in Selection.gameObjects)
+            {
+                if (go.GetComponentInChildren<Collider>() == null || go.GetComponent<CrumbleFloor>() != null) continue;
+                Undo.AddComponent<CrumbleFloor>(go);
+                changed++;
+            }
+            Debug.Log($"[Weizza] {changed} piece(s) now crack and fall when stood on.");
+        }
+
+        [MenuItem("Weizza/Level/Make Crumble Floor", true)]
         [MenuItem("Weizza/Level/Make Stand On Top (walk through)", true)]
         [MenuItem("Weizza/Level/Make Solid Wall", true)]
         private static bool HasSelection() => Selection.gameObjects.Length > 0;
