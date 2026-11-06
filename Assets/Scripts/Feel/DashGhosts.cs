@@ -27,6 +27,11 @@ namespace Weizza
         [PropertyRange(0f, 1f)]
         [SerializeField] private float startAlpha = 0.45f;
 
+        [BoxGroup("Ghosts"), ToggleLeft, Tooltip("Also leave copies over the hitting frames of a swing.")]
+        [SerializeField] private bool swingSmear = true;
+
+        private float _nextSmearAt;
+
         private sealed class Ghost
         {
             public SpriteRenderer renderer;
@@ -52,6 +57,15 @@ namespace Weizza
             if (dashing && !_dashing) { _lastDrop = _body.transform.position; Drop(); }
             if (dashing && (_body.transform.position - _lastDrop).sqrMagnitude >= spacing * spacing) Drop();
             _dashing = dashing;
+
+            // A swing leaves a smear too: two copies over the hitting frames stand in for the
+            // blur drawings an animator would add between the wind up and the follow through.
+            var swinging = swingSmear && _player != null && _player.SwingPhase == 2;
+            if (swinging && Time.unscaledTime >= _nextSmearAt)
+            {
+                Drop();
+                _nextSmearAt = Time.unscaledTime + 0.035f;
+            }
 
             var now = Time.unscaledTime;
             foreach (var ghost in _ghosts)
