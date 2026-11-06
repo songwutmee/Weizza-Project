@@ -1,5 +1,4 @@
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Weizza.EditorTools
@@ -33,19 +32,6 @@ namespace Weizza.EditorTools
         [MenuItem("Weizza/Level/Make Stand On Top (walk through)", true)]
         [MenuItem("Weizza/Level/Make Solid Wall", true)]
         private static bool HasSelection() => Selection.gameObjects.Length > 0;
-
-        [MenuItem("Weizza/Level/Make Every Stone Stand On Top (open scenes)", priority = 45)]
-        private static void AllStones()
-        {
-            var changed = 0;
-            foreach (var c in Object.FindObjectsByType<Collider>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            {
-                var r = c.GetComponent<SpriteRenderer>();
-                if (r == null || r.sprite == null || !r.sprite.name.Contains("stone")) continue;
-                if (Apply(c, true)) { changed++; EditorSceneManager.MarkSceneDirty(c.gameObject.scene); }
-            }
-            Debug.Log($"[Weizza] {changed} stone(s) now stand on top. Save the scenes to keep it.");
-        }
 
         private static bool Apply(Collider c, bool on)
         {
