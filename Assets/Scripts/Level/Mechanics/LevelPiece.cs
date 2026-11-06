@@ -60,13 +60,23 @@ namespace Weizza
 
             try
             {
+                var drawings = piece.GetComponentsInChildren<SpriteRenderer>();
                 if (warnSeconds > 0f)
                 {
                     Tween.ShakeLocalPosition(piece, new Vector3(0.06f, 0.03f, 0f), warnSeconds, frequency: 30f);
-                    await UniTask.Delay(System.TimeSpan.FromSeconds(warnSeconds), cancellationToken: ct);
+                    // Grit falls off the edge while it trembles: the warning is seen, not only felt.
+                    var until = Time.time + warnSeconds;
+                    while (Time.time < until)
+                    {
+                        foreach (var d in drawings) ShatterFx.Grit(d, 2);
+                        await UniTask.Delay(System.TimeSpan.FromSeconds(0.12f), cancellationToken: ct);
+                    }
                     piece.localPosition = home;
                 }
 
+                foreach (var d in drawings) if (d.enabled) ShatterFx.Shatter(d);
+                if (CameraFeel.Instance != null) CameraFeel.Instance.ShakeAt(piece.position, 0.12f, Vector2.down);
+                WindField.Ripple(piece.position, 0.2f);
                 SetSolid(colliders, renderers, false);
                 if (respawnSeconds <= 0f) return;
 
@@ -82,6 +92,21 @@ namespace Weizza
                 }
 
                 SetSolid(colliders, renderers, true);
+
+                // Grows back into place rather than popping in.
+                var tints = new Color[drawings.Length];
+                for (var i = 0; i < drawings.Length; i++) tints[i] = drawings[i].color;
+                for (var t = 0f; t < 0.35f; t += Time.deltaTime)
+                {
+                    for (var i = 0; i < drawings.Length; i++)
+                    {
+                        var c = tints[i];
+                        c.a *= t / 0.35f;
+                        drawings[i].color = c;
+                    }
+                    await UniTask.Yield(ct);
+                }
+                for (var i = 0; i < drawings.Length; i++) drawings[i].color = tints[i];
             }
             catch (System.OperationCanceledException)
             {
