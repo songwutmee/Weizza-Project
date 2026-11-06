@@ -49,6 +49,8 @@ namespace Weizza
         private GameObject _owner;
         private float _damageScale = 1f;
         private float _lifesteal;
+        // Where the swing points, in world space. Sideways is the plain forward swing.
+        private Vector2 _aim = Vector2.right;
 
         private void Awake()
         {
@@ -66,10 +68,21 @@ namespace Weizza
 
         /// <summary>Opens a swing. Call once, on the first active frame.</summary>
         public void Begin(AttackDefinition attack, Facing facing, GameObject owner,
-            float damageScale, float lifesteal)
+            float damageScale, float lifesteal) =>
+            Begin(attack, facing, owner, damageScale, lifesteal, Vector2.zero);
+
+        /// <summary>
+        /// Opens a swing aimed somewhere other than straight ahead. The box keeps its
+        /// reach but swings around the chest to point along <paramref name="aim"/>, and the
+        /// knockback follows it, so an upward cut lifts and a diagonal one sends things off
+        /// at an angle. Zero means straight ahead.
+        /// </summary>
+        public void Begin(AttackDefinition attack, Facing facing, GameObject owner,
+            float damageScale, float lifesteal, Vector2 aim)
         {
             _attack = attack;
             _facing = facing;
+            _aim = aim.sqrMagnitude > 0.01f ? aim.normalized : new Vector2(facing.Sign(), 0f);
             _owner = owner != null ? owner : gameObject;
             _damageScale = damageScale;
             _lifesteal = lifesteal;
@@ -115,7 +128,9 @@ namespace Weizza
                     poiseDamage = _attack.poiseDamage,
                     source = _owner,
                     point = collider.ClosestPoint(center),
-                    knockback = new Vector2(_attack.knockbackX * _facing.Sign(), _attack.knockbackY),
+                    knockback = Aimed
+                        ? _aim * Mathf.Max(_attack.knockbackX, 3f)
+                        : new Vector2(_attack.knockbackX * _facing.Sign(), _attack.knockbackY),
                     hitStopFrames = _attack.hitStopFrames,
                     hitStunFrames = _attack.hitStunFrames,
                     screenShake = _attack.screenShake,
@@ -134,19 +149,27 @@ namespace Weizza
             var basePoint = origin != null ? origin.position : transform.position;
             if (_attack == null) return basePoint;
 
-            return basePoint + new Vector3(
-                _attack.hitboxOffset.x * _facing.Sign(),
-                _attack.hitboxOffset.y,
-                0f);
+            if (!Aimed)
+                return basePoint + new Vector3(
+                    _attack.hitboxOffset.x * _facing.Sign(),
+                    _attack.hitboxOffset.y,
+                    0f);
+
+            var reach = _aim * Mathf.Abs(_attack.hitboxOffset.x);
+            return basePoint + new Vector3(reach.x, _attack.hitboxOffset.y + reach.y, 0f);
         }
+
+        private bool Aimed => Mathf.Abs(_aim.y) > 0.1f;
 
         private Vector3 HalfExtents()
         {
             if (_attack == null) return Vector3.one * 0.5f;
 
+            // An upward or downward cut is the forward box stood on end.
+            var vertical = Mathf.Abs(_aim.y) > 0.9f;
             return new Vector3(
-                _attack.hitboxSize.x * 0.5f,
-                _attack.hitboxSize.y * 0.5f,
+                (vertical ? _attack.hitboxSize.y : _attack.hitboxSize.x) * 0.5f,
+                (vertical ? _attack.hitboxSize.x : _attack.hitboxSize.y) * 0.5f,
                 _attack.fullDepth ? 50f : _attack.depthTolerance);
         }
 

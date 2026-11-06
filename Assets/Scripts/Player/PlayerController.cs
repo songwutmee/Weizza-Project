@@ -181,6 +181,13 @@ namespace Weizza
         private AttackDefinition _attack;
         private int _comboIndex;
         private bool _swingConnected;
+        private Vector2 _swingAim;
+
+        [FoldoutGroup("Swing"), ToggleLeft, Tooltip("Light swings point up, diagonally, or down in the air with the stick.")]
+        [SerializeField] private bool aimedSwings = true;
+
+        [FoldoutGroup("Swing"), PropertyRange(0f, 6f), Tooltip("Fastest fall, m/s, while a swing in the air is winding up or hitting. 0 turns the hang off.")]
+        [SerializeField] private float airSwingFallCap = 1.5f;
         private bool _hitboxOpen;
         private bool _downAttacking;
 
@@ -848,6 +855,11 @@ namespace Weizza
             // enemy right behind, turn to it first, so a press in the middle of a crowd
             // never whiffs into empty air. A held direction always wins: this only fills
             // in when the player did not say.
+            // A held direction turns the body at the start of every swing, so a combo can
+            // change sides halfway through instead of finishing into empty air.
+            if (Input != null && Mathf.Abs(Input.Move.x) >= 0.3f) Motor.FaceMovement(Input.Move.x);
+            _swingAim = AimFromStick(attack);
+
             if (Input == null || Mathf.Abs(Input.Move.x) < 0.3f)
             {
                 var near = EnemyController.NearestAlive(transform.position, attackTurnReach, 1.6f);
@@ -885,6 +897,12 @@ namespace Weizza
             // lunge reads as weight instead of a teleport.
             Motor.Velocity.x = Mathf.MoveTowards(Motor.Velocity.x, 0f, CurrentStance.deceleration * 0.6f * dt);
 
+            // A swing in the air holds the body up a moment instead of dropping it like a
+            // stone, so an air combo has time to land. Only up to the end of the hit.
+            if (!Motor.Grounded && !_downAttacking && airSwingFallCap > 0f &&
+                _stateTimer < _attack.StartupSeconds + _attack.ActiveSeconds && Motor.Velocity.y < -airSwingFallCap)
+                Motor.Velocity.y = -airSwingFallCap;
+
             var startup = _attack.StartupSeconds;
             var activeEnd = startup + _attack.ActiveSeconds;
 
@@ -892,10 +910,13 @@ namespace Weizza
             {
                 _hitboxOpen = true;
                 hitbox.Begin(_attack, Motor.Facing, gameObject, damageScale: 1f,
-                    lifesteal: CurrentStance.lifesteal);
+                    lifesteal: CurrentStance.lifesteal, aim: _swingAim);
                 // A white slash on every swing, so a swing reads even before real attack art exists.
                 var facing = Motor.Facing.Sign();
-                GlowFx.Slash(transform.position + new Vector3(facing * 0.35f, 0.7f, -0.3f), facing,
+                var slashAt = _swingAim == Vector2.zero
+                    ? transform.position + new Vector3(facing * 0.35f, 0.7f, -0.3f)
+                    : transform.position + new Vector3(_swingAim.x * 0.45f, 0.7f + _swingAim.y * 0.6f, -0.3f);
+                GlowFx.Slash(slashAt, facing,
                     _attack == CurrentStance.heavy ? 1.35f : 1f, Color.white);
             }
             else if (_hitboxOpen && _stateTimer >= activeEnd)
@@ -943,6 +964,20 @@ namespace Weizza
             }
 
             EndAttack();
+        }
+
+        // Eight ways from the stick: straight up, diagonals, and down only in the air (on the
+        // ground down would cut the floor). Zero is the plain forward swing. The heavy keeps
+        // its own shape; the down attack has its own pogo box.
+        private Vector2 AimFromStick(AttackDefinition attack)
+        {
+            if (!aimedSwings || Input == null || attack == CurrentStance.heavy || _downAttacking) return Vector2.zero;
+            var m = Input.Move;
+            var up = m.y > 0.5f;
+            var down = m.y < -0.5f && !Motor.Grounded;
+            if (!up && !down) return Vector2.zero;
+            var side = Mathf.Abs(m.x) >= 0.5f ? Mathf.Sign(m.x) : 0f;
+            return new Vector2(side, up ? 1f : -1f).normalized;
         }
 
         private static bool Passed(float secondsIn, int frames) => frames >= 0 && secondsIn >= Timing.Frames(frames);
