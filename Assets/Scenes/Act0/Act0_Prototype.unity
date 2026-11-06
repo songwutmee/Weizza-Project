@@ -2618,7 +2618,7 @@ SpriteRenderer:
   m_SortingOrder: -2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
-  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.62}
+  m_Color: {r: 0.02, g: 0.05, b: 0.04, a: 0.6014}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -8639,6 +8639,9 @@ MonoBehaviour:
   hurtClip: Hurt
   deathClip: Common_Death
   runThreshold: 0.35
+  dashExitGrace: 0.25
+  aimedSwings: 1
+  airSwingFallCap: 1.5
   attackTurnReach: 1.8
   hitRecoil: 0.18
   mercySeconds: 1.1
@@ -20385,7 +20388,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2032587850}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0c09cdb8841145a48a86764bf8e242ff, type: 3}
   m_Name: 
