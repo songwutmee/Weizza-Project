@@ -5,7 +5,9 @@ namespace Weizza
 {
     /// <summary>
     /// A ledge the player can jump up through from below and drop down
-    /// through by holding down and pressing jump.
+    /// through by holding down and pressing jump. Also what makes a rock or a
+    /// stump "stand on top": walked straight through at ground level, landed
+    /// on from above.
     ///
     /// CharacterController has no one-way collision of its own, so the
     /// platform switches collision against the player's capsule on and off
@@ -39,7 +41,7 @@ namespace Weizza
 
             var motor = player.Motor;
             var input = InputReader.Instance;
-            var top = _collider.bounds.max.y;
+            var top = SurfaceAt(player.transform.position.x);
             var feet = player.transform.position.y;
 
             var standingOnMe = LevelPiece.Owns(this, motor.GroundCollider);
@@ -55,6 +57,16 @@ namespace Weizza
             if (ignore == _ignoring) return;
             _ignoring = ignore;
             Physics.IgnoreCollision(motor.Controller, _collider, ignore);
+        }
+
+        // The top right above the feet, not the top of the bounds: a rounded rock is
+        // lower at its edges, and judging by its peak would drop a player standing near
+        // an edge through it.
+        private float SurfaceAt(float x)
+        {
+            var b = _collider.bounds;
+            var ray = new Ray(new Vector3(x, b.max.y + 1f, b.center.z), Vector3.down);
+            return _collider.Raycast(ray, out var hit, b.size.y + 2f) ? hit.point.y : b.max.y;
         }
 
         private void OnDisable()
