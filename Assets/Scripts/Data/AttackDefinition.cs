@@ -49,6 +49,23 @@ namespace Weizza
         public float ActiveSeconds => Timing.Frames(activeFrames);
         public float RecoverySeconds => Timing.Frames(recoveryFrames);
 
+        // ---- Cancels ------------------------------------------------------
+
+        [BoxGroup("Cancels", centerLabel: true)]
+        [InfoBox("Recovery is still the price of missing, but a player who wants out should get " +
+                 "out: a dash or a jump can cut the recovery short after these frames. -1 never.")]
+        [PropertyRange(-1, 90), Tooltip("Frames into recovery after which a dash or jump cancels the rest.")]
+        public int escapeCancelAfter = 3;
+
+        [BoxGroup("Cancels")]
+        [PropertyRange(-1, 90), Tooltip("Frames into recovery after which the next combo swing starts, " +
+                                        "but only once this swing has hit something. A whiff still pays in full.")]
+        public int chainOnHitAfter = 2;
+
+        [BoxGroup("Cancels")]
+        [PropertyRange(-1, 90), Tooltip("Frames into recovery after which holding a direction walks out of it.")]
+        public int moveCancelAfter = 8;
+
         // ---- Damage -------------------------------------------------------
 
         [BoxGroup("Damage", centerLabel: true)]

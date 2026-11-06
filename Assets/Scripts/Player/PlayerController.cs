@@ -102,6 +102,20 @@ namespace Weizza
         [ShowInInspector, ReadOnly, EnumToggleButtons]
         public PlayerState State { get; private set; } = PlayerState.Locomotion;
 
+        /// <summary>Where the current swing is: 0 none, 1 wind up, 2 hitting, 3 recovery. For body motion and trails.</summary>
+        public int SwingPhase
+        {
+            get
+            {
+                if (State != PlayerState.Attack || _attack == null) return 0;
+                if (_stateTimer < _attack.StartupSeconds) return 1;
+                return _stateTimer < _attack.StartupSeconds + _attack.ActiveSeconds ? 2 : 3;
+            }
+        }
+
+        /// <summary>True while the current swing is the heavy one.</summary>
+        public bool SwingIsHeavy => _attack != null && CurrentStance != null && _attack == CurrentStance.heavy;
+
         [FoldoutGroup("Live")]
         [ShowInInspector, ReadOnly, EnumToggleButtons]
         public StanceId Stance { get; private set; } = StanceId.Normal;
@@ -166,6 +180,7 @@ namespace Weizza
         private bool _attackBufferHeavy;
         private AttackDefinition _attack;
         private int _comboIndex;
+        private bool _swingConnected;
         private bool _hitboxOpen;
         private bool _downAttacking;
 
@@ -826,6 +841,7 @@ namespace Weizza
 
             _attack = attack;
             _hitboxOpen = false;
+            _swingConnected = false;
             EnterState(PlayerState.Attack);
 
             // Swing at the enemy that is actually there. With no direction held and an
@@ -888,12 +904,28 @@ namespace Weizza
                 if (Vitals != null) Vitals.SuperArmor = false;
             }
 
-            // No early cancel: the swing has to run its full length, recovery
-            // included, before anything happens next. Mashing the button
-            // never buys back a single frame of recovery, it only decides
-            // whether the very next thing that happens is another swing or a
-            // return to standing still.
-            if (_stateTimer < _attack.TotalSeconds) return;
+            // Recovery can be cut short, each way after its own frame count. Escapes
+            // (dash, jump) are always offered so the player is never stuck watching a
+            // swing finish; the next swing comes early only after a hit, so landing
+            // hits flows into a combo while whiffing still costs the full recovery.
+            var intoRecovery = _stateTimer - activeEnd;
+            if (intoRecovery >= 0f)
+            {
+                if (Passed(intoRecovery, _attack.escapeCancelAfter))
+                {
+                    if (TryConsumeDash()) { CancelAttack(); return; }
+                    if (Motor.Grounded && TryConsumeJump()) { CancelAttack(); EnterState(PlayerState.Locomotion); return; }
+                }
+                if (Passed(intoRecovery, _attack.moveCancelAfter) && Mathf.Abs(Move().x) > 0.5f &&
+                    Time.time > _attackBufferedUntil)
+                {
+                    EndAttack();
+                    return;
+                }
+            }
+
+            var chainEarly = _swingConnected && intoRecovery >= 0f && Passed(intoRecovery, _attack.chainOnHitAfter);
+            if (_stateTimer < _attack.TotalSeconds && !(chainEarly && Time.time <= _attackBufferedUntil)) return;
 
             if (Time.time <= _attackBufferedUntil)
             {
@@ -911,6 +943,18 @@ namespace Weizza
             }
 
             EndAttack();
+        }
+
+        private static bool Passed(float secondsIn, int frames) => frames >= 0 && secondsIn >= Timing.Frames(frames);
+
+        // Leaves a swing for a dash or jump without touching the state the dash just entered.
+        private void CancelAttack()
+        {
+            CloseHitbox();
+            _downAttacking = false;
+            if (Vitals != null) Vitals.SuperArmor = false;
+            _attack = null;
+            _comboIndex = 0;
         }
 
         private void CloseHitbox()
@@ -934,6 +978,7 @@ namespace Weizza
         {
             CombatSignals.Report(victim, result, info, byPlayer: true, ranged: false);
             if (result is HitResult.Missed or HitResult.Ignored) return;
+            _swingConnected = true;
 
             ImpactFeel(victim, info, 1f);
             Recoil(result);
