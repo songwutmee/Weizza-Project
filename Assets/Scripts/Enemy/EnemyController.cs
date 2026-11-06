@@ -293,6 +293,9 @@ namespace Weizza
             if (GetComponent<Targetable>() == null) gameObject.AddComponent<Targetable>();
             // Dust when knocked back, landing or charging, for every enemy with no setup.
             if (_motor != null && GetComponent<FootDust>() == null) gameObject.AddComponent<FootDust>();
+            // The same body spring the player has: a knockback is a sharp acceleration, so a
+            // struck enemy rocks back from the blow and settles, and tips along a launch.
+            if (_motor != null && GetComponent<RunLean>() == null) gameObject.AddComponent<RunLean>();
 
             if (animator == null) animator = GetComponentInChildren<SpriteAnimator>();
             if (hitbox == null) hitbox = GetComponentInChildren<HitboxEmitter>();

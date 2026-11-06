@@ -139,7 +139,10 @@ namespace Weizza
                     var airborne = !motor.Grounded;
                     if (info.launcher) motor.Velocity.y = Mathf.Max(motor.Velocity.y, launchSpeed * scale);
                     else if (airborne && Juggled) motor.Velocity.y = Mathf.Max(motor.Velocity.y, airHitPop * scale);
-                    if (info.launcher || (airborne && Juggled)) _juggleUntil = Time.time + Timing.Frames(juggleFrames);
+                    // An upward cut lifts like a small launcher, so it opens a juggle too.
+                    // Judged on the hit, not the body: a heavy enemy is lifted less, but still lifted.
+                    var lifted = info.knockback.y >= 2.5f;
+                    if (info.launcher || lifted || (airborne && Juggled)) _juggleUntil = Time.time + Timing.Frames(juggleFrames);
                 }
 
                 var bonus = _poise != null && _poise.Broken ? _poise.BreakBonusStunFrames : 0;
