@@ -315,6 +315,28 @@ namespace Weizza.EditorTools
         [SerializeField] private float pieceScale = 1f;
 
         [TitleGroup("Placing")]
+        [ToggleLeft, Tooltip("Seats each piece on the Ground Path under it, on the lowest point under its " +
+                             "width, so nothing hangs in the air on a slope. Off drops it exactly at the cursor.")]
+        [SerializeField] private bool sitOnGround = true;
+
+        [TitleGroup("Placing")]
+        [ShowIf(nameof(sitOnGround)), PropertyRange(0f, 0.5f)]
+        [Tooltip("Metres a seated piece sinks into the ground, so its foot is buried instead of balanced.")]
+        [SerializeField] private float sinkInto = 0.08f;
+
+        [TitleGroup("Placing")]
+        [ToggleLeft, Tooltip("Tips each piece part way with the slope it stands on, the way a rock settles on a hill.")]
+        [SerializeField] private bool followSlope = true;
+
+        [TitleGroup("Placing")]
+        [PropertyRange(0f, 0.4f), Tooltip("Random size spread, as a fraction. 0.15 gives pieces 85% to 115% of the size above.")]
+        [SerializeField] private float sizeJitter = 0.12f;
+
+        [TitleGroup("Placing")]
+        [PropertyRange(0f, 15f), Tooltip("Random tilt either way, in degrees. A few degrees breaks up a row of the same drawing.")]
+        [SerializeField] private float tiltJitter = 3f;
+
+        [TitleGroup("Placing")]
         [ToggleLeft, LabelText("Sway in the wind")]
         [Tooltip("Plants, grass and vines bend gently, each on its own beat. Uses the " +
                  "Weizza/SpriteSway material. Vines hang from the top, everything else is " +
@@ -337,6 +359,13 @@ namespace Weizza.EditorTools
                  "on scenery hanging below the ledge. Push it to 1 for a rock " +
                  "that is meant to be solid all the way through.")]
         [SerializeField] private float colliderDepth = 0.35f;
+
+        [TitleGroup("Placing")]
+        [ShowIf(nameof(solid)), ToggleLeft]
+        [Tooltip("Rocks, stumps and ledges standing on the ground: the player walks straight through " +
+                 "them at ground level and can still jump up and stand on top (a one way platform). " +
+                 "Off makes a wall. Fix placed pieces with Weizza > Level > Make Stand On Top.")]
+        [SerializeField] private bool standOnTop = true;
 
         [TitleGroup("Placing")]
         [PropertyRange(-50, 50)]
@@ -1293,6 +1322,17 @@ namespace Weizza.EditorTools
             return min;
         }
 
+        private float SeatHeight(Vector3 at, float width, float fallback)
+        {
+            var lowest = float.MaxValue;
+            for (var i = 0; i <= 6; i++)
+            {
+                var x = at.x + (i / 6f - 0.5f) * width * 0.8f;
+                if (GroundPath.TryTerrainHeight(x, out var h) && h < lowest) lowest = h;
+            }
+            return lowest == float.MaxValue ? fallback : lowest - sinkInto;
+        }
+
         private void Place(Vector3 at)
         {
             if (randomVariant) PickRandomSwatch();
@@ -1319,13 +1359,25 @@ namespace Weizza.EditorTools
             if (alternateFlip && flipNext) renderer.flipX = true;
             flipNext = !flipNext;
 
-            go.transform.localScale = Vector3.one * pieceScale;
+            // A little size spread so a run of the same drawing never reads as stamped.
+            var standing = role == SceneryRole.GroundMoss && !sprite.name.StartsWith("L51_ground");
+            var scale = pieceScale * (1f + (standing ? UnityEngine.Random.Range(-sizeJitter, sizeJitter) : 0f));
+            go.transform.localScale = Vector3.one * scale;
+
+            // Seated on the Ground Path under it: on the lowest point under its width, sunk a
+            // touch, so a rock on a slope never hangs over the low side (the floating rocks).
+            if (sitOnGround && standing) at.y = SeatHeight(at, swatch.Metres.x * scale, at.y);
 
             // Sat on the click rather than centred on it, by the lowest drawn
             // pixel, whatever the pivot. Seating by the sprite rectangle floated
             // pieces by the artist's empty padding, up to 2.28 m on the Plant
             // Animations frames (the project notes, sprite.bounds against vertices).
-            go.transform.position = new Vector3(at.x, at.y - DrawnBottom(sprite) * pieceScale, numbers.Z);
+            go.transform.position = new Vector3(at.x, at.y - DrawnBottom(sprite) * scale, numbers.Z);
+
+            var tilt = standing ? UnityEngine.Random.Range(-tiltJitter, tiltJitter) : 0f;
+            if (standing && followSlope && GroundPath.TryTerrainHeight(at.x - 0.4f, out var hl) && GroundPath.TryTerrainHeight(at.x + 0.4f, out var hr))
+                tilt += Mathf.Clamp(Mathf.Atan2(hr - hl, 0.8f) * Mathf.Rad2Deg, -20f, 20f) * 0.6f;
+            if (Mathf.Abs(tilt) > 0.01f) go.transform.rotation = Quaternion.Euler(0f, 0f, tilt);
             go.transform.SetParent(RoleGroupAt(at.x), true);
 
             if (swatch.animFolder != null)
@@ -1349,7 +1401,11 @@ namespace Weizza.EditorTools
             // Foreground slides past faster than the world, like Neva's black
             // foreground. It is never something to stand on.
             if (role == SceneryRole.ForegroundSilhouette) go.AddComponent<ForegroundDrift>();
-            else if (solid && swatch.animFolder == null) AddCollider(go, renderer, swatch.Metres);
+            else if (solid && swatch.animFolder == null)
+            {
+                AddCollider(go, renderer, swatch.Metres);
+                if (standOnTop) go.AddComponent<OneWayPlatform>();
+            }
 
             // A piece painted while another band is soloed has to be dimmed
             // with the rest of its band, or the level slowly fills with bright
