@@ -59,6 +59,8 @@ namespace Weizza
 
             var player = PlayerLocator.Player;
             if (player == null || player.Vitals == null || !player.Vitals.IsAlive) return;
+            // Dashing through a body is the point of the dash, i-frame window or not.
+            if (player.PassingThroughBodies) return;
 
             // Cached: every enemy runs this every frame, and GetComponent per
             // enemy per frame adds up in a crowded room.

@@ -113,6 +113,15 @@ namespace Weizza
             }
         }
 
+        /// <summary>Until when enemy bodies are passed through without touch damage: the dash and a moment after.</summary>
+        public float BodyPassUntil { get; private set; }
+
+        /// <summary>True while touching an enemy's body should not hurt: dashing, or just out of a dash.</summary>
+        public bool PassingThroughBodies => State == PlayerState.Dash || Time.time < BodyPassUntil;
+
+        [FoldoutGroup("Swing"), PropertyRange(0f, 0.6f), Tooltip("Seconds after a dash during which enemy bodies still do not hurt on touch.")]
+        [SerializeField] private float dashExitGrace = 0.25f;
+
         /// <summary>True while the current swing is the heavy one.</summary>
         public bool SwingIsHeavy => _attack != null && CurrentStance != null && _attack == CurrentStance.heavy;
 
@@ -766,6 +775,9 @@ namespace Weizza
 
             SetDashIFrames(false);
             Motor.Velocity.x = 0f;
+            // A dash that ends inside an enemy's body must not be punished by the touch
+            // it just passed through; a short grace lets the player step clear.
+            BodyPassUntil = Time.time + dashExitGrace;
             EnterState(PlayerState.Locomotion);
         }
 
