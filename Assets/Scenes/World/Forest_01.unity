@@ -119,6 +119,93 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &21646957
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 21646958}
+  - component: {fileID: 21646960}
+  - component: {fileID: 21646959}
+  m_Layer: 0
+  m_Name: Pond (test)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &21646958
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21646957}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 5.2, y: 14.08, z: 0.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1904485993}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &21646959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21646957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ab07afbf14cef347880eb945cf7c9c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.WaterReflection
+  reflectionMaterial: {fileID: 2100000, guid: b1d22ab0797e0ef458c16c19e358bf34, type: 2}
+  reachUp: 9
+  reachSides: 2.5
+  skipLayers:
+  - Foreground
+  skipNames:
+  - Shadow
+  maxReflections: 64
+  refreshEvery: 2
+--- !u!114 &21646960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21646957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d548199a7e070c4584e22fcf632456e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.WaterPond
+  halfWidth: 2
+  halfDepth: 1.25
+  cornerRadius: 0.7
+  shoreWobble: 0.14
+  columnSize: 0.07
+  laneZ: 0
+  surfaceMaterial: {fileID: 2100000, guid: 75f59d2efa0071642beef8f2851ad7ac, type: 2}
+  sortingOrder: -3
+  overlayOrder: 1
+  overlayAlpha: 0.55
+  crestHeight: 0.06
+  tension: 0.03
+  dampening: 0.035
+  spread: 0.22
+  idleSwell: 0.008
+  dropMaterial: {fileID: 2100000, guid: f6c7e69bf9812d94e839c399d2927ee2, type: 2}
+  ringMaterial: {fileID: 2100000, guid: 40b975a95b246234fad2366fcbdd303b, type: 2}
+  dropColour: {r: 0.9, g: 0.95, b: 0.85, a: 0.9}
+  stepEvery: 0.5
+  stepSfx: water.step
+  splashSfx: water.splash
 --- !u!1 &117302482
 GameObject:
   m_ObjectHideFlags: 0
@@ -7391,6 +7478,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1760969835}
+  - {fileID: 21646958}
   m_Father: {fileID: 1850501741}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1933311600
