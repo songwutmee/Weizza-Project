@@ -2809,7 +2809,7 @@ Transform:
   m_GameObject: {fileID: 548157405}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 36.499794, y: 17.04, z: 0.3}
+  m_LocalPosition: {x: 36.499794, y: 17.15, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2851,6 +2851,7 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
+  floorLift: 0.08
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02
@@ -3031,7 +3032,7 @@ Transform:
   m_GameObject: {fileID: 569750664}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.159775, y: 16.35, z: 0.3}
+  m_LocalPosition: {x: 11.159775, y: 16.46, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3073,6 +3074,7 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
+  floorLift: 0.08
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02
@@ -6000,91 +6002,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.08269741, y: 1, z: 2}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &1120382744
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1120382745}
-  - component: {fileID: 1120382747}
-  - component: {fileID: 1120382746}
-  m_Layer: 0
-  m_Name: Puddle (94)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1120382745
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1120382744}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.599831, y: 16.35, z: 0.3}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2081964975}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1120382746
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1120382744}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ab07afbf14cef347880eb945cf7c9c1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.WaterReflection
-  reflectionMaterial: {fileID: 2100000, guid: a93415d17f0998542ae706f5d92a97ce, type: 2}
-  reachUp: 9
-  reachSides: 1.5
-  skipLayers:
-  - Foreground
-  skipNames:
-  - Shadow
-  maxReflections: 64
-  refreshEvery: 2
---- !u!114 &1120382747
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1120382744}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d548199a7e070c4584e22fcf632456e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.WaterPond
-  maxReach: 12
-  columnSize: 0.04
-  laneZ: 0
-  bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
-  sortingOrder: 1
-  crestHeight: 0.02
-  tension: 0.03
-  dampening: 0.06
-  spread: 0.22
-  idleSwell: 0.0015
-  dropMaterial: {fileID: 2100000, guid: f6c7e69bf9812d94e839c399d2927ee2, type: 2}
-  ringMaterial: {fileID: 2100000, guid: 40b975a95b246234fad2366fcbdd303b, type: 2}
-  dropColour: {r: 0.9, g: 0.95, b: 0.85, a: 0.9}
-  splashScale: 0.55
-  stepEvery: 0.4
-  dripEvery: 5
-  stepSfx: water.step
-  splashSfx: water.splash
-  swimSfx: water.swim
 --- !u!1 &1131733334
 GameObject:
   m_ObjectHideFlags: 0
@@ -7281,7 +7198,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: e56446dfc7eb1a54e9189db6533734bf, type: 3}
       propertyPath: m_Color.a
-      value: 0.447863
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: e56446dfc7eb1a54e9189db6533734bf, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -8709,7 +8626,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_Color.a
-      value: 0.44099995
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -10205,7 +10122,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_Color.a
-      value: 0.441
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -12271,7 +12188,6 @@ Transform:
   m_Children:
   - {fileID: 1912172950}
   - {fileID: 569750665}
-  - {fileID: 1120382745}
   - {fileID: 548157406}
   m_Father: {fileID: 2065122410}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

@@ -4110,7 +4110,7 @@ Transform:
   m_GameObject: {fileID: 666916742}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 14.500011, y: 15.71, z: 0.3}
+  m_LocalPosition: {x: 14.500011, y: 15.82, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4152,6 +4152,7 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
+  floorLift: 0.08
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02
@@ -5651,7 +5652,7 @@ Transform:
   m_GameObject: {fileID: 1017443479}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.799995, y: 15.65, z: 0.3}
+  m_LocalPosition: {x: 11.799995, y: 15.76, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5693,6 +5694,7 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
+  floorLift: 0.08
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02
@@ -7868,7 +7870,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: e56446dfc7eb1a54e9189db6533734bf, type: 3}
       propertyPath: m_Color.a
-      value: 0.44779733
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: e56446dfc7eb1a54e9189db6533734bf, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -8711,7 +8713,7 @@ Transform:
   m_GameObject: {fileID: 1433484028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 43.999794, y: 16.23, z: 0.3}
+  m_LocalPosition: {x: 43.999794, y: 16.34, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8753,6 +8755,7 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
+  floorLift: 0.08
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02

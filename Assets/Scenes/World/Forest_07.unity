@@ -426,7 +426,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_Color.a
-      value: 0.441
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -1877,7 +1877,7 @@ Transform:
   m_GameObject: {fileID: 266784350}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.0758972, y: 14.365277, z: 0.3}
+  m_LocalPosition: {x: 1.0758972, y: 14.49, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1919,6 +1919,7 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.05
   laneZ: 0
+  floorLift: 0.08
   bodyMaterial: {fileID: 2100000, guid: 75f59d2efa0071642beef8f2851ad7ac, type: 2}
   sortingOrder: 1
   crestHeight: 0.05
@@ -8981,7 +8982,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: e56446dfc7eb1a54e9189db6533734bf, type: 3}
       propertyPath: m_Color.a
-      value: 0.441
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: e56446dfc7eb1a54e9189db6533734bf, type: 3}
       propertyPath: m_WasSpriteAssigned

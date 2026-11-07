@@ -517,7 +517,7 @@ Transform:
   m_GameObject: {fileID: 98716081}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.210007, y: 13.95, z: 0.3}
+  m_LocalPosition: {x: 4.210007, y: 14.06, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -559,6 +559,7 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
+  floorLift: 0.08
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02
@@ -2764,91 +2765,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.27079132, y: 1, z: 2}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &317786806
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 317786807}
-  - component: {fileID: 317786809}
-  - component: {fileID: 317786808}
-  m_Layer: 0
-  m_Name: Puddle (6)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &317786807
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 317786806}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.1500006, y: 13.95, z: 0.3}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1904485993}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &317786808
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 317786806}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ab07afbf14cef347880eb945cf7c9c1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.WaterReflection
-  reflectionMaterial: {fileID: 2100000, guid: a93415d17f0998542ae706f5d92a97ce, type: 2}
-  reachUp: 9
-  reachSides: 1.5
-  skipLayers:
-  - Foreground
-  skipNames:
-  - Shadow
-  maxReflections: 64
-  refreshEvery: 2
---- !u!114 &317786809
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 317786806}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d548199a7e070c4584e22fcf632456e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Weizza.Gameplay::Weizza.WaterPond
-  maxReach: 12
-  columnSize: 0.04
-  laneZ: 0
-  bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
-  sortingOrder: 1
-  crestHeight: 0.02
-  tension: 0.03
-  dampening: 0.06
-  spread: 0.22
-  idleSwell: 0.0015
-  dropMaterial: {fileID: 2100000, guid: f6c7e69bf9812d94e839c399d2927ee2, type: 2}
-  ringMaterial: {fileID: 2100000, guid: 40b975a95b246234fad2366fcbdd303b, type: 2}
-  dropColour: {r: 0.9, g: 0.95, b: 0.85, a: 0.9}
-  splashScale: 0.55
-  stepEvery: 0.4
-  dripEvery: 5
-  stepSfx: water.step
-  splashSfx: water.splash
-  swimSfx: water.swim
 --- !u!1 &323198205
 GameObject:
   m_ObjectHideFlags: 0
@@ -11706,7 +11622,7 @@ Transform:
   m_GameObject: {fileID: 1623938323}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 34.60001, y: 14.75, z: 0.3}
+  m_LocalPosition: {x: 34.60001, y: 14.86, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11748,6 +11664,7 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
+  floorLift: 0.08
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02
@@ -14104,7 +14021,6 @@ Transform:
   m_Children:
   - {fileID: 1760969835}
   - {fileID: 98716082}
-  - {fileID: 317786807}
   - {fileID: 1938039950}
   - {fileID: 1623938324}
   m_Father: {fileID: 1850501741}
@@ -14324,7 +14240,7 @@ Transform:
   m_GameObject: {fileID: 1938039949}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 31.6, y: 14.75, z: 0.3}
+  m_LocalPosition: {x: 31.6, y: 14.86, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14366,6 +14282,7 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
+  floorLift: 0.08
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02
