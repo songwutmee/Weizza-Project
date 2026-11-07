@@ -5,76 +5,48 @@ using UnityEngine;
 namespace Weizza
 {
     /// <summary>
-    /// A shallow pond lying on the ground: a flat sheet the pitched camera sees from a
-    /// little above, with a live surface the player wades through.
+    /// Water standing in a hollow of the ground, seen side on like the rest of the world.
     ///
-    /// The surface is a row of springs, one per column of the mesh, the classic 2D
-    /// water from Michael Hoffman's Tuts+ article and the same shape At Fate's End's
-    /// ocean wave controller has (two buffers, damping, a brush to disturb it). A step
-    /// or a landing pushes the springs under the feet and the wave runs out to the banks.
+    /// Put the transform where the surface should be, over a dip dug into a Ground Path.
+    /// The pond reads the ground from the transform's x outward until the ground rises
+    /// above the level, and fills exactly that: the water meets each bank where the bank
+    /// meets the level, and its floor is the real floor. A puddle is the same thing in a
+    /// shallow dip; a pool over a metre deep floats the player (see PlayerController).
     ///
-    /// The near strip of the pond draws a second time over the player (Overlay), so
-    /// wading feet sink into the water. Everything this makes is rebuilt on enable and
-    /// never saved, so opening the chunk never rewrites the scene file.
+    /// The surface is a row of springs, one per column (Michael Hoffman's 2D water on
+    /// Tuts+, and the same shape At Fate's End's wave controller has): a step or a landing
+    /// pushes the springs under the feet and the wave runs out to the banks.
     ///
-    /// Put the transform at the pond's centre: x along the level, y the surface height,
-    /// z the middle of its depth. Reflections come from WaterReflection beside it.
+    /// Everything this makes is rebuilt on enable and never saved, so opening the chunk
+    /// never rewrites the scene file.
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Weizza/Level/Water Pond")]
     public sealed class WaterPond : MonoBehaviour
     {
         [BoxGroup("Shape", centerLabel: true)]
-        [MinValue(0.3f), Tooltip("Half the pond's length along the level, metres.")]
-        [SerializeField] private float halfWidth = 2f;
+        [InfoBox("The water fills the ground's hollow under this transform's height. Move the transform up or down to fill it more or less.")]
+        [MinValue(0.5f), Tooltip("Furthest the water may reach either side of the transform, metres. A safety stop if the ground never rises.")]
+        [SerializeField] private float maxReach = 12f;
 
         [BoxGroup("Shape")]
-        [MinValue(0.2f), Tooltip("Half its depth into the scene, metres. The camera is pitched only 16 degrees, so depth reads about a quarter as tall on screen.")]
-        [SerializeField] private float halfDepth = 1.3f;
+        [PropertyRange(0.02f, 0.2f), Tooltip("Width of one surface column. Smaller is smoother waves.")]
+        [SerializeField] private float columnSize = 0.05f;
 
         [BoxGroup("Shape")]
-        [PropertyRange(0f, 0.5f), Tooltip("Corner rounding, metres.")]
-        [SerializeField] private float cornerRadius = 0.7f;
-
-        [BoxGroup("Shape")]
-        [PropertyRange(0f, 0.4f), Tooltip("How much the painted shore wanders in and out, metres.")]
-        [SerializeField] private float shoreWobble = 0.14f;
-
-        [BoxGroup("Shape")]
-        [PropertyRange(0.03f, 0.3f), Tooltip("Width of one surface column. Smaller is smoother waves and more vertices.")]
-        [SerializeField] private float columnSize = 0.07f;
-
-        [BoxGroup("Shape")]
-        [Tooltip("World z of the lane the player walks on. The overlay covers the pond from its near edge to just past this.")]
+        [Tooltip("World z of the lane the player walks on, where splashes are thrown.")]
         [SerializeField] private float laneZ = 0f;
 
-        [BoxGroup("Shape")]
-        [MinValue(0f), Tooltip("Metres of water under the surface. Above 0.6 the pond is deep enough to swim in, " +
-                               "and a front face is drawn over the swimmer. Leave 0 for a puddle or a wading pond.")]
-        [SerializeField] private float swimDepth;
-
-        [BoxGroup("Shape")]
-        [ShowIf(nameof(Deep)), Tooltip("Metres from a bank to the full depth. Match the slope dug into the ground.")]
-        [SerializeField] private float bankSlope = 1.4f;
-
         [BoxGroup("Look", centerLabel: true)]
-        [Required] [SerializeField] private Material surfaceMaterial;
+        [Required] [SerializeField] private Material bodyMaterial;
 
         [BoxGroup("Look")]
-        [Tooltip("Sorting order of the pond. Above the ground strips (-5) and the ground mesh (-4), under the player (0).")]
-        [SerializeField] private int sortingOrder = -3;
+        [Tooltip("Sorting order of the water. Above the player (0) so a wading foot or a swimmer's body sits inside it.")]
+        [SerializeField] private int sortingOrder = 1;
 
         [BoxGroup("Look")]
-        [Tooltip("Sorting order of the near strip drawn again over the player's feet.")]
-        [SerializeField] private int overlayOrder = 1;
-
-        [BoxGroup("Look")]
-        [PropertyRange(0f, 1f), Tooltip("How much of the water shows over the wading feet.")]
-        [SerializeField] private float overlayAlpha = 0.55f;
-
-        [BoxGroup("Look")]
-        [PropertyRange(0.02f, 0.3f), Tooltip("Displacement in metres that lights a crest fully.")]
-        [SerializeField] private float crestHeight = 0.06f;
+        [PropertyRange(0.01f, 0.2f), Tooltip("Displacement in metres that lights a crest fully.")]
+        [SerializeField] private float crestHeight = 0.05f;
 
         [BoxGroup("Waves", centerLabel: true)]
         [PropertyRange(0.001f, 0.1f), Tooltip("How hard each column pulls back to flat. Higher is quicker, choppier waves.")]
@@ -89,8 +61,8 @@ namespace Weizza
         [SerializeField] private float spread = 0.22f;
 
         [BoxGroup("Waves")]
-        [PropertyRange(0f, 0.03f), Tooltip("A slow idle swell so the pond is never glass still. Metres.")]
-        [SerializeField] private float idleSwell = 0.008f;
+        [PropertyRange(0f, 0.03f), Tooltip("A slow idle swell so the water is never glass still. Metres.")]
+        [SerializeField] private float idleSwell = 0.006f;
 
         [BoxGroup("Splash", centerLabel: true)]
         [SerializeField] private Material dropMaterial;
@@ -102,12 +74,12 @@ namespace Weizza
         [SerializeField] private Color dropColour = new(0.9f, 0.95f, 0.85f, 0.9f);
 
         [BoxGroup("Splash")]
-        [Tooltip("Metres of wading between two footstep splashes.")]
-        [SerializeField] private float stepEvery = 0.5f;
-
-        [BoxGroup("Splash")]
         [PropertyRange(0.2f, 2f), Tooltip("Size of every splash, drop and ring. A puddle wants about half.")]
         [SerializeField] private float splashScale = 1f;
+
+        [BoxGroup("Splash")]
+        [Tooltip("Metres of wading between two footstep splashes.")]
+        [SerializeField] private float stepEvery = 0.5f;
 
         [BoxGroup("Splash")]
         [MinValue(0f), Tooltip("Seconds between drips falling in from the leaves above, on average. 0 is none.")]
@@ -122,12 +94,17 @@ namespace Weizza
         [BoxGroup("Splash")]
         [SerializeField] private string swimSfx = "water.swim";
 
-        private bool Deep => swimDepth > 0.6f;
+        [FoldoutGroup("Live"), ShowInInspector, ReadOnly] public float Left { get; private set; }
+        [FoldoutGroup("Live"), ShowInInspector, ReadOnly] public float Right { get; private set; }
+        [FoldoutGroup("Live"), ShowInInspector, ReadOnly] public float Deepest { get; private set; }
 
         public float Level => transform.position.y;
-        public float HalfWidth => halfWidth;
         public int SortingLayerId => _sortingLayerId;
         public int SortingOrder => sortingOrder;
+        public bool Built => _floor != null;
+
+        /// <summary>Deep enough to float in rather than wade.</summary>
+        public bool Deep => Deepest > 1f;
 
         private static readonly List<WaterPond> Ponds = new();
         public static IReadOnlyList<WaterPond> All => Ponds;
@@ -135,24 +112,42 @@ namespace Weizza
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics() => Ponds.Clear();
 
-        private static readonly int RectId = Shader.PropertyToID("_WaterRect");
-        private static readonly int LevelId = Shader.PropertyToID("_WaterLevel");
-        private static readonly int OverlayId = Shader.PropertyToID("_Overlay");
-        private static readonly int OverlayAlphaId = Shader.PropertyToID("_OverlayAlpha");
-        private static readonly int FaceId = Shader.PropertyToID("_Face");
-        private static readonly int FaceShapeId = Shader.PropertyToID("_FaceShape");
-        private static readonly int RimWidthId = Shader.PropertyToID("_RimWidth");
+        private static readonly int SpanId = Shader.PropertyToID("_WaterSpan");
+        private static readonly int FloorId = Shader.PropertyToID("_WaterFloor");
 
-        /// <summary>
-        /// True when feet at this point are deep enough in a swimmable pond to float.
-        /// The level is the surface the swimmer floats under.
-        /// </summary>
+        /// <summary>How far below the surface the feet must be before the player floats instead of wading.</summary>
+        public const float SwimFeetDepth = 0.55f;
+
+        private const float StepRate = 1f / 60f;
+        private const int MaskSamples = 64;
+
+        private GameObject _bodyObject;
+        private Mesh _mesh;
+        private MeshRenderer _renderer;
+        private Vector3[] _vertices;
+        private Vector2[] _heights;
+        private Color32[] _colours;
+        private float[] _floor;              // ground under each column, world y
+        private readonly float[] _mask = new float[MaskSamples];
+        private ParticleSystem _drops, _rings;
+        private MaterialPropertyBlock _block;
+        private float[] _height, _speed, _left, _right;
+        private float _stepClock;
+        private bool _awake;
+        private int _sortingLayerId;
+
+        private bool _wasGrounded = true;
+        private float _lastVy, _lastX, _walked, _lastFeetY = 99f;
+        private float _nextDrip, _swum, _bobClock;
+
+        /// <summary>True when feet here are deep enough in a pool to float. The level is the surface.</summary>
         public static bool SwimAt(Vector3 feet, out float level)
         {
             foreach (var p in Ponds)
             {
-                if (p == null || !p.Deep || !p.Covers(feet.x, 0.3f)) continue;
-                if (feet.y > p.Level - SwimFeetDepth || feet.y < p.Level - p.swimDepth - 0.5f) continue;
+                if (p == null || !p.Built || !p.Deep || feet.x < p.Left + 0.3f || feet.x > p.Right - 0.3f) continue;
+                if (feet.y > p.Level - SwimFeetDepth || feet.y < p.FloorAt(feet.x) - 0.5f) continue;
+                if (p.Level - p.FloorAt(feet.x) < 1f) continue;
                 level = p.Level;
                 return true;
             }
@@ -160,94 +155,203 @@ namespace Weizza
             return false;
         }
 
-        /// <summary>How far below the surface the feet must be before the player floats instead of wading.</summary>
-        public const float SwimFeetDepth = 0.55f;
-
-        private const float StepRate = 1f / 60f;
-
-        private Sheet _surface, _overlay, _face;
-        private float _nextDrip;
-        private float _swum, _bobClock;
-        private ParticleSystem _drops, _rings;
-        private MaterialPropertyBlock _block;
-        private float[] _height, _speed, _left, _right;
-        private float _stepClock;
-        private bool _awake;
-        private int _sortingLayerId;
-        private float _seed;
-
-        // Wading
-        private bool _wasGrounded = true;
-        private float _lastVy, _lastX, _walked;
-
         private void OnEnable()
         {
             Ponds.Add(this);
             _block ??= new MaterialPropertyBlock();
             _sortingLayerId = SortingLayer.NameToID("Default");
-            _seed = Mathf.Repeat(transform.position.x * 0.37f, 50f);
             Build();
         }
 
         private void OnDisable()
         {
             Ponds.Remove(this);
-            _surface?.Dispose();
-            _overlay?.Dispose();
-            _face?.Dispose();
-            _surface = _overlay = _face = null;
-            Kill(_drops);
-            Kill(_rings);
+            Clear();
+        }
+
+        private void Clear()
+        {
+            Kill(_bodyObject);
+            if (_mesh != null) { if (Application.isPlaying) Destroy(_mesh); else DestroyImmediate(_mesh); }
+            Kill(_drops != null ? _drops.gameObject : null);
+            Kill(_rings != null ? _rings.gameObject : null);
+            _bodyObject = null;
+            _mesh = null;
             _drops = _rings = null;
+            _floor = null;
         }
 
         private void OnValidate()
         {
-            if (!isActiveAndEnabled) return;
-            // Rebuilding inside OnValidate is not allowed to create objects; do it next tick.
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.delayCall += () =>
             {
                 if (this == null || !isActiveAndEnabled) return;
-                OnDisable();
-                OnEnable();
+                Clear();
+                Build();
             };
 #endif
         }
 
+        [Button("Refit to the ground"), BoxGroup("Shape")]
+        private void Refit()
+        {
+            Clear();
+            Build();
+        }
+
+        // ---- Shape ------------------------------------------------------------------------
+
+        private static bool Ground(float x, out float y) => GroundPath.TryTerrainHeight(x, out y);
+
+        /// <summary>Ground height under the water at a world x.</summary>
+        public float FloorAt(float x)
+        {
+            if (_floor == null) return Level;
+            var u = Mathf.Clamp01((x - Left) / Mathf.Max(Right - Left, 1e-3f)) * (_floor.Length - 1);
+            var i = Mathf.Min((int)u, _floor.Length - 2);
+            return Mathf.Lerp(_floor[i], _floor[i + 1], u - i);
+        }
+
+        // Walks out from the middle until the ground rises above the level, then narrows the
+        // crossing down to a millimetre, so the water ends exactly where the bank does.
+        private float FindBank(float from, float direction)
+        {
+            var level = Level;
+            var x = from;
+            const float probe = 0.05f;
+            for (var travelled = 0f; travelled < maxReach; travelled += probe)
+            {
+                var next = x + direction * probe;
+                if (!Ground(next, out var g)) return x;
+                if (g >= level)
+                {
+                    var wet = x;
+                    var dry = next;
+                    for (var i = 0; i < 12; i++)
+                    {
+                        var mid = (wet + dry) * 0.5f;
+                        if (Ground(mid, out var gm) && gm < level) wet = mid; else dry = mid;
+                    }
+                    return wet;
+                }
+                x = next;
+            }
+            return x;
+        }
+
         private void Build()
         {
-            var columns = Mathf.Max(4, Mathf.CeilToInt(Width / columnSize) + 1);
+            if (bodyMaterial == null) return;
+            // Anything a script reload orphaned: a second body would draw a second water.
+            for (var i = transform.childCount - 1; i >= 0; i--)
+            {
+                var child = transform.GetChild(i).gameObject;
+                if (child.name is "Water Body" or "Water Drops" or "Water Rings") Kill(child);
+            }
+            var centre = transform.position.x;
+            // In play the chunk's ground may wake after the water; LateUpdate tries again.
+            if (!Ground(centre, out var bottom) || bottom >= Level) return;
+
+            Left = FindBank(centre, -1f);
+            Right = FindBank(centre, 1f);
+            var columns = Mathf.Max(4, Mathf.CeilToInt((Right - Left) / columnSize) + 1);
+            _floor = new float[columns];
+            Deepest = 0f;
+            for (var c = 0; c < columns; c++)
+            {
+                var x = Mathf.Lerp(Left, Right, c / (float)(columns - 1));
+                _floor[c] = Ground(x, out var g) ? Mathf.Min(g, Level) : Level;
+                Deepest = Mathf.Max(Deepest, Level - _floor[c]);
+            }
+            // The very ends meet the bank at the level, so the water closes to nothing there.
+            _floor[0] = _floor[columns - 1] = Level;
+            for (var i = 0; i < MaskSamples; i++) _mask[i] = FloorAt(Mathf.Lerp(Left, Right, i / (float)(MaskSamples - 1)));
+
             _height = new float[columns];
             _speed = new float[columns];
             _left = new float[columns];
             _right = new float[columns];
 
-            if (surfaceMaterial == null) return;
-            var near = -halfDepth - Margin;
-            var far = halfDepth + Margin;
-            var laneLocal = laneZ - transform.position.z;
-            _surface = new Sheet(transform, "Water Surface", surfaceMaterial, columns, -HalfSpan, HalfSpan, near, far, 10,
-                _sortingLayerId, sortingOrder);
-            if (laneLocal + 0.08f > near)
-                _overlay = new Sheet(transform, "Water Over Feet", surfaceMaterial, columns, -HalfSpan, HalfSpan, near,
-                    Mathf.Min(far, laneLocal + 0.08f), 3, _sortingLayerId, overlayOrder);
-            // The cut through the near side of a deep pond, standing upright, drawn over the swimmer.
-            if (Deep)
-                _face = new Sheet(transform, "Water Front", surfaceMaterial, columns, -HalfSpan, HalfSpan, -halfDepth,
-                    -halfDepth, 6, _sortingLayerId, overlayOrder, swimDepth + 0.2f);
-
+            MakeBody(columns);
             if (Application.isPlaying)
             {
-                _drops = MakeParticles("Water Drops", dropMaterial, overlayOrder + 1, 1.6f);
+                _drops = MakeParticles("Water Drops", dropMaterial, sortingOrder + 1, 1.6f);
                 _rings = MakeParticles("Water Rings", ringMaterial, sortingOrder, 0f);
             }
         }
 
-        private float Width => halfWidth * 2f;
-        private float HalfSpan => halfWidth + Margin;
-        private float Margin => shoreWobble + 0.05f +
-            (surfaceMaterial != null && surfaceMaterial.HasFloat(RimWidthId) ? surfaceMaterial.GetFloat(RimWidthId) : 0f);
+        // Two vertices per column, the surface and the floor under it, all in world space
+        // on an identity child so the body stays put whatever the pond's own transform does.
+        private void MakeBody(int columns)
+        {
+            _bodyObject = new GameObject("Water Body") { hideFlags = HideFlags.DontSave };
+            _bodyObject.transform.SetParent(transform, false);
+            _bodyObject.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            _bodyObject.transform.localScale = new Vector3(1f / Mathf.Max(transform.lossyScale.x, 1e-4f),
+                1f / Mathf.Max(transform.lossyScale.y, 1e-4f), 1f / Mathf.Max(transform.lossyScale.z, 1e-4f));
+            _bodyObject.transform.position = Vector3.zero;
+
+            _mesh = new Mesh { name = "Water Body", hideFlags = HideFlags.DontSave };
+            _mesh.MarkDynamic();
+            _vertices = new Vector3[columns * 2];
+            _heights = new Vector2[columns * 2];
+            _colours = new Color32[columns * 2];
+            var triangles = new int[(columns - 1) * 6];
+            var z = transform.position.z;
+            for (var c = 0; c < columns; c++)
+            {
+                var x = Mathf.Lerp(Left, Right, c / (float)(columns - 1));
+                _vertices[c * 2] = new Vector3(x, Level, z);
+                _vertices[c * 2 + 1] = new Vector3(x, _floor[c], z);
+                if (c == columns - 1) break;
+                var k = c * 6;
+                var a = c * 2;
+                triangles[k] = a; triangles[k + 1] = a + 2; triangles[k + 2] = a + 1;
+                triangles[k + 3] = a + 1; triangles[k + 4] = a + 2; triangles[k + 5] = a + 3;
+            }
+            _mesh.vertices = _vertices;
+            _mesh.triangles = triangles;
+            var minY = Level - Deepest - 0.5f;
+            _mesh.bounds = new Bounds(new Vector3((Left + Right) * 0.5f, (Level + minY) * 0.5f, z),
+                new Vector3(Right - Left + 0.5f, Level - minY + 1f, 1f));
+            _bodyObject.AddComponent<MeshFilter>().sharedMesh = _mesh;
+            _renderer = _bodyObject.AddComponent<MeshRenderer>();
+            _renderer.sharedMaterial = bodyMaterial;
+            _renderer.sortingLayerID = _sortingLayerId;
+            _renderer.sortingOrder = sortingOrder;
+            _renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _renderer.receiveShadows = false;
+            Shape(0f);
+        }
+
+        private void Shape(float time)
+        {
+            var columns = _floor.Length;
+            for (var c = 0; c < columns; c++)
+            {
+                var x = _vertices[c * 2].x;
+                // The very ends stay pinned to the banks; waves die into the shore.
+                var pin = Mathf.Min(c, columns - 1 - c) < 2 ? 0f : 1f;
+                var idle = (Mathf.Sin(x * 2.1f + time * 1.3f) * 0.65f + Mathf.Sin(x * 5.3f - time * 2.1f) * 0.35f) * idleSwell;
+                var h = (_height[c] + idle) * pin;
+                var top = Level + h;
+                _vertices[c * 2].y = top;
+                var shade = (byte)Mathf.Clamp(Mathf.RoundToInt(127.5f + 127.5f * Mathf.Clamp(h / crestHeight, -1f, 1f)), 0, 255);
+                _heights[c * 2] = _heights[c * 2 + 1] = new Vector2(top, _floor[c]);
+                _colours[c * 2] = _colours[c * 2 + 1] = new Color32(shade, 0, 0, 255);
+            }
+            _mesh.SetVertices(_vertices);
+            _mesh.SetUVs(0, _heights);
+            _mesh.SetColors(_colours);
+        }
+
+        /// <summary>The water's span, level and floor, for the reflections drawn inside it.</summary>
+        public void FillBlock(MaterialPropertyBlock block)
+        {
+            block.SetVector(SpanId, new Vector4(Left, Right, Level, MaskSamples));
+            block.SetFloatArray(FloorId, _mask);
+        }
 
         // ---- Waves ------------------------------------------------------------------------
 
@@ -256,11 +360,10 @@ namespace Weizza
         {
             if (_speed == null) return;
             var columns = _speed.Length;
-            var x0 = transform.position.x - HalfSpan;
-            var step = HalfSpan * 2f / (columns - 1);
             for (var i = 0; i < columns; i++)
             {
-                var d = Mathf.Abs(x0 + i * step - worldX) / Mathf.Max(radius, 0.01f);
+                var x = Mathf.Lerp(Left, Right, i / (float)(columns - 1));
+                var d = Mathf.Abs(x - worldX) / Mathf.Max(radius, 0.01f);
                 if (d >= 1f) continue;
                 // A bell, not a box: the middle pushed hardest, so the wave leaves round.
                 _speed[i] += power * (0.5f + 0.5f * Mathf.Cos(d * Mathf.PI));
@@ -276,7 +379,7 @@ namespace Weizza
                 _speed[i] += -tension * _height[i] - dampening * _speed[i];
                 _height[i] += _speed[i];
             }
-            // Several passes so a wave crosses the pond at a believable speed.
+            // Several passes so a wave crosses the water at a believable speed.
             for (var pass = 0; pass < 6; pass++)
             {
                 for (var i = 0; i < n; i++)
@@ -305,9 +408,14 @@ namespace Weizza
 
         private void Update()
         {
-            if (!Application.isPlaying || _height == null) return;
+            if (!Application.isPlaying) return;
+            if (_floor == null)
+            {
+                Build();
+                if (_floor == null) return;
+            }
             Wade();
-            if (_surface != null) Drip();
+            Drip();
             if (!_awake) return;
             _stepClock += Mathf.Min(Time.deltaTime, 0.1f);
             while (_stepClock >= StepRate)
@@ -320,47 +428,18 @@ namespace Weizza
 
         private void LateUpdate()
         {
-            if (_surface == null) return;
+            // The ground may come up after the water, on a scene load or back from Play.
+            if (_floor == null) Build();
+            if (_floor == null || _renderer == null) return;
             // Off screen, nothing to shape: a dozen puddles along a level cost nothing until seen.
-            if (Application.isPlaying && !_surface.Renderer.isVisible && (_face == null || !_face.Renderer.isVisible)) return;
-            var p = transform.position;
+            if (Application.isPlaying && !_renderer.isVisible) return;
+            Shape(Application.isPlaying ? Time.time : 0f);
             _block.Clear();
-            _block.SetVector(RectId, new Vector4(p.x, halfWidth, p.z, halfDepth));
-            _block.SetVector(LevelId, new Vector4(p.y, shoreWobble, Mathf.Min(cornerRadius, Mathf.Min(halfWidth, halfDepth * 1.8f) - 0.01f), _seed));
-            _block.SetFloat(OverlayId, 0f);
-            _block.SetFloat(OverlayAlphaId, overlayAlpha);
-            var t = Application.isPlaying ? Time.time : 0f;
-            _surface.Shape(_height, idleSwell, crestHeight, t, p.x);
-            _surface.Renderer.SetPropertyBlock(_block);
-            if (_overlay != null)
-            {
-                _overlay.Shape(_height, idleSwell, crestHeight, t, p.x);
-                _block.SetFloat(OverlayId, 1f);
-                _overlay.Renderer.SetPropertyBlock(_block);
-            }
-            if (_face != null)
-            {
-                _face.Shape(_height, idleSwell, crestHeight, t, p.x);
-                _block.SetFloat(OverlayId, 0f);
-                _block.SetFloat(FaceId, 1f);
-                _block.SetVector(FaceShapeId, new Vector4(swimDepth, bankSlope, 0f, 0f));
-                _face.Renderer.SetPropertyBlock(_block);
-                _block.SetFloat(FaceId, 0f);
-            }
+            FillBlock(_block);
+            _renderer.SetPropertyBlock(_block);
         }
 
-        /// <summary>The pond's shape and level, for the reflections drawn over it.</summary>
-        public void FillBlock(MaterialPropertyBlock block)
-        {
-            var p = transform.position;
-            block.SetVector(RectId, new Vector4(p.x, halfWidth, p.z, halfDepth));
-            block.SetVector(LevelId, new Vector4(p.y, shoreWobble, Mathf.Min(cornerRadius, Mathf.Min(halfWidth, halfDepth * 1.8f) - 0.01f), _seed));
-        }
-
-        /// <summary>True when a world x sits over this pond, with a small margin in from the banks.</summary>
-        public bool Covers(float worldX, float inset = 0.15f) => Mathf.Abs(worldX - transform.position.x) < halfWidth - inset;
-
-        // ---- Wading -----------------------------------------------------------------------
+        // ---- Wading and swimming ------------------------------------------------------------
 
         private void Wade()
         {
@@ -369,13 +448,16 @@ namespace Weizza
             var pos = player.transform.position;
             var motor = player.Motor;
             var grounded = motor.Grounded;
-            var over = Covers(pos.x) && pos.y < Level + 0.4f && pos.y > Level - swimDepth - 1.5f;
-            var swimming = Deep && over && pos.y < Level - SwimFeetDepth + 0.05f;
+            var over = pos.x > Left + 0.05f && pos.x < Right - 0.05f && pos.y < Level + 0.4f && pos.y > FloorAt(pos.x) - 0.5f;
+            var inWater = over && pos.y < Level - 0.02f;
+            var swimming = over && Level - FloorAt(pos.x) >= 1f && pos.y < Level - SwimFeetDepth + 0.05f;
+            var at = new Vector3(pos.x, Level, laneZ);
 
-            if (over && Deep && _lastFeetY > Level - 0.25f && pos.y <= Level - 0.25f && _lastVy < -1f)
+            if (over && _lastFeetY > Level - 0.05f && pos.y <= Level - 0.05f && _lastVy < -1.5f)
             {
-                // Dropping into deep water: the big one, however the player got there.
-                Splash(new Vector3(pos.x, Level, laneZ), Mathf.InverseLerp(1f, 12f, -_lastVy));
+                // Dropping in, however the player got there.
+                Splash(at, Mathf.InverseLerp(1.5f, 12f, -_lastVy) * Mathf.Clamp01(Deepest / 0.8f + 0.25f));
+                _walked = 0f;
                 _swum = 0f;
             }
             else if (swimming)
@@ -390,7 +472,6 @@ namespace Weizza
                 {
                     _swum = 0f;
                     _bobClock = 0f;
-                    var at = new Vector3(pos.x, Level, laneZ);
                     Disturb(pos.x, 0.45f, -0.04f);
                     EmitDrops(at, 3, 1.2f * splashScale, Mathf.Sign(motor.Velocity.x));
                     EmitRing(at, 0.8f * splashScale, 0.9f);
@@ -399,31 +480,23 @@ namespace Weizza
                 else if (_bobClock >= 1.4f)
                 {
                     _bobClock = 0f;
-                    EmitRing(new Vector3(pos.x, Level, laneZ), 0.7f * splashScale, 1.2f);
+                    EmitRing(at, 0.7f * splashScale, 1.2f);
                     Disturb(pos.x, 0.4f, -0.015f);
                 }
             }
-            else if (over)
+            else if (inWater && grounded)
             {
-                if (!_wasGrounded && grounded && _lastVy < -2f)
+                var moved = Mathf.Abs(pos.x - _lastX);
+                // A wake: the legs keep pushing the water aside while walking.
+                if (moved > 0.0005f) Disturb(pos.x, 0.3f, -Mathf.Clamp(moved * 0.05f, 0f, 0.003f) * splashScale);
+                _walked += moved;
+                if (_walked >= stepEvery)
                 {
-                    Splash(new Vector3(pos.x, Level, laneZ), Mathf.InverseLerp(2f, 14f, -_lastVy));
                     _walked = 0f;
-                }
-                else if (grounded)
-                {
-                    var moved = Mathf.Abs(pos.x - _lastX);
-                    // A wake: the legs keep pushing the water aside while walking.
-                    if (moved > 0.0005f) Disturb(pos.x, 0.35f, -Mathf.Clamp(moved * 0.06f, 0f, 0.004f));
-                    _walked += moved;
-                    if (_walked >= stepEvery)
-                    {
-                        _walked = 0f;
-                        Step(new Vector3(pos.x, Level, laneZ), Mathf.Sign(motor.Velocity.x));
-                    }
+                    Step(at, Mathf.Sign(motor.Velocity.x));
                 }
             }
-            else _walked = stepEvery * 0.6f;
+            else if (!inWater) _walked = stepEvery * 0.6f;
 
             _wasGrounded = grounded;
             _lastVy = motor.Velocity.y;
@@ -431,19 +504,16 @@ namespace Weizza
             _lastFeetY = pos.y;
         }
 
-        private float _lastFeetY = 99f;
-
-        // A drop from the leaves now and then, so a puddle in a wet forest is never quite still.
+        // A drop from the leaves now and then, so water in a wet forest is never quite still.
         private void Drip()
         {
             if (dripEvery <= 0f || Time.time < _nextDrip) return;
             var first = _nextDrip <= 0f;
             _nextDrip = Time.time + dripEvery * Random.Range(0.5f, 1.5f);
-            if (first || !_surface.Renderer.isVisible) return;
-            var at = new Vector3(transform.position.x + Random.Range(-0.7f, 0.7f) * halfWidth, Level,
-                transform.position.z + Random.Range(-0.4f, 0.4f) * halfDepth);
-            EmitRing(at, Random.Range(0.25f, 0.45f) * splashScale, 1f);
-            Disturb(at.x, 0.15f, -0.008f);
+            if (first || _renderer == null || !_renderer.isVisible) return;
+            var x = Mathf.Lerp(Left, Right, Random.Range(0.15f, 0.85f));
+            EmitRing(new Vector3(x, Level, laneZ), Random.Range(0.25f, 0.45f) * splashScale, 1f);
+            Disturb(x, 0.15f, -0.01f);
         }
 
         /// <summary>A landing or anything dropped in. Strength 0 to 1.</summary>
@@ -462,7 +532,7 @@ namespace Weizza
         {
             var s = splashScale;
             Disturb(at.x, 0.3f * s, -0.03f * s);
-            // A puddle step throws a little crown forward, the way the foot leaves.
+            // A step throws a little crown forward, the way the foot leaves.
             EmitDrops(at, Mathf.Max(3, Mathf.RoundToInt(5 * s)), 1.4f * Mathf.Sqrt(s), direction);
             EmitRing(at, 0.55f * s, 0.7f);
             AudioDirector.Instance?.PlayAt(stepSfx, at, 0.5f);
@@ -484,18 +554,18 @@ namespace Weizza
             }
         }
 
+        // Side on, a ripple is a short bright arc riding along the surface line, not a ring.
         private void EmitRing(Vector3 at, float size, float life)
         {
             if (_rings == null) return;
             var p = new ParticleSystem.EmitParams
             {
                 applyShapeToPosition = false,
-                position = at + new Vector3(0f, 0.01f, 0.02f),
+                position = at + new Vector3(0f, 0.005f, -0.02f),
                 velocity = Vector3.zero,
-                // Flattened: a circle lying on the water reads as a wide ellipse at this pitch.
-                startSize3D = new Vector3(size, size * 0.3f, 1f),
+                startSize3D = new Vector3(size, size * 0.12f, 1f),
                 startLifetime = life,
-                startColor = new Color(dropColour.r, dropColour.g, dropColour.b, 0.75f),
+                startColor = new Color(dropColour.r, dropColour.g, dropColour.b, 0.7f),
             };
             _rings.Emit(p, 1);
         }
@@ -527,7 +597,7 @@ namespace Weizza
             var size = ps.sizeOverLifetime;
             size.enabled = true;
             size.size = gravity <= 0f
-                ? new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, 0.25f, 1f, 1f))   // rings widen
+                ? new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, 0.25f, 1f, 1f))   // ripples widen
                 : new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.4f));      // drops shrink
             var r = go.GetComponent<ParticleSystemRenderer>();
             r.sharedMaterial = material;
@@ -538,97 +608,11 @@ namespace Weizza
             return ps;
         }
 
-        private static void Kill(Component c)
+        private static void Kill(GameObject go)
         {
-            if (c == null) return;
-            if (Application.isPlaying) Destroy(c.gameObject);
-            else DestroyImmediate(c.gameObject);
-        }
-
-        /// <summary>A grid lying flat at the pond's level whose columns ride the spring row.</summary>
-        private sealed class Sheet
-        {
-            public readonly MeshRenderer Renderer;
-            private readonly GameObject _go;
-            private readonly Mesh _mesh;
-            private readonly Vector3[] _vertices;
-            private readonly Color32[] _colours;
-            private readonly int _columns, _rows;
-            private readonly float _x0, _dx;
-
-            private readonly bool _upright;
-
-            /// <param name="height">0 lays the sheet flat. Above 0 stands it upright at z0, reaching this far down.</param>
-            public Sheet(Transform parent, string label, Material material, int columns, float x0, float x1,
-                float z0, float z1, int rows, int layer, int order, float height = 0f)
-            {
-                _columns = columns;
-                _rows = Mathf.Max(2, rows);
-                _upright = height > 0f;
-                _x0 = x0;
-                _dx = (x1 - x0) / (columns - 1);
-                _go = new GameObject(label) { hideFlags = HideFlags.DontSave };
-                _go.transform.SetParent(parent, false);
-                _mesh = new Mesh { name = label, hideFlags = HideFlags.DontSave };
-                _mesh.MarkDynamic();
-                _vertices = new Vector3[_columns * _rows];
-                _colours = new Color32[_vertices.Length];
-                var triangles = new int[(_columns - 1) * (_rows - 1) * 6];
-                for (int r = 0, k = 0; r < _rows; r++)
-                {
-                    var z = Mathf.Lerp(z0, z1, r / (float)(_rows - 1));
-                    var y = _upright ? -height * r / (_rows - 1) : 0f;
-                    for (var c = 0; c < _columns; c++)
-                        _vertices[r * _columns + c] = new Vector3(x0 + c * _dx, y, _upright ? z0 : z);
-                    if (r == _rows - 1) break;
-                    for (var c = 0; c < _columns - 1; c++)
-                    {
-                        var a = r * _columns + c;
-                        triangles[k++] = a; triangles[k++] = a + _columns; triangles[k++] = a + 1;
-                        triangles[k++] = a + 1; triangles[k++] = a + _columns; triangles[k++] = a + _columns + 1;
-                    }
-                }
-                _mesh.vertices = _vertices;
-                _mesh.triangles = triangles;
-                _mesh.bounds = new Bounds(new Vector3((x0 + x1) * 0.5f, -height * 0.5f, (z0 + z1) * 0.5f),
-                    new Vector3(x1 - x0, 1f + height, Mathf.Max(0.1f, z1 - z0)));
-                _go.AddComponent<MeshFilter>().sharedMesh = _mesh;
-                Renderer = _go.AddComponent<MeshRenderer>();
-                Renderer.sharedMaterial = material;
-                Renderer.sortingLayerID = layer;
-                Renderer.sortingOrder = order;
-                Renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                Renderer.receiveShadows = false;
-            }
-
-            public void Shape(float[] heights, float swell, float crest, float time, float worldX)
-            {
-                var n = Mathf.Min(heights.Length, _columns);
-                for (var c = 0; c < n; c++)
-                {
-                    var x = _x0 + c * _dx + worldX;
-                    var idle = (Mathf.Sin(x * 2.1f + time * 1.3f) * 0.65f + Mathf.Sin(x * 5.3f - time * 2.1f) * 0.35f) * swell;
-                    var h = heights[c] + idle;
-                    var shade = (byte)Mathf.Clamp(Mathf.RoundToInt(127.5f + 127.5f * Mathf.Clamp(h / crest, -1f, 1f)), 0, 255);
-                    // An upright face only moves its top edge; the rest stays down in the basin.
-                    for (var r = 0; r < (_upright ? 1 : _rows); r++)
-                    {
-                        var i = r * _columns + c;
-                        _vertices[i].y = h;
-                        _colours[i] = new Color32(shade, 0, 0, 255);
-                    }
-                    if (_upright)
-                        for (var r = 1; r < _rows; r++) _colours[r * _columns + c] = new Color32(127, 0, 0, 255);
-                }
-                _mesh.SetVertices(_vertices);
-                _mesh.SetColors(_colours);
-            }
-
-            public void Dispose()
-            {
-                if (Application.isPlaying) { Object.Destroy(_go); Object.Destroy(_mesh); }
-                else { Object.DestroyImmediate(_go); Object.DestroyImmediate(_mesh); }
-            }
+            if (go == null) return;
+            if (Application.isPlaying) Destroy(go);
+            else DestroyImmediate(go);
         }
     }
 }

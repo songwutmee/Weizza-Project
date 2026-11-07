@@ -6,10 +6,8 @@
 // It keeps the drawings sharp and needs no second camera or screen copy, which was
 // what made the old Water2D attempt fragile here (the Opaque Texture is empty).
 //
-// Clipping to the pond: on a camera pitched about the x axis, a point's height on
-// screen is dot(position, camera up). The water plane point drawn at the same pixel
-// is the one at the surface height with the matching depth, so the depth is solved
-// from that and checked against the same painted shore the surface uses.
+// Clipped to the water's own shape: below the level line and above the ground the
+// pond baked, so a reflection never spills onto the bank or into the earth.
 Shader "Weizza/WaterReflection"
 {
     Properties
@@ -81,22 +79,22 @@ Shader "Weizza/WaterReflection"
                 float3 p = input.waterWS;
                 float t = _Time.y * _WobbleSpeed;
 
-                // Where on the water plane this pixel lands, then whether that is inside the pond.
-                float3 camUp = UNITY_MATRIX_V[1].xyz;
-                float v = dot(p, camUp);
-                float zOnWater = (v - _WaterLevel.x * camUp.y - p.x * camUp.x) / max(camUp.z, 1e-3);
-                float inside = WaterInside(p.x, zOnWater);
-                clip(inside);
+                // Only inside the water: under the surface, above the floor, between the banks.
+                clip(p.x - _WaterSpan.x);
+                clip(_WaterSpan.y - p.x);
+                float below = _WaterSpan.z - p.y;
+                clip(below);
+                float aboveFloor = p.y - WaterFloorAt(p.x);
+                clip(aboveFloor);
 
-                // Wobble grows with distance below the surface, like a real reflection
-                // breaking up further from the bank, in bands that roll toward the viewer.
-                float below = max(0.0, _WaterLevel.x - p.y);
+                // Wobble grows with distance below the surface, the reflection breaking up
+                // further from the line, in bands that roll along.
                 float band = sin(p.y * 22.0 + t * 3.0) * 0.35 + (WaterNoise(float2(p.x * 1.5, p.y * 9.0 + t)) - 0.5);
                 float2 uv = input.uv + float2(band * _Wobble * saturate(0.3 + below * 0.5), 0.0);
 
                 half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv) * input.color;
                 c.rgb = lerp(c.rgb, _Tint.rgb, _TintAmount) * _Bright;
-                c.a *= _Opacity * exp(-below / _Fade) * smoothstep(0.0, 0.05, inside);
+                c.a *= _Opacity * exp(-below / _Fade) * smoothstep(0.0, 0.05, aboveFloor);
                 return c;
             }
             ENDHLSL

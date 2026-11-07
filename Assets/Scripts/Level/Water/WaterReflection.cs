@@ -48,6 +48,8 @@ namespace Weizza
 
         [FoldoutGroup("Live"), ShowInInspector, ReadOnly] private int Reflecting => _pairs.Count;
 
+        private const string MirrorName = "Water Reflection";
+
         private struct Pair
         {
             public SpriteRenderer Source;
@@ -65,6 +67,12 @@ namespace Weizza
         {
             _pond = GetComponent<WaterPond>();
             _block ??= new MaterialPropertyBlock();
+            // Copies left over from before a script reload have nobody tracking them any more.
+            for (var i = transform.childCount - 1; i >= 0; i--)
+            {
+                var child = transform.GetChild(i);
+                if (child.name == MirrorName) Kill(child);
+            }
             _nextRefresh = 0f;
             Refresh();
         }
@@ -79,7 +87,7 @@ namespace Weizza
 
         private void Refresh()
         {
-            if (reflectionMaterial == null || _pond == null) return;
+            if (reflectionMaterial == null || _pond == null || !_pond.Built) return;
             // Return every mirror, then hand them out again to whatever is near now.
             foreach (var p in _pairs)
             {
@@ -112,13 +120,16 @@ namespace Weizza
             // end at the bank's lip and are skipped, a bank does not mirror itself.
             if (b.max.y < level + 0.5f || b.min.y > level + reachUp) return false;
             if (b.size.y < 0.05f) return false;
-            var reach = _pond.HalfWidth + reachSides;
-            return b.max.x > centre - reach && b.min.x < centre + reach;
+            return b.max.x > _pond.Left - reachSides && b.min.x < _pond.Right + reachSides;
         }
 
         private SpriteRenderer Make()
         {
-            var go = new GameObject("Water Reflection") { hideFlags = HideFlags.HideAndDontSave };
+            // A child of the pond, so it goes with the pond: when its chunk unloads, and when a
+            // script reload forgets the list that tracked it. Unparented copies outlived both
+            // and hung in the air as upside down stones.
+            var go = new GameObject(MirrorName) { hideFlags = HideFlags.HideAndDontSave };
+            go.transform.SetParent(transform, false);
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sharedMaterial = reflectionMaterial;
             sr.enabled = false;
@@ -128,8 +139,8 @@ namespace Weizza
 
         private void LateUpdate()
         {
-            if (_pond == null) return;
-            var now = Application.isPlaying ? Time.unscaledTime : (float)Time.realtimeSinceStartupAsDouble;
+            if (_pond == null || !_pond.Built) return;
+            var now =Application.isPlaying ? Time.unscaledTime : (float)Time.realtimeSinceStartupAsDouble;
             if (now >= _nextRefresh)
             {
                 _nextRefresh = now + refreshEvery;
@@ -139,6 +150,9 @@ namespace Weizza
             _block.Clear();
             _pond.FillBlock(_block);
             var level = _pond.Level;
+            var cam = Camera.main;
+            var up = cam != null ? cam.transform.up : Vector3.up;
+            var waterZ = _pond.transform.position.z;
             foreach (var p in _pairs)
             {
                 var src = p.Source;
@@ -154,18 +168,27 @@ namespace Weizza
                 m.color = src.color;
                 m.drawMode = src.drawMode;
                 if (src.drawMode != SpriteDrawMode.Simple) m.size = src.size;
+                // One under the water, so the water tints it, and drawn before the player at the
+                // same order, so a wading foot stands over its own mirror image.
                 m.sortingLayerID = _pond.SortingLayerId;
-                m.sortingOrder = _pond.SortingOrder;
+                m.sortingOrder = _pond.SortingOrder - 1;
 
-                // Mirror across the horizontal plane at the water's height: y flips about the
-                // level, and so do the x and z turns (a y turn lies in the mirror and stays).
+                // Mirror on screen about the surface line, and lay the copy in the water's own
+                // depth. The camera is pitched, so something deep in the scene draws higher than
+                // its height says: flipped at its own depth, a far tree's reflection floated well
+                // above the water. Height on screen is position along the camera's up, so the
+                // copy goes where that is mirrored about the surface, at the water's z.
                 var t = src.transform;
                 var pos = t.position;
                 var e = t.eulerAngles;
                 var mt = m.transform;
-                mt.SetPositionAndRotation(new Vector3(pos.x, 2f * level - pos.y, pos.z), Quaternion.Euler(-e.x, e.y, -e.z));
+                var vSource = Vector3.Dot(pos, up);
+                var vSurface = Vector3.Dot(new Vector3(pos.x, level, waterZ), up);
+                var y = (2f * vSurface - vSource - pos.x * up.x - waterZ * up.z) / Mathf.Max(up.y, 1e-3f);
+                mt.SetPositionAndRotation(new Vector3(pos.x, y, waterZ), Quaternion.Euler(-e.x, e.y, -e.z));
                 var s = t.lossyScale;
-                mt.localScale = new Vector3(s.x, -s.y, s.z);
+                var ps = transform.lossyScale;
+                mt.localScale = new Vector3(s.x / ps.x, -s.y / ps.y, s.z / ps.z);
                 m.SetPropertyBlock(_block);
             }
         }

@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Water Surface
-  m_Shader: {fileID: 4800000, guid: f340d29e341c3184981e45c289b9e967, type: 3}
+  m_Name: Water Pond
+  m_Shader: {fileID: 4800000, guid: 822a17e1d17acd6468e08a882f4078ec, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -26,23 +26,34 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaBack: 0.9
+    - _AlphaDeep: 0.9
     - _AlphaFront: 0.55
-    - _CausticScale: 1.4
-    - _Caustics: 0.35
+    - _AlphaTop: 0.42
+    - _CausticScale: 3.4
+    - _Caustics: 0.16
     - _Crest: 1.6
-    - _DeepAt: 0.9
+    - _DeepAt: 1.4
     - _FarAmount: 0.55
+    - _FloorShade: 0.35
+    - _FloorSoft: 0.08
     - _FoamBreak: 0.45
     - _FoamWidth: 0.14
+    - _Glints: 0.5
+    - _LineWidth: 0.026
     - _Overlay: 0
     - _OverlayAlpha: 0.5
+    - _Rays: 0.3
+    - _SheenAmount: 0.5
+    - _SheenDepth: 0.18
     - _Sparkle: 0.9
     - _Streaks: 0.45
     m_Colors:
-    - _Deep: {r: 0.1, g: 0.29, b: 0.28, a: 1}
+    - _Deep: {r: 0.1, g: 0.22, b: 0.18, a: 1}
     - _Far: {r: 0.84, g: 0.92, b: 0.72, a: 1}
     - _Foam: {r: 0.95, g: 0.96, b: 0.8399999, a: 1}
     - _Highlight: {r: 1, g: 0.96999997, b: 0.78, a: 1}
-    - _Shallow: {r: 0.4, g: 0.58, b: 0.44, a: 1}
+    - _Line: {r: 0.95, g: 0.96, b: 0.82, a: 1}
+    - _Shallow: {r: 0.46, g: 0.58, b: 0.44, a: 1}
+    - _Sheen: {r: 0.8, g: 0.88, b: 0.7, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

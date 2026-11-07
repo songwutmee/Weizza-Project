@@ -1,12 +1,11 @@
-// Shared by the pond surface and the reflections laid over it: where the water is,
-// and the noises both draw from. Kept in one place so the reflection is clipped to
-// exactly the same painted shore the surface draws.
+// Shared by the water body and the reflections drawn inside it: the shape of the hollow
+// the water fills, and the noises both draw from.
 #ifndef WEIZZA_WATER_COMMON
 #define WEIZZA_WATER_COMMON
 
 // Set per pond through a property block by WaterPond.cs.
-float4 _WaterRect;   // x centre x, y half width, z centre z, w half depth (world metres)
-float4 _WaterLevel;  // x surface height, y shore wobble (metres), z corner radius, w seed
+float4 _WaterSpan;          // x left x, y right x, z surface height, w floor samples used
+float _WaterFloor[64];      // ground height under the water, evenly spaced from left to right
 
 float WaterHash(float2 p)
 {
@@ -35,7 +34,6 @@ float WaterNoise(float2 p)
 }
 
 // Distance to the nearest cell wall of a drifting Voronoi pattern (F2 minus F1).
-// Small near the walls, which is where caustic light gathers.
 float WaterVoronoiEdge(float2 p, float t)
 {
     float2 i = floor(p);
@@ -54,21 +52,14 @@ float WaterVoronoiEdge(float2 p, float t)
     return f2 - f1;
 }
 
-// Metres inside the painted shore at a point on the water plane. Negative is outside.
-// A rounded box in (x, z), with depth stretched because a metre of depth reads much
-// thinner than a metre across on a camera pitched only sixteen degrees, then a slow
-// wobble so the edge reads drawn, not cut.
-float WaterInside(float x, float z)
+// Ground height under the water at a world x, from the samples the pond baked.
+float WaterFloorAt(float x)
 {
-    const float depthStretch = 1.8;
-    float r = _WaterLevel.z;
-    float2 p = float2(x - _WaterRect.x, (z - _WaterRect.z) * depthStretch);
-    float2 b = float2(_WaterRect.y, _WaterRect.w * depthStretch) - r;
-    float2 q = abs(p) - b;
-    float sdf = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
-    float wobble = (WaterNoise(float2(x * 1.3 + _WaterLevel.w, z * 2.1)) - 0.5) * 2.0 * _WaterLevel.y
-                 + (WaterNoise(float2(x * 4.7, z * 6.0 + _WaterLevel.w)) - 0.5) * 0.6 * _WaterLevel.y;
-    return -sdf + wobble;
+    float n = max(_WaterSpan.w, 2.0);
+    float u = saturate((x - _WaterSpan.x) / max(_WaterSpan.y - _WaterSpan.x, 1e-3)) * (n - 1.0);
+    int i = (int)floor(u);
+    int j = min(i + 1, (int)n - 1);
+    return lerp(_WaterFloor[i], _WaterFloor[j], u - i);
 }
 
 #endif
