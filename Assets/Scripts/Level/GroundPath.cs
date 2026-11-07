@@ -344,36 +344,62 @@ namespace Weizza
 
         private void BuildColliders()
         {
-            // Rebuilt from scratch each time; the boxes carry nothing anyone edits by hand.
-            for (var i = transform.childCount - 1; i >= 0; i--)
+            // The boxes already there are reused and only reshaped. Destroying and making
+            // them again on every load gave each one a new file id, so merely opening a
+            // chunk rewrote about 1,400 lines of its scene file with nothing changed.
+            var existing = new List<Transform>();
+            for (var i = 0; i < transform.childCount; i++)
             {
                 var child = transform.GetChild(i);
-                if (!child.name.StartsWith(ColliderPrefix)) continue;
-                if (Application.isPlaying) Destroy(child.gameObject);
-                else DestroyImmediate(child.gameObject);
+                if (child.name.StartsWith(ColliderPrefix)) existing.Add(child);
             }
 
-            if (!walkable) return;
-            for (var i = 1; i < _shape.Count; i++)
+            var used = 0;
+            if (walkable)
             {
-                var a = _shape[i - 1];
-                var b = _shape[i];
-                var along = b - a;
-                var length = along.magnitude;
-                if (length < 0.01f) continue;
+                for (var i = 1; i < _shape.Count; i++)
+                {
+                    var a = _shape[i - 1];
+                    var b = _shape[i];
+                    var along = b - a;
+                    var length = along.magnitude;
+                    if (length < 0.01f) continue;
 
-                var go = new GameObject(ColliderPrefix + i);
-                go.layer = groundLayer;
-                go.transform.SetParent(transform, false);
-                var angle = Mathf.Atan2(along.y, along.x) * Mathf.Rad2Deg;
-                go.transform.localRotation = Quaternion.Euler(0f, 0f, angle);
-                // Centred under the segment, so its top face is the line itself.
-                var normal = new Vector2(-along.y, along.x) / length;
-                go.transform.localPosition = (Vector3)((a + b) * 0.5f - normal * (thickness * 0.5f));
-                var box = go.AddComponent<BoxCollider>();
-                // A hair longer than the segment so neighbouring boxes overlap at a
-                // bend and the capsule never finds a crack to catch on.
-                box.size = new Vector3(length + 0.05f, thickness, 2f);
+                    Transform t;
+                    BoxCollider box;
+                    if (used < existing.Count)
+                    {
+                        t = existing[used];
+                        box = t.GetComponent<BoxCollider>();
+                        if (box == null) box = t.gameObject.AddComponent<BoxCollider>();
+                    }
+                    else
+                    {
+                        t = new GameObject(ColliderPrefix + i).transform;
+                        t.SetParent(transform, false);
+                        box = t.gameObject.AddComponent<BoxCollider>();
+                    }
+                    used++;
+
+                    var name = ColliderPrefix + i;
+                    if (t.name != name) t.name = name;
+                    if (t.gameObject.layer != groundLayer) t.gameObject.layer = groundLayer;
+                    var angle = Mathf.Atan2(along.y, along.x) * Mathf.Rad2Deg;
+                    t.localRotation = Quaternion.Euler(0f, 0f, angle);
+                    // Centred under the segment, so its top face is the line itself.
+                    var normal = new Vector2(-along.y, along.x) / length;
+                    t.localPosition = (Vector3)((a + b) * 0.5f - normal * (thickness * 0.5f));
+                    // A hair longer than the segment so neighbouring boxes overlap at a
+                    // bend and the capsule never finds a crack to catch on.
+                    box.size = new Vector3(length + 0.05f, thickness, 2f);
+                    box.center = Vector3.zero;
+                }
+            }
+
+            for (var i = existing.Count - 1; i >= used; i--)
+            {
+                if (Application.isPlaying) Destroy(existing[i].gameObject);
+                else DestroyImmediate(existing[i].gameObject);
             }
         }
 
