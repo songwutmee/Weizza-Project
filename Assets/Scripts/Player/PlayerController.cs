@@ -364,6 +364,7 @@ namespace Weizza
             }
 
             ReadInput();
+            _swimming = State != PlayerState.Dead && WaterPond.SwimAt(transform.position, out _swimLevel);
 
             switch (State)
             {
@@ -445,8 +446,14 @@ namespace Weizza
             // back into it.
             if (Time.time >= _wallJumpLockUntil)
             {
-                Drive(move, dt, ExternalMoveScale * SpeedMultiplier());
+                Drive(move, dt, ExternalMoveScale * SpeedMultiplier() * (_swimming ? swimSpeedScale : 1f));
                 Motor.FaceMovement(move.x);
+            }
+
+            if (_swimming)
+            {
+                TryConsumeJump();
+                return;
             }
 
             if (TryConsumeWallJump()) return;
@@ -486,6 +493,11 @@ namespace Weizza
         {
             if (CurrentStance == null) return;
             if (State == PlayerState.Dash) return;
+            if (_swimming)
+            {
+                Buoyancy(dt);
+                return;
+            }
             if (Motor.Grounded && Motor.Velocity.y <= 0f) return;
 
             var gravity = CurrentStance.RiseGravity;
@@ -551,6 +563,45 @@ namespace Weizza
             if (Time.time > _jumpBufferedUntil) return false;
             _jumpBufferedUntil = 0f;
             return true;
+        }
+
+        // ---- Swimming --------------------------------------------------------------
+        // A deep pond floats the player at the surface, Mario style but gentler: buoyancy
+        // is a spring toward a float height, so falling in sinks a little and bobs back up.
+        // Strokes are slow, a jump pops out a little lower than on land, and there is no
+        // swinging or dashing in water.
+
+        [Header("Swimming")]
+        [SerializeField, Tooltip("Metres the feet hang below the surface while floating. About chest deep.")]
+        private float swimFloatDepth = 1.1f;
+
+        [SerializeField, Range(0.2f, 1f), Tooltip("Share of the run speed kept while swimming.")]
+        private float swimSpeedScale = 0.55f;
+
+        [SerializeField, Range(0.4f, 1.2f), Tooltip("Share of the jump kept when jumping out of the water.")]
+        private float swimJumpScale = 0.8f;
+
+        private bool _swimming;
+        private float _swimLevel;
+
+        /// <summary>True while floating in a deep pond.</summary>
+        public bool Swimming => _swimming;
+
+        private void Buoyancy(float dt)
+        {
+            // Rising fast is a jump out of the water: let ordinary gravity have it.
+            if (Motor.Velocity.y > 2f)
+            {
+                Motor.Velocity.y -= Mathf.Abs(Physics.gravity.y) * 2f * dt;
+                return;
+            }
+            var target = _swimLevel - swimFloatDepth + Mathf.Sin(Time.time * 2.2f) * 0.03f;
+            var error = target - transform.position.y;
+            // The motor pins a grounded body to the floor every step, so sunk to the bottom a
+            // spring alone never lifts off: push up outright until the feet leave the floor.
+            if (Motor.Grounded && error > 0.05f)
+                Motor.Velocity.y = Mathf.Max(Motor.Velocity.y, Mathf.Min(error * 4f, 3f));
+            Motor.Velocity.y += (error * 28f - Motor.Velocity.y * 6f) * dt;
         }
 
         /// <summary>Debug only: multiplies walking and running so testers can cross the map fast. Set from the F1 panel.</summary>
@@ -657,7 +708,7 @@ namespace Weizza
         {
             if (CurrentStance == null || !CurrentStance.canJump) return false;
             if (Time.time > _jumpBufferedUntil) return false;
-            if (!Motor.Grounded && Time.time > _coyoteUntil) return false;
+            if (!Motor.Grounded && Time.time > _coyoteUntil && !_swimming) return false;
 
             // Down and jump on a one way ledge is a drop, not a jump. The
             // platform handles the drop; jumping as well would launch the
@@ -671,7 +722,7 @@ namespace Weizza
 
             _jumpBufferedUntil = 0f;
             _coyoteUntil = 0f;
-            Motor.Velocity.y = CurrentStance.JumpVelocity;
+            Motor.Velocity.y = CurrentStance.JumpVelocity * (_swimming ? swimJumpScale : 1f);
             spriteFeel?.Stretch();
             return true;
         }
