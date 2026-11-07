@@ -244,8 +244,17 @@ namespace Weizza
                     vitals.GodMode = god;
                     Vitals.PlayerOneHitKill = god;
                 }
+
+                GUILayout.Label($"WALK SPEED  {PlayerController.DebugSpeedScale:0.#}x");
+                GUILayout.BeginHorizontal();
+                foreach (var s in WalkSpeeds)
+                    if (GUILayout.Button(Mathf.Approximately(PlayerController.DebugSpeedScale, s) ? $"[ {s:0.#}x ]" : $"{s:0.#}x", _button))
+                        PlayerController.DebugSpeedScale = s;
+                GUILayout.EndHorizontal();
             });
         }
+
+        private static readonly float[] WalkSpeeds = { 1f, 1.5f, 2f, 3f };
 
         /// <summary>A hit as an enemy would land it: from one side, defendable, with stun and shake.</summary>
         private void TestHit(Vitals vitals, float amount, float fromSide, bool heavy)

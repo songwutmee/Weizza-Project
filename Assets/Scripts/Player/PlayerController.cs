@@ -553,10 +553,16 @@ namespace Weizza
             return true;
         }
 
+        /// <summary>Debug only: multiplies walking and running so testers can cross the map fast. Set from the F1 panel.</summary>
+        public static float DebugSpeedScale { get; set; } = 1f;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetDebugSpeed() => DebugSpeedScale = 1f;
+
         private float SpeedMultiplier()
         {
             if (_tags != null && _tags.Has(GameTag.Rooted)) return 0f;
-            return _effects != null ? _effects.MoveSpeedMultiplier : 1f;
+            return (_effects != null ? _effects.MoveSpeedMultiplier : 1f) * DebugSpeedScale;
         }
 
         // ---- Wall (In) -----------------------------------------------------------
