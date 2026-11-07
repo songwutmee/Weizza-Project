@@ -59,6 +59,25 @@ namespace Weizza
         [ShowIf(nameof(fiveStops)), Tooltip("Three quarters up: sunlit leaves, sage rather than lime.")]
         [SerializeField] private Color highMiddle = new(0.64f, 0.67f, 0.42f);
 
+        [BoxGroup("Colour wash", centerLabel: true)]
+        [InfoBox("Light with colour in it, across the screen: a red orange haze on the shade side and a yellow glow " +
+                 "on the sun side. Keeps each pixel's brightness and only changes its hue, mostly on the bright far " +
+                 "background, so silhouettes stay dark and the ground stays green.")]
+        [Tooltip("Colour on the left of the screen. Alpha is how strong.")]
+        [SerializeField] private Color washLeft = new(0.95f, 0.42f, 0.22f, 0f);
+
+        [BoxGroup("Colour wash")]
+        [Tooltip("Colour on the right of the screen. Alpha is how strong.")]
+        [SerializeField] private Color washRight = new(1f, 0.86f, 0.4f, 0f);
+
+        [BoxGroup("Colour wash")]
+        [PropertyRange(0f, 1f), Tooltip("Share of the screen height, from the bottom, that the wash stays off. The ground keeps its own colour.")]
+        [SerializeField] private float washFloor = 0.25f;
+
+        [BoxGroup("Colour wash")]
+        [Tooltip("Colour of the floor band below the wash. Alpha is how strong. Keeps the grass green under a coloured sky.")]
+        [SerializeField] private Color washGround = new(0.3f, 0.55f, 0.2f, 0f);
+
         [BoxGroup("Colour")]
         [PropertyRange(0f, 1f), Tooltip("0 leaves the art as it is, 1 is fully re-coloured.")]
         [SerializeField] private float mapStrength = 1f;
@@ -221,6 +240,29 @@ namespace Weizza
             public float beams = 1f;
             [Range(-0.2f, 0.4f), Tooltip("Mist added on top of the base mist.")]
             public float mist;
+
+            [Range(0f, 1f), Tooltip("How much this stretch swaps the base five colours for its own below. " +
+                                    "0 keeps the base forest, 1 is fully this palette (a red lair, a dusk).")]
+            public float palette;
+            public Color paletteShadow = new(0.12f, 0.03f, 0.03f);
+            public Color paletteLowMiddle = new(0.3f, 0.12f, 0.07f);
+            public Color paletteMiddle = new(0.62f, 0.4f, 0.18f);
+            public Color paletteHighMiddle = new(0.85f, 0.66f, 0.34f);
+            public Color paletteLit = new(0.9f, 0.97f, 0.5f);
+
+            [Range(0f, 1f), Tooltip("How much this stretch swaps the base colour wash for its own.")]
+            public float wash;
+            [Tooltip("Wash on the left of the screen. Alpha is how strong.")]
+            public Color washLeft = new(0.95f, 0.42f, 0.22f, 0.5f);
+            [Tooltip("Wash on the right of the screen. Alpha is how strong.")]
+            public Color washRight = new(1f, 0.86f, 0.4f, 0.4f);
+        }
+
+        // Everything a mood can change, blended as one so palette and wash cross fade with the light.
+        private struct Blend
+        {
+            public Color tint, sun, shadow, lowMid, mid, highMid, lit, washL, washR;
+            public float light, sat, con, beams, mist;
         }
 
         [BoxGroup("Moods along the way", centerLabel: true)]
@@ -229,11 +271,44 @@ namespace Weizza
         [ListDrawerSettings(ShowFoldout = true)]
         [SerializeField] private Mood[] moods = Array.Empty<Mood>();
 
-        // The blended mood at a world x. Sorted on the fly; a handful of moods costs nothing.
-        private void MoodAt(float x, out Color tint, out Color sun, out float light, out float sat,
-            out float con, out float beams, out float mist)
+        private Blend Base() => new()
         {
-            tint = Color.white; sun = Color.white; light = 1f; sat = 1f; con = 1f; beams = 1f; mist = 0f;
+            tint = Color.white, sun = Color.white, light = 1f, sat = 1f, con = 1f, beams = 1f, mist = 0f,
+            shadow = shadow, lowMid = lowMiddle, mid = middle, highMid = highMiddle, lit = lit,
+            washL = washLeft, washR = washRight,
+        };
+
+        // One mood laid over the base look: its palette and wash replace the base by their own amounts.
+        private Blend Of(Mood m)
+        {
+            var b = Base();
+            b.tint = m.tint; b.sun = m.sun; b.light = m.light; b.sat = m.saturation; b.con = m.contrast;
+            b.beams = m.beams; b.mist = m.mist;
+            b.shadow = Color.Lerp(shadow, m.paletteShadow, m.palette);
+            b.lowMid = Color.Lerp(lowMiddle, m.paletteLowMiddle, m.palette);
+            b.mid = Color.Lerp(middle, m.paletteMiddle, m.palette);
+            b.highMid = Color.Lerp(highMiddle, m.paletteHighMiddle, m.palette);
+            b.lit = Color.Lerp(lit, m.paletteLit, m.palette);
+            b.washL = Color.Lerp(washLeft, m.washLeft, m.wash);
+            b.washR = Color.Lerp(washRight, m.washRight, m.wash);
+            return b;
+        }
+
+        private static Blend Lerp(in Blend a, in Blend b, float k) => new()
+        {
+            tint = Color.Lerp(a.tint, b.tint, k), sun = Color.Lerp(a.sun, b.sun, k),
+            shadow = Color.Lerp(a.shadow, b.shadow, k), lowMid = Color.Lerp(a.lowMid, b.lowMid, k),
+            mid = Color.Lerp(a.mid, b.mid, k), highMid = Color.Lerp(a.highMid, b.highMid, k),
+            lit = Color.Lerp(a.lit, b.lit, k), washL = Color.Lerp(a.washL, b.washL, k),
+            washR = Color.Lerp(a.washR, b.washR, k),
+            light = Mathf.Lerp(a.light, b.light, k), sat = Mathf.Lerp(a.sat, b.sat, k),
+            con = Mathf.Lerp(a.con, b.con, k), beams = Mathf.Lerp(a.beams, b.beams, k),
+            mist = Mathf.Lerp(a.mist, b.mist, k),
+        };
+
+        // The blended mood at a world x. Sorted on the fly; a handful of moods costs nothing.
+        private Blend MoodAt(float x)
+        {
             Mood before = null, after = null;
             foreach (var m in moods)
             {
@@ -241,17 +316,11 @@ namespace Weizza
                 if (m.x <= x && (before == null || m.x > before.x)) before = m;
                 if (m.x >= x && (after == null || m.x < after.x)) after = m;
             }
-            if (before == null && after == null) return;
+            if (before == null && after == null) return Base();
             before ??= after;
             after ??= before;
             var k = after.x > before.x ? Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(before.x, after.x, x)) : 0f;
-            tint = Color.Lerp(before.tint, after.tint, k);
-            sun = Color.Lerp(before.sun, after.sun, k);
-            light = Mathf.Lerp(before.light, after.light, k);
-            sat = Mathf.Lerp(before.saturation, after.saturation, k);
-            con = Mathf.Lerp(before.contrast, after.contrast, k);
-            beams = Mathf.Lerp(before.beams, after.beams, k);
-            mist = Mathf.Lerp(before.mist, after.mist, k);
+            return Lerp(Of(before), Of(after), k);
         }
 
         private static readonly int On = Shader.PropertyToID("_LookOn");
@@ -260,6 +329,10 @@ namespace Weizza
         private static readonly int Light = Shader.PropertyToID("_LookLight");
         private static readonly int LowMid = Shader.PropertyToID("_LookLowMid");
         private static readonly int HighMid = Shader.PropertyToID("_LookHighMid");
+        private static readonly int WashL = Shader.PropertyToID("_LookWashLeft");
+        private static readonly int WashR = Shader.PropertyToID("_LookWashRight");
+        private static readonly int WashFloor = Shader.PropertyToID("_LookWashFloor");
+        private static readonly int WashGround = Shader.PropertyToID("_LookWashGround");
         private static readonly int Map = Shader.PropertyToID("_LookMapStrength");
         private static readonly int Gain = Shader.PropertyToID("_LookGain");
         private static readonly int Bias = Shader.PropertyToID("_LookBias");
@@ -317,15 +390,20 @@ namespace Weizza
                 : target;
 
             var progress = Mathf.InverseLerp(worldRange.x, worldRange.y, x);
-            MoodAt(x, out var moodTint, out var moodSun, out var moodLight, out var moodSat,
-                out var moodCon, out var moodBeams, out var moodMist);
+            var mood = MoodAt(x);
+            var moodTint = mood.tint; var moodSun = mood.sun; var moodLight = mood.light; var moodSat = mood.sat;
+            var moodCon = mood.con; var moodBeams = mood.beams; var moodMist = mood.mist;
 
             Shader.SetGlobalFloat(On, 1f);
-            Shader.SetGlobalColor(Shadow, shadow);
-            Shader.SetGlobalColor(Mid, middle);
-            Shader.SetGlobalColor(Light, lit);
-            Shader.SetGlobalColor(LowMid, new Color(lowMiddle.r, lowMiddle.g, lowMiddle.b, fiveStops ? 1f : 0f));
-            Shader.SetGlobalColor(HighMid, highMiddle);
+            Shader.SetGlobalColor(Shadow, mood.shadow);
+            Shader.SetGlobalColor(Mid, mood.mid);
+            Shader.SetGlobalColor(Light, mood.lit);
+            Shader.SetGlobalColor(LowMid, new Color(mood.lowMid.r, mood.lowMid.g, mood.lowMid.b, fiveStops ? 1f : 0f));
+            Shader.SetGlobalColor(HighMid, mood.highMid);
+            Shader.SetGlobalColor(WashL, mood.washL);
+            Shader.SetGlobalColor(WashR, mood.washR);
+            Shader.SetGlobalFloat(WashFloor, washFloor);
+            Shader.SetGlobalColor(WashGround, washGround);
             Shader.SetGlobalFloat(Map, mapStrength);
             Shader.SetGlobalFloat(Gain, gain);
             Shader.SetGlobalFloat(Bias, bias);

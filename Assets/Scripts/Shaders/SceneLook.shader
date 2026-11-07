@@ -32,6 +32,9 @@ Shader "Weizza/SceneLook"
             float _LookOn;
             float4 _LookShadow, _LookMid, _LookLight;
             float4 _LookLowMid, _LookHighMid; // a = 1 turns the five stop ramp on
+            float4 _LookWashLeft, _LookWashRight; // rgb hue, a strength
+            float _LookWashFloor;
+            float4 _LookWashGround;
             float _LookMapStrength, _LookGain, _LookBias, _LookKeepSaturated;
             float4 _LookSunPos;      // xy screen uv, z radius (screen heights), w unused
             float4 _LookSunColor;    // rgb, a = intensity
@@ -123,6 +126,15 @@ Shader "Weizza/SceneLook"
                 half light = lerp(_LookLeftMul, _LookRightMul, across) * _LookWorldBrightness;
                 half ground = lerp(_LookBottomMul, 1.0, smoothstep(0.0, _LookBottomReach, uv.y));
                 col *= lerp(_LookTintLeft.rgb, _LookTintRight.rgb, across);
+                // Colour wash: take the hue of the wash but keep the pixel's own brightness, strongest
+                // on the bright far background and high on screen, so black silhouettes stay black
+                // and the ground keeps its green.
+                half4 wash = lerp(_LookWashLeft, _LookWashRight, across);
+                half washL = Luma(col);
+                half washAmt = wash.a * smoothstep(_LookWashFloor, _LookWashFloor + 0.35, uv.y)
+                             * smoothstep(0.03, 0.3, washL);
+                half3 washed = wash.rgb * (washL / max(Luma(wash.rgb), 0.05));
+                col = lerp(col, washed, saturate(washAmt));
                 // Richer: push colour away from grey, and open the contrast so shadows are dark
                 // and lit parts glow, instead of everything sitting in the middle.
                 half grey = Luma(col);
@@ -220,6 +232,14 @@ Shader "Weizza/SceneLook"
                         : float3x3(1.255528, -0.076749, -0.178779,  -0.078411, 0.930809, 0.147602,  0.004733, 0.691367, 0.303900);
                     col = max(mul(m, col), 0.0);
                 }
+
+                // The floor band gets its own hue, after the sun and mist have had their say,
+                // so the grass stays green under a red and gold sky.
+                half floorL = Luma(col);
+                half groundAmt = _LookWashGround.a * (1.0 - smoothstep(_LookWashFloor, _LookWashFloor + 0.08, uv.y))
+                               * smoothstep(0.02, 0.2, floorL);
+                half3 grass = _LookWashGround.rgb * (floorL / max(Luma(_LookWashGround.rgb), 0.05));
+                col = lerp(col, grass, saturate(groundAmt));
 
                 // 5. Break up colour banding. Slow gradients (beams, haze, the dark sky) only
                 //    have 256 steps per channel and show as stripes; a grain of about one step
