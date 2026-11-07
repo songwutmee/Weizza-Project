@@ -2016,19 +2016,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4138d472275808e48a7067c4c56afd0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.SceneLook
-  shadow: {r: 0.02, g: 0.11, b: 0.08, a: 1}
-  middle: {r: 0.46, g: 0.5, b: 0.18, a: 1}
-  lit: {r: 0.95, g: 0.92, b: 0.55, a: 1}
+  shadow: {r: 0.02, g: 0.05, b: 0.03, a: 1}
+  middle: {r: 0.37, g: 0.47, b: 0.18, a: 1}
+  lit: {r: 0.9, g: 0.93, b: 0.64, a: 1}
+  fiveStops: 1
+  lowMiddle: {r: 0.14, g: 0.22, b: 0.11, a: 1}
+  highMiddle: {r: 0.57, g: 0.72, b: 0.28, a: 1}
   mapStrength: 1
   gain: 1.45
   bias: -0.08
   keepSaturated: 4
-  saturation: 1.2
-  contrast: 1.3
+  saturation: 1.05
+  contrast: 1.2
   leftEdge: 0.42
   rightEdge: 1.15
-  tintLeft: {r: 0.78, g: 0.94, b: 0.86, a: 1}
-  tintRight: {r: 1.26, g: 0.93, b: 0.62, a: 1}
+  tintLeft: {r: 0.86, g: 0.92, b: 0.88, a: 1}
+  tintRight: {r: 1.1, g: 1.04, b: 0.8, a: 1}
   groundShadow: 0.6
   groundReach: 0.3
   worldBrightness: {x: 0.9, y: 0.68}
@@ -2052,7 +2055,7 @@ MonoBehaviour:
     fade: 10
   sunPosition: {x: 0.82, y: 0.82}
   sunRadius: 0.5
-  sunColour: {r: 1, g: 0.66, b: 0.36, a: 1}
+  sunColour: {r: 1, g: 0.92, b: 0.66, a: 1}
   sunIntensity: 1.2
   beamIntensity: 0.42
   beamAngle: 215

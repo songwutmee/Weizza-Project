@@ -31,6 +31,7 @@ Shader "Weizza/SceneLook"
 
             float _LookOn;
             float4 _LookShadow, _LookMid, _LookLight;
+            float4 _LookLowMid, _LookHighMid; // a = 1 turns the five stop ramp on
             float _LookMapStrength, _LookGain, _LookBias, _LookKeepSaturated;
             float4 _LookSunPos;      // xy screen uv, z radius (screen heights), w unused
             float4 _LookSunColor;    // rgb, a = intensity
@@ -79,6 +80,16 @@ Shader "Weizza/SceneLook"
             half3 Ramp(half t)
             {
                 t = saturate(t);
+                // Five stops let each band of brightness carry its own hue, the way a painted
+                // forest does: green black shade, grey brown trunks, olive leaves, sage, cream sky.
+                if (_LookLowMid.a > 0.5)
+                {
+                    half s = t * 4.0;
+                    if (s < 1.0) return lerp(_LookShadow.rgb, _LookLowMid.rgb, s);
+                    if (s < 2.0) return lerp(_LookLowMid.rgb, _LookMid.rgb, s - 1.0);
+                    if (s < 3.0) return lerp(_LookMid.rgb, _LookHighMid.rgb, s - 2.0);
+                    return lerp(_LookHighMid.rgb, _LookLight.rgb, s - 3.0);
+                }
                 half3 a = lerp(_LookShadow.rgb, _LookMid.rgb, saturate(t * 2.0));
                 half3 b = lerp(_LookMid.rgb, _LookLight.rgb, saturate(t * 2.0 - 1.0));
                 return t < 0.5 ? a : b;

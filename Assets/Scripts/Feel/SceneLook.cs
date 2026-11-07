@@ -47,6 +47,19 @@ namespace Weizza
         [SerializeField] private Color lit = new(0.95f, 0.92f, 0.55f);
 
         [BoxGroup("Colour")]
+        [ToggleLeft, Tooltip("Adds a stop between shadow and middle and one between middle and lit, so dark, " +
+                             "middle and bright parts can each lean a different hue instead of one green ramp.")]
+        [SerializeField] private bool fiveStops;
+
+        [BoxGroup("Colour")]
+        [ShowIf(nameof(fiveStops)), Tooltip("A quarter of the way up: trunks and rock. Greyer and browner than the leaves.")]
+        [SerializeField] private Color lowMiddle = new(0.2f, 0.21f, 0.15f);
+
+        [BoxGroup("Colour")]
+        [ShowIf(nameof(fiveStops)), Tooltip("Three quarters up: sunlit leaves, sage rather than lime.")]
+        [SerializeField] private Color highMiddle = new(0.64f, 0.67f, 0.42f);
+
+        [BoxGroup("Colour")]
         [PropertyRange(0f, 1f), Tooltip("0 leaves the art as it is, 1 is fully re-coloured.")]
         [SerializeField] private float mapStrength = 1f;
 
@@ -245,6 +258,8 @@ namespace Weizza
         private static readonly int Shadow = Shader.PropertyToID("_LookShadow");
         private static readonly int Mid = Shader.PropertyToID("_LookMid");
         private static readonly int Light = Shader.PropertyToID("_LookLight");
+        private static readonly int LowMid = Shader.PropertyToID("_LookLowMid");
+        private static readonly int HighMid = Shader.PropertyToID("_LookHighMid");
         private static readonly int Map = Shader.PropertyToID("_LookMapStrength");
         private static readonly int Gain = Shader.PropertyToID("_LookGain");
         private static readonly int Bias = Shader.PropertyToID("_LookBias");
@@ -309,6 +324,8 @@ namespace Weizza
             Shader.SetGlobalColor(Shadow, shadow);
             Shader.SetGlobalColor(Mid, middle);
             Shader.SetGlobalColor(Light, lit);
+            Shader.SetGlobalColor(LowMid, new Color(lowMiddle.r, lowMiddle.g, lowMiddle.b, fiveStops ? 1f : 0f));
+            Shader.SetGlobalColor(HighMid, highMiddle);
             Shader.SetGlobalFloat(Map, mapStrength);
             Shader.SetGlobalFloat(Gain, gain);
             Shader.SetGlobalFloat(Bias, bias);
