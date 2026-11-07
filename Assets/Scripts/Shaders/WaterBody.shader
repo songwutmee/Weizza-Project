@@ -127,9 +127,19 @@ Shader "Weizza/WaterBody"
                 col *= 1.0 - atFloor * _FloorShade;
                 alpha *= smoothstep(0.0, _FloorSoft, aboveFloor);
 
-                // The surface line itself, a hair thicker on crests.
+                // Where it meets a bank the water is thin: it goes clear rather than stopping
+                // on a hard edge, and a few dabs of foam cling where surface and ground touch.
+                float thin = smoothstep(0.0, 0.06, depth);
+                float contact = (1.0 - smoothstep(0.01, 0.08, depth)) * (1.0 - smoothstep(0.0, 0.05, below));
+                contact *= smoothstep(0.35, 0.6, WaterNoise(float2(p.x * 14.0 + t * 0.2, t * 0.3)));
+                col = lerp(col, _Line.rgb, contact * 0.8);
+                alpha = max(alpha * lerp(0.15, 1.0, thin), contact * 0.75);
+
+                // The surface line itself, a hair thicker on crests, fading out into the shore
+                // and broken a little along its length so it reads drawn, not ruled.
                 float lw = _LineWidth * (1.0 + 0.6 * saturate(input.wave));
                 float lineK = 1.0 - smoothstep(lw * 0.5, lw, below);
+                lineK *= smoothstep(0.02, 0.1, depth) * (0.65 + 0.35 * WaterNoise(float2(p.x * 3.0 - t * 0.2, 0.5)));
                 col = lerp(col, _Line.rgb, lineK);
                 alpha = lerp(alpha, _Line.a, lineK);
 

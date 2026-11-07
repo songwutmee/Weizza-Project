@@ -37,6 +37,11 @@ namespace Weizza
         [Tooltip("World z of the lane the player walks on, where splashes are thrown.")]
         [SerializeField] private float laneZ = 0f;
 
+        [BoxGroup("Shape")]
+        [PropertyRange(0f, 0.3f), Tooltip("How far the drawn ground sits above the line the player walks on. The Ground Path's " +
+            "dark earth starts about 8 cm up, under its bright grass edge, so the water's floor follows that, not the walk line.")]
+        [SerializeField] private float floorLift = 0.08f;
+
         [BoxGroup("Look", centerLabel: true)]
         [Required] [SerializeField] private Material bodyMaterial;
 
@@ -202,7 +207,12 @@ namespace Weizza
 
         // ---- Shape ------------------------------------------------------------------------
 
-        private static bool Ground(float x, out float y) => GroundPath.TryTerrainHeight(x, out y);
+        private bool Ground(float x, out float y)
+        {
+            var ok = GroundPath.TryTerrainHeight(x, out y);
+            y += floorLift;
+            return ok;
+        }
 
         /// <summary>Ground height under the water at a world x.</summary>
         public float FloorAt(float x)
