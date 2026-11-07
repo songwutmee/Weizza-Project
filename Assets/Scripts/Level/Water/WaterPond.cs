@@ -53,6 +53,16 @@ namespace Weizza
                  "puddle lying in a dip looks from a little above. Off for a pool you swim in, drawn over the swimmer.")]
         [SerializeField] private bool behindGround;
 
+        [BoxGroup("Look")]
+        [ShowIf(nameof(behindGround)), PropertyRange(0.2f, 2f)]
+        [Tooltip("Water behind the ground cannot cover the player, so a soft patch of it is drawn again over the " +
+                 "player while in it. Half its width in metres: about 0.45 for ankles in a puddle, 0.9 for a swimmer.")]
+        [SerializeField] private float wadeWidth = 0.45f;
+
+        [BoxGroup("Look")]
+        [ShowIf(nameof(behindGround)), PropertyRange(0f, 1f)]
+        [SerializeField] private float wadeOpacity = 0.85f;
+
         [BoxGroup("Look", centerLabel: true)]
         [Required] [SerializeField] private Material bodyMaterial;
 
@@ -130,6 +140,8 @@ namespace Weizza
 
         private static readonly int SpanId = Shader.PropertyToID("_WaterSpan");
         private static readonly int FloorId = Shader.PropertyToID("_WaterFloor");
+        private static readonly int WadeId = Shader.PropertyToID("_Wade");
+        private MeshRenderer _front;
 
         /// <summary>How far below the surface the feet must be before the player floats instead of wading.</summary>
         public const float SwimFeetDepth = 0.55f;
@@ -354,6 +366,20 @@ namespace Weizza
             _renderer.sortingOrder = Order;
             _renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _renderer.receiveShadows = false;
+            if (behindGround)
+            {
+                // Same mesh, drawn again in front of the player, only around the player.
+                var front = new GameObject("Water Over Player") { hideFlags = HideFlags.DontSave };
+                front.transform.SetParent(_bodyObject.transform, false);
+                front.AddComponent<MeshFilter>().sharedMesh = _mesh;
+                _front = front.AddComponent<MeshRenderer>();
+                _front.sharedMaterial = bodyMaterial;
+                _front.sortingLayerID = _sortingLayerId;
+                _front.sortingOrder = Mathf.Max(sortingOrder, 1);
+                _front.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                _front.receiveShadows = false;
+                _front.enabled = false;
+            }
             Shape(0f);
         }
 
@@ -469,6 +495,16 @@ namespace Weizza
             _block.Clear();
             FillBlock(_block);
             _renderer.SetPropertyBlock(_block);
+
+            if (_front == null) return;
+            var player = PlayerLocator.Player;
+            var feet = player != null ? player.transform.position : Vector3.zero;
+            var wading = player != null && feet.x > Left - wadeWidth && feet.x < Right + wadeWidth && feet.y < Level &&
+                         feet.y > FloorAt(feet.x) - 0.6f;
+            _front.enabled = wading;
+            if (!wading) return;
+            _block.SetVector(WadeId, new Vector4(feet.x, wadeWidth, 1f, wadeOpacity));
+            _front.SetPropertyBlock(_block);
         }
 
         // ---- Wading and swimming ------------------------------------------------------------

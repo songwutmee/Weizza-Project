@@ -70,6 +70,7 @@ Shader "Weizza/WaterBody"
                 float3 positionWS : TEXCOORD0;
                 float2 heights : TEXCOORD1;
                 half wave : TEXCOORD2;
+                half fade : TEXCOORD3;   // vertex alpha: a wet patch fading out at its ends
             };
 
             CBUFFER_START(UnityPerMaterial)
@@ -80,6 +81,8 @@ Shader "Weizza/WaterBody"
                 float _FloorShade, _FloorSoft;
             CBUFFER_END
 
+            float4 _Wade;   // x the player's x, y half width, z on, w opacity (set by WaterPond.cs)
+
             Varyings Vert(Attributes input)
             {
                 Varyings o;
@@ -87,6 +90,7 @@ Shader "Weizza/WaterBody"
                 o.positionCS = TransformWorldToHClip(o.positionWS);
                 o.heights = input.heights;
                 o.wave = input.color.r * 2.0 - 1.0;
+                o.fade = input.color.a;
                 return o;
             }
 
@@ -143,7 +147,12 @@ Shader "Weizza/WaterBody"
                 col = lerp(col, _Line.rgb, lineK);
                 alpha = lerp(alpha, _Line.a, lineK);
 
-                return half4(col, saturate(alpha));
+                // The pass drawn over the player only: water around the legs, fading out to
+                // either side so it never lies over the bank's grass.
+                if (_Wade.z > 0.5)
+                    alpha *= (1.0 - smoothstep(_Wade.y * 0.35, _Wade.y, abs(p.x - _Wade.x))) * _Wade.w;
+
+                return half4(col, saturate(alpha * input.fade));
             }
             ENDHLSL
         }
