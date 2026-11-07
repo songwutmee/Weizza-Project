@@ -426,7 +426,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_Color.a
-      value: 0.45
+      value: 0.441
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: 5669a64c246a19246a6cf71b37d4ff55, type: 3}
       propertyPath: m_WasSpriteAssigned
@@ -1877,7 +1877,7 @@ Transform:
   m_GameObject: {fileID: 266784350}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.0758972, y: 14.365277, z: 0.35}
+  m_LocalPosition: {x: 1.0758972, y: 14.365277, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1916,28 +1916,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d548199a7e070c4584e22fcf632456e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Weizza.Gameplay::Weizza.WaterPond
-  halfWidth: 3.4430802
-  halfDepth: 1.4
-  cornerRadius: 0.6
-  shoreWobble: 0.1
-  columnSize: 0.07
+  maxReach: 12
+  columnSize: 0.05
   laneZ: 0
-  swimDepth: 1.9586651
-  bankSlope: 1.6
-  surfaceMaterial: {fileID: 2100000, guid: 75f59d2efa0071642beef8f2851ad7ac, type: 2}
-  sortingOrder: -3
-  overlayOrder: 1
-  overlayAlpha: 0.55
-  crestHeight: 0.06
+  bodyMaterial: {fileID: 2100000, guid: 75f59d2efa0071642beef8f2851ad7ac, type: 2}
+  sortingOrder: 1
+  crestHeight: 0.05
   tension: 0.03
   dampening: 0.035
   spread: 0.22
-  idleSwell: 0.008
+  idleSwell: 0.006
   dropMaterial: {fileID: 2100000, guid: f6c7e69bf9812d94e839c399d2927ee2, type: 2}
   ringMaterial: {fileID: 2100000, guid: 40b975a95b246234fad2366fcbdd303b, type: 2}
   dropColour: {r: 0.9, g: 0.95, b: 0.85, a: 0.9}
-  stepEvery: 0.5
   splashScale: 1
+  stepEvery: 0.5
   dripEvery: 3
   stepSfx: water.step
   splashSfx: water.splash
@@ -8988,7 +8981,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: e56446dfc7eb1a54e9189db6533734bf, type: 3}
       propertyPath: m_Color.a
-      value: 0.45
+      value: 0.441
       objectReference: {fileID: 0}
     - target: {fileID: 4759811675664661186, guid: e56446dfc7eb1a54e9189db6533734bf, type: 3}
       propertyPath: m_WasSpriteAssigned
