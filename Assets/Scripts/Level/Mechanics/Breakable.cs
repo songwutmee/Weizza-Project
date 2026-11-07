@@ -28,6 +28,15 @@ namespace Weizza
         [SerializeField] private int minimumHitStop;
 
         [BoxGroup("Breakable")]
+        [ToggleLeft, Tooltip("Only the player in one school can break it: a fallen trunk that only Than's iron splits. " +
+                             "Any other swing just shakes it, so a player passing early learns to come back.")]
+        [SerializeField] private bool needsStance;
+
+        [BoxGroup("Breakable")]
+        [ShowIf(nameof(needsStance))]
+        [SerializeField] private StanceId stance = StanceId.Than;
+
+        [BoxGroup("Breakable")]
         [SerializeField] private LootTable loot;
 
         [BoxGroup("Breakable")]
@@ -54,7 +63,7 @@ namespace Weizza
         public HitResult Receive(in DamageInfo info)
         {
             if (!IsAlive) return HitResult.Missed;
-            if (info.hitStopFrames < minimumHitStop)
+            if (info.hitStopFrames < minimumHitStop || !RightSchool(info.source))
             {
                 Tween.ShakeLocalPosition(visual, new Vector3(0.03f, 0f, 0f), 0.12f);
                 return HitResult.Armored;
@@ -66,6 +75,13 @@ namespace Weizza
 
             Break();
             return HitResult.Hit;
+        }
+
+        private bool RightSchool(GameObject source)
+        {
+            if (!needsStance) return true;
+            var player = source != null ? source.GetComponentInParent<PlayerController>() : null;
+            return player != null && player.Stance == stance;
         }
 
         private void Break()
