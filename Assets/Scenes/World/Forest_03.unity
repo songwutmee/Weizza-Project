@@ -2809,7 +2809,7 @@ Transform:
   m_GameObject: {fileID: 548157405}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 36.499794, y: 17.15, z: 0.3}
+  m_LocalPosition: {x: 36.499794, y: 17.24, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2851,7 +2851,9 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
-  floorLift: 0.08
+  floorLift: 0
+  shoreLift: 0.18
+  behindGround: 1
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02
@@ -3032,7 +3034,7 @@ Transform:
   m_GameObject: {fileID: 569750664}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.159775, y: 16.46, z: 0.3}
+  m_LocalPosition: {x: 11.159775, y: 16.55, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3074,7 +3076,9 @@ MonoBehaviour:
   maxReach: 12
   columnSize: 0.04
   laneZ: 0
-  floorLift: 0.08
+  floorLift: 0
+  shoreLift: 0.18
+  behindGround: 1
   bodyMaterial: {fileID: 2100000, guid: d309c74116c239f449fa4ce1e31de9fe, type: 2}
   sortingOrder: 1
   crestHeight: 0.02
