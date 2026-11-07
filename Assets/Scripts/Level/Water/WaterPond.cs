@@ -42,6 +42,17 @@ namespace Weizza
             "dark earth starts about 8 cm up, under its bright grass edge, so the water's floor follows that, not the walk line.")]
         [SerializeField] private float floorLift = 0.08f;
 
+        [BoxGroup("Shape")]
+        [PropertyRange(0f, 0.4f), Tooltip("Where the water stops at a bank, as height above the walk line. A puddle drawn " +
+            "behind the ground uses the top of the grass edge (about 18 cm), so it reaches right up to the grass on both " +
+            "sides; water drawn in front uses the same as the floor.")]
+        [SerializeField] private float shoreLift = 0.08f;
+
+        [BoxGroup("Look")]
+        [Tooltip("Draw the water behind the ground, so the near bank's grass edge covers its lower part, the way a " +
+                 "puddle lying in a dip looks from a little above. Off for a pool you swim in, drawn over the swimmer.")]
+        [SerializeField] private bool behindGround;
+
         [BoxGroup("Look", centerLabel: true)]
         [Required] [SerializeField] private Material bodyMaterial;
 
@@ -105,7 +116,7 @@ namespace Weizza
 
         public float Level => transform.position.y;
         public int SortingLayerId => _sortingLayerId;
-        public int SortingOrder => sortingOrder;
+        public int SortingOrder => Order;
         public bool Built => _floor != null;
 
         /// <summary>Deep enough to float in rather than wade.</summary>
@@ -214,6 +225,15 @@ namespace Weizza
             return ok;
         }
 
+        private bool Bank(float x, out float y)
+        {
+            var ok = GroundPath.TryTerrainHeight(x, out y);
+            y += shoreLift;
+            return ok;
+        }
+
+        private int Order => behindGround ? -7 : sortingOrder;
+
         /// <summary>Ground height under the water at a world x.</summary>
         public float FloorAt(float x)
         {
@@ -233,7 +253,7 @@ namespace Weizza
             for (var travelled = 0f; travelled < maxReach; travelled += probe)
             {
                 var next = x + direction * probe;
-                if (!Ground(next, out var g)) return x;
+                if (!Bank(next, out var g)) return x;
                 if (g >= level)
                 {
                     var wet = x;
@@ -241,7 +261,7 @@ namespace Weizza
                     for (var i = 0; i < 12; i++)
                     {
                         var mid = (wet + dry) * 0.5f;
-                        if (Ground(mid, out var gm) && gm < level) wet = mid; else dry = mid;
+                        if (Bank(mid, out var gm) && gm < level) wet = mid; else dry = mid;
                     }
                     return wet;
                 }
@@ -274,8 +294,9 @@ namespace Weizza
                 _floor[c] = Ground(x, out var g) ? Mathf.Min(g, Level) : Level;
                 Deepest = Mathf.Max(Deepest, Level - _floor[c]);
             }
-            // The very ends meet the bank at the level, so the water closes to nothing there.
-            _floor[0] = _floor[columns - 1] = Level;
+            // Drawn in front, the very ends close to nothing at the bank. Drawn behind, the water
+            // runs on down to the walk line under the bank's grass, which hides that edge.
+            if (!behindGround) _floor[0] = _floor[columns - 1] = Level;
             for (var i = 0; i < MaskSamples; i++) _mask[i] = FloorAt(Mathf.Lerp(Left, Right, i / (float)(MaskSamples - 1)));
 
             _height = new float[columns];
@@ -286,8 +307,9 @@ namespace Weizza
             MakeBody(columns);
             if (Application.isPlaying)
             {
-                _drops = MakeParticles("Water Drops", dropMaterial, sortingOrder + 1, 1.6f);
-                _rings = MakeParticles("Water Rings", ringMaterial, sortingOrder, 0f);
+                // Splashes fly in front of everything, the player's feet included.
+                _drops = MakeParticles("Water Drops", dropMaterial, Mathf.Max(sortingOrder, 1) + 1, 1.6f);
+                _rings = MakeParticles("Water Rings", ringMaterial, Mathf.Max(sortingOrder, 1), 0f);
             }
         }
 
@@ -329,7 +351,7 @@ namespace Weizza
             _renderer = _bodyObject.AddComponent<MeshRenderer>();
             _renderer.sharedMaterial = bodyMaterial;
             _renderer.sortingLayerID = _sortingLayerId;
-            _renderer.sortingOrder = sortingOrder;
+            _renderer.sortingOrder = Order;
             _renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _renderer.receiveShadows = false;
             Shape(0f);
