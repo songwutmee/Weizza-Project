@@ -94,11 +94,83 @@ namespace Weizza
             _musicA = MakeSource("Music A");
             _musicB = MakeSource("Music B");
             _ambience = MakeSource("Ambience");
+            _layer = MakeSource("Music Layer");
+            _layer.loop = true;
             _voice = MakeSource("Voice");
             _musicA.loop = _musicB.loop = _ambience.loop = true;
 
             if (GetComponent<CombatAudio>() == null) gameObject.AddComponent<CombatAudio>();
             if (GetComponent<SfxOnEvent>() == null) gameObject.AddComponent<SfxOnEvent>();
+            if (GetComponent<AudioMix>() == null) _mix = gameObject.AddComponent<AudioMix>();
+            else _mix = GetComponent<AudioMix>();
+        }
+
+        private AudioMix _mix;
+
+        /// <summary>The pooled sources that play effects. For the mix to hang filters on.</summary>
+        public IReadOnlyList<AudioSource> EffectVoices => _voices;
+
+        /// <summary>Both music sources, the music layer and the ambience bed.</summary>
+        public IEnumerable<AudioSource> MusicAndAmbienceSources
+        {
+            get
+            {
+                yield return _musicA;
+                yield return _musicB;
+                yield return _layer;
+                yield return _ambience;
+            }
+        }
+
+        public bool VoicePlaying => _voicePlaying;
+
+        /// <summary>Sets the music to its live target. The mix calls it every frame while it ducks.</summary>
+        public void RefreshMusicVolume()
+        {
+            if (_fadingMusic) return;
+            var music = _musicOnA ? _musicA : _musicB;
+            if (music != null && music.isPlaying) music.volume = MusicTarget();
+            if (_layer != null && _layer.isPlaying) _layer.volume = MusicTarget() * _layerWeight;
+        }
+
+        // ---- Music layers -----------------------------------------------------------------
+
+        private AudioSource _layer;
+        private SoundEntry _layerEntry;
+        private float _layerWeight, _layerTarget;
+
+        /// <summary>
+        /// Plays a second stem in step with the current music and fades it to
+        /// <paramref name="weight"/>: the fight layer over the exploring layer, the way a
+        /// score swells without starting over. Null or empty clears it.
+        /// </summary>
+        public bool SetMusicLayer(string layerId, float weight)
+        {
+            _layerTarget = Mathf.Clamp01(weight);
+            var entry = string.IsNullOrEmpty(layerId) ? null : Find(layerId);
+            if (entry == null) { _layerTarget = 0f; return false; }
+            if (entry != _layerEntry)
+            {
+                var clip = entry.Pick();
+                if (clip == null) return false;
+                _layerEntry = entry;
+                _layer.clip = clip;
+                var music = _musicOnA ? _musicA : _musicB;
+                // Same position as the base stem, so the two stay locked bar for bar.
+                if (music != null && music.isPlaying && music.clip != null && clip.length > 0f)
+                    _layer.timeSamples = music.timeSamples % clip.samples;
+                _layer.volume = 0f;
+                _layerWeight = 0f;
+                _layer.Play();
+            }
+            return true;
+        }
+
+        private void Update()
+        {
+            if (_layer == null || !_layer.isPlaying) return;
+            _layerWeight = Mathf.MoveTowards(_layerWeight, _layerTarget, Time.unscaledDeltaTime / 1.2f);
+            if (_layerTarget <= 0f && _layerWeight <= 0f) { _layer.Stop(); _layerEntry = null; }
         }
 
         private void OnEnable()
@@ -175,7 +247,7 @@ namespace Weizza
             var source = FreeVoice();
             source.clip = clip;
             source.loop = false;
-            source.volume = entry.volume * volumeScale * CategoryVolume(entry.category);
+            source.volume = entry.volume * volumeScale * CategoryVolume(entry.category) * (at.HasValue ? Distance(at.Value) : 1f);
             source.pitch = UnityEngine.Random.Range(entry.pitch.x, entry.pitch.y);
             source.panStereo = at.HasValue ? Pan(at.Value) : 0f;
             source.Play();
@@ -190,6 +262,17 @@ namespace Weizza
                 if (voice.time > oldest.time) oldest = voice;
             }
             return oldest;
+        }
+
+        // Full on screen, fading to a third one screen width off it: an ant swinging off camera
+        // is heard, but never as loud as the one in front of the player.
+        private static float Distance(Vector3 world)
+        {
+            var camera = Camera.main;
+            if (camera == null) return 1f;
+            var v = camera.WorldToViewportPoint(world);
+            var outside = Mathf.Max(0f, Mathf.Max(-v.x, v.x - 1f));
+            return Mathf.Lerp(1f, 0.33f, Mathf.Clamp01(outside));
         }
 
         private float Pan(Vector3 world)
@@ -239,10 +322,10 @@ namespace Weizza
         private async UniTaskVoid CrossfadeAsync(AudioSource incoming, AudioSource outgoing, float seconds,
             CancellationToken ct)
         {
-            var target = MusicTarget();
             var start = outgoing != null ? outgoing.volume : 0f;
             var elapsed = 0f;
             seconds = Mathf.Max(0.01f, seconds);
+            _fadingMusic = true;
 
             try
             {
@@ -250,7 +333,8 @@ namespace Weizza
                 {
                     elapsed += Time.unscaledDeltaTime;
                     var t = elapsed / seconds;
-                    if (incoming != null) incoming.volume = Mathf.Lerp(0f, target, t);
+                    // The target is read live, so a duck that starts mid fade still applies.
+                    if (incoming != null) incoming.volume = Mathf.Lerp(0f, MusicTarget(), t);
                     if (outgoing != null) outgoing.volume = Mathf.Lerp(start, 0f, t);
                     await UniTask.Yield(PlayerLoopTiming.Update, ct);
                 }
@@ -260,16 +344,23 @@ namespace Weizza
                 return;
             }
 
-            if (incoming != null) incoming.volume = target;
+            if (incoming != null) incoming.volume = MusicTarget();
             if (outgoing != null)
             {
                 outgoing.volume = 0f;
                 outgoing.Stop();
             }
+            // Only a fade that finished hands the volume back: a cancelled one was replaced
+            // by a newer fade that is still running.
+            _fadingMusic = false;
         }
 
+        private bool _fadingMusic;
+
+        // The mix's duck replaces the old flat voice duck when it is there.
         private float MusicTarget() =>
-            _musicVolume * CategoryVolume(SoundCategory.Music) * (_voicePlaying ? voiceDuck : 1f);
+            _musicVolume * CategoryVolume(SoundCategory.Music) *
+            (_mix != null ? _mix.MusicGain : _voicePlaying ? voiceDuck : 1f);
 
         // ---- Ambience -------------------------------------------------------------------
 
