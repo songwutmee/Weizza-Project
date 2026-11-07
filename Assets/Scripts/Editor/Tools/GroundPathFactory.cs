@@ -179,6 +179,18 @@ namespace Weizza.EditorTools
                 reference != null ? reference.sortingLayerName : "Default",
                 reference != null ? reference.sortingOrder + 1 : -4);
 
+            // The ground strip sprites carry a sprite material, which on a path mesh draws
+            // magenta. A path already in the map has everything right, so copy that instead.
+            var model = NearestPath(startX, path);
+            if (model != null)
+            {
+                CopySettings(model, path);
+                go.transform.position = new Vector3(startX, 0f, model.transform.position.z);
+                Selection.activeGameObject = go;
+                EditorSceneManager.MarkSceneDirty(go.scene);
+                return path;
+            }
+
             if (reference == null)
                 Debug.LogWarning("[Ground Path] No flat ground piece found nearby, so the material is empty. Drag the ground's material into the new path.", go);
 
@@ -194,6 +206,36 @@ namespace Weizza.EditorTools
             if (chunk == null) return null;
             var at = ChunkPainting.Child(chunk.transform, "Level");
             return ChunkPainting.Child(at, "Art");
+        }
+
+        private static GroundPath NearestPath(float x, GroundPath except)
+        {
+            GroundPath best = null;
+            var bestDistance = float.MaxValue;
+            foreach (var p in Object.FindObjectsByType<GroundPath>(FindObjectsSortMode.None))
+            {
+                if (p == null || p == except || p.Points.Count < 2) continue;
+                var d = Mathf.Min(Mathf.Abs(WorldStart(p).x - x), Mathf.Abs(WorldEnd(p).x - x));
+                if (d < bestDistance) { bestDistance = d; best = p; }
+            }
+            return best;
+        }
+
+        // Every setting of the model path except its shape.
+        public static void CopySettings(GroundPath from, GroundPath to)
+        {
+            var src = new SerializedObject(from);
+            var dst = new SerializedObject(to);
+            var it = src.GetIterator();
+            it.NextVisible(true);
+            while (it.NextVisible(false))
+            {
+                if (it.name == "points" || it.name == "m_Script") continue;
+                dst.CopyFromSerializedProperty(it);
+            }
+            dst.ApplyModifiedProperties();
+            to.Rebuild();
+            EditorUtility.SetDirty(to);
         }
 
         private static SpriteRenderer NearestGround(float x)

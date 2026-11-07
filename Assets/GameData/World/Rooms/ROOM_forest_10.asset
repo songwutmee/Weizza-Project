@@ -20,10 +20,12 @@ MonoBehaviour:
     serializedVersion: 2
     x: 360
     y: -14
-    width: 40
+    width: 74
     height: 40
   neighbours:
   - roomId: forest_09
+    link: 0
+  - roomId: forest_11
     link: 0
   mapColour: {r: 0.4875, g: 0.75, b: 0.658, a: 1}
   hiddenUntilVisited: 1
