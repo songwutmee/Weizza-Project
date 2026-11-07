@@ -41,8 +41,19 @@ Shader "Weizza/WaterSurface"
         _FoamWidth ("Foam width", Range(0, 0.5)) = 0.14
         _FoamBreak ("Foam broken up", Range(0, 1)) = 0.45
 
+        [Header(Wet ground rim)]
+        _RimColour ("Rim colour", Color) = (0.08, 0.09, 0.05, 0.4)
+        _RimWidth ("Rim width", Range(0, 0.4)) = 0
+
+        [Header(Front face of deep water)]
+        _FaceTop ("Opacity at the top", Range(0, 1)) = 0.35
+        _FaceBottom ("Opacity deep down", Range(0, 1)) = 0.85
+        _Rays ("Light rays", Range(0, 1)) = 0.35
+
         [HideInInspector] _Overlay ("Overlay", Float) = 0
         [HideInInspector] _OverlayAlpha ("Overlay alpha", Float) = 0.5
+        [HideInInspector] _Face ("Face", Float) = 0
+        [HideInInspector] _FaceShape ("Face shape", Vector) = (2, 1.4, 0, 0)
     }
 
     SubShader
@@ -81,9 +92,41 @@ Shader "Weizza/WaterSurface"
                 float _FarAmount, _DeepAt, _AlphaFront, _AlphaBack;
                 float _Caustics, _CausticScale, _Streaks, _Sparkle, _Crest;
                 float _FoamWidth, _FoamBreak;
+                half4 _RimColour;
+                float _RimWidth, _FaceTop, _FaceBottom, _Rays;
             CBUFFER_END
 
-            float _Overlay, _OverlayAlpha;
+            float _Overlay, _OverlayAlpha, _Face;
+            float4 _FaceShape;   // x depth below the surface, y metres from the bank to full depth
+
+            // The front of a deep pond, seen side on: the player sinks behind it. Darker the
+            // deeper, a few soft rays from the surface, caustics on the cut, a bright line
+            // where it meets the surface. Its depth follows a bowl, shallow at the banks, so
+            // it only covers the basin and not the earth beside it.
+            half4 FaceFrag(float3 p, float wave, float t)
+            {
+                float inside = WaterInside(p.x, _WaterRect.z);
+                clip(inside);
+                float floorDepth = _FaceShape.x * smoothstep(0.0, _FaceShape.y, inside);
+                float below = _WaterLevel.x - p.y;
+                clip(floorDepth - below);
+                float k = saturate(below / max(floorDepth, 0.05));
+
+                half3 col = lerp(_Shallow.rgb, _Deep.rgb, saturate(below / 1.2)) * lerp(1.0, 0.8, k);
+                float e = WaterVoronoiEdge(float2(p.x * 1.1, p.y * 1.5) * _CausticScale + float2(t * 0.1, -t * 0.05), t * 0.6);
+                col += _Highlight.rgb * (1.0 - smoothstep(0.02, 0.14, e)) * _Caustics * 0.6 * (1.0 - k);
+                // Rays slanting down from the surface, drifting slowly, fading with depth.
+                float r = WaterNoise(float2(p.x * 0.55 + p.y * 0.3 - t * 0.04, t * 0.07));
+                col += _Highlight.rgb * smoothstep(0.55, 0.85, r) * _Rays * (1.0 - k) * (1.0 - k);
+                // The cut through the surface catches light.
+                float lip = 1.0 - smoothstep(0.0, 0.05, abs(below - max(0.0, wave) * 0.02));
+                col = lerp(col, _Foam.rgb, lip * 0.8);
+
+                float alpha = lerp(_FaceTop, _FaceBottom, k);
+                alpha = max(alpha, lip * 0.9);
+                alpha *= smoothstep(0.0, 0.12, floorDepth - below) * smoothstep(0.0, 0.05, inside);
+                return half4(col, alpha);
+            }
 
             Varyings Vert(Attributes input)
             {
@@ -100,8 +143,19 @@ Shader "Weizza/WaterSurface"
                 float z = input.waterWS.z;
                 float t = _Time.y;
 
+                if (_Face > 0.5) return FaceFrag(input.waterWS, input.color.r * 2.0 - 1.0, t);
+
                 float inside = WaterInside(x, z);
-                clip(inside);
+                // Ground just outside a puddle stays dark and wet, broken up like soaked soil.
+                if (inside < 0.0)
+                {
+                    clip(_RimWidth - 0.001);
+                    clip(_Overlay > 0.5 ? -1.0 : 1.0);
+                    float wet = 1.0 - saturate(-inside / _RimWidth);
+                    wet *= 0.6 + 0.4 * WaterNoise(float2(x * 9.0, z * 15.0));
+                    clip(wet - 0.01);
+                    return half4(_RimColour.rgb, _RimColour.a * wet * wet);
+                }
 
                 // 0 at the near edge, 1 at the far edge.
                 float back = saturate((z - (_WaterRect.z - _WaterRect.w)) / max(_WaterRect.w * 2.0, 1e-3));

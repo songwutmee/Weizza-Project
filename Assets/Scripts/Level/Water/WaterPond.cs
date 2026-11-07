@@ -48,6 +48,15 @@ namespace Weizza
         [Tooltip("World z of the lane the player walks on. The overlay covers the pond from its near edge to just past this.")]
         [SerializeField] private float laneZ = 0f;
 
+        [BoxGroup("Shape")]
+        [MinValue(0f), Tooltip("Metres of water under the surface. Above 0.6 the pond is deep enough to swim in, " +
+                               "and a front face is drawn over the swimmer. Leave 0 for a puddle or a wading pond.")]
+        [SerializeField] private float swimDepth;
+
+        [BoxGroup("Shape")]
+        [ShowIf(nameof(Deep)), Tooltip("Metres from a bank to the full depth. Match the slope dug into the ground.")]
+        [SerializeField] private float bankSlope = 1.4f;
+
         [BoxGroup("Look", centerLabel: true)]
         [Required] [SerializeField] private Material surfaceMaterial;
 
@@ -97,10 +106,23 @@ namespace Weizza
         [SerializeField] private float stepEvery = 0.5f;
 
         [BoxGroup("Splash")]
+        [PropertyRange(0.2f, 2f), Tooltip("Size of every splash, drop and ring. A puddle wants about half.")]
+        [SerializeField] private float splashScale = 1f;
+
+        [BoxGroup("Splash")]
+        [MinValue(0f), Tooltip("Seconds between drips falling in from the leaves above, on average. 0 is none.")]
+        [SerializeField] private float dripEvery;
+
+        [BoxGroup("Splash")]
         [SerializeField] private string stepSfx = "water.step";
 
         [BoxGroup("Splash")]
         [SerializeField] private string splashSfx = "water.splash";
+
+        [BoxGroup("Splash")]
+        [SerializeField] private string swimSfx = "water.swim";
+
+        private bool Deep => swimDepth > 0.6f;
 
         public float Level => transform.position.y;
         public float HalfWidth => halfWidth;
@@ -117,10 +139,35 @@ namespace Weizza
         private static readonly int LevelId = Shader.PropertyToID("_WaterLevel");
         private static readonly int OverlayId = Shader.PropertyToID("_Overlay");
         private static readonly int OverlayAlphaId = Shader.PropertyToID("_OverlayAlpha");
+        private static readonly int FaceId = Shader.PropertyToID("_Face");
+        private static readonly int FaceShapeId = Shader.PropertyToID("_FaceShape");
+        private static readonly int RimWidthId = Shader.PropertyToID("_RimWidth");
+
+        /// <summary>
+        /// True when feet at this point are deep enough in a swimmable pond to float.
+        /// The level is the surface the swimmer floats under.
+        /// </summary>
+        public static bool SwimAt(Vector3 feet, out float level)
+        {
+            foreach (var p in Ponds)
+            {
+                if (p == null || !p.Deep || !p.Covers(feet.x, 0.3f)) continue;
+                if (feet.y > p.Level - SwimFeetDepth || feet.y < p.Level - p.swimDepth - 0.5f) continue;
+                level = p.Level;
+                return true;
+            }
+            level = 0f;
+            return false;
+        }
+
+        /// <summary>How far below the surface the feet must be before the player floats instead of wading.</summary>
+        public const float SwimFeetDepth = 0.55f;
 
         private const float StepRate = 1f / 60f;
 
-        private Sheet _surface, _overlay;
+        private Sheet _surface, _overlay, _face;
+        private float _nextDrip;
+        private float _swum, _bobClock;
         private ParticleSystem _drops, _rings;
         private MaterialPropertyBlock _block;
         private float[] _height, _speed, _left, _right;
@@ -147,7 +194,8 @@ namespace Weizza
             Ponds.Remove(this);
             _surface?.Dispose();
             _overlay?.Dispose();
-            _surface = _overlay = null;
+            _face?.Dispose();
+            _surface = _overlay = _face = null;
             Kill(_drops);
             Kill(_rings);
             _drops = _rings = null;
@@ -184,6 +232,10 @@ namespace Weizza
             if (laneLocal + 0.08f > near)
                 _overlay = new Sheet(transform, "Water Over Feet", surfaceMaterial, columns, -HalfSpan, HalfSpan, near,
                     Mathf.Min(far, laneLocal + 0.08f), 3, _sortingLayerId, overlayOrder);
+            // The cut through the near side of a deep pond, standing upright, drawn over the swimmer.
+            if (Deep)
+                _face = new Sheet(transform, "Water Front", surfaceMaterial, columns, -HalfSpan, HalfSpan, -halfDepth,
+                    -halfDepth, 6, _sortingLayerId, overlayOrder, swimDepth + 0.2f);
 
             if (Application.isPlaying)
             {
@@ -194,7 +246,8 @@ namespace Weizza
 
         private float Width => halfWidth * 2f;
         private float HalfSpan => halfWidth + Margin;
-        private float Margin => shoreWobble + 0.05f;
+        private float Margin => shoreWobble + 0.05f +
+            (surfaceMaterial != null && surfaceMaterial.HasFloat(RimWidthId) ? surfaceMaterial.GetFloat(RimWidthId) : 0f);
 
         // ---- Waves ------------------------------------------------------------------------
 
@@ -254,6 +307,7 @@ namespace Weizza
         {
             if (!Application.isPlaying || _height == null) return;
             Wade();
+            if (_surface != null) Drip();
             if (!_awake) return;
             _stepClock += Mathf.Min(Time.deltaTime, 0.1f);
             while (_stepClock >= StepRate)
@@ -267,6 +321,8 @@ namespace Weizza
         private void LateUpdate()
         {
             if (_surface == null) return;
+            // Off screen, nothing to shape: a dozen puddles along a level cost nothing until seen.
+            if (Application.isPlaying && !_surface.Renderer.isVisible && (_face == null || !_face.Renderer.isVisible)) return;
             var p = transform.position;
             _block.Clear();
             _block.SetVector(RectId, new Vector4(p.x, halfWidth, p.z, halfDepth));
@@ -281,6 +337,15 @@ namespace Weizza
                 _overlay.Shape(_height, idleSwell, crestHeight, t, p.x);
                 _block.SetFloat(OverlayId, 1f);
                 _overlay.Renderer.SetPropertyBlock(_block);
+            }
+            if (_face != null)
+            {
+                _face.Shape(_height, idleSwell, crestHeight, t, p.x);
+                _block.SetFloat(OverlayId, 0f);
+                _block.SetFloat(FaceId, 1f);
+                _block.SetVector(FaceShapeId, new Vector4(swimDepth, bankSlope, 0f, 0f));
+                _face.Renderer.SetPropertyBlock(_block);
+                _block.SetFloat(FaceId, 0f);
             }
         }
 
@@ -304,9 +369,41 @@ namespace Weizza
             var pos = player.transform.position;
             var motor = player.Motor;
             var grounded = motor.Grounded;
-            var over = Covers(pos.x) && pos.y < Level + 0.4f && pos.y > Level - 1.5f;
+            var over = Covers(pos.x) && pos.y < Level + 0.4f && pos.y > Level - swimDepth - 1.5f;
+            var swimming = Deep && over && pos.y < Level - SwimFeetDepth + 0.05f;
 
-            if (over)
+            if (over && Deep && _lastFeetY > Level - 0.25f && pos.y <= Level - 0.25f && _lastVy < -1f)
+            {
+                // Dropping into deep water: the big one, however the player got there.
+                Splash(new Vector3(pos.x, Level, laneZ), Mathf.InverseLerp(1f, 12f, -_lastVy));
+                _swum = 0f;
+            }
+            else if (swimming)
+            {
+                // Strokes push rings out as the swimmer moves; a still swimmer bobs and
+                // sends out a slow ring now and then.
+                var moved = Mathf.Abs(pos.x - _lastX);
+                if (moved > 0.0005f) Disturb(pos.x, 0.5f, -Mathf.Clamp(moved * 0.08f, 0f, 0.006f));
+                _swum += moved;
+                _bobClock += Time.deltaTime;
+                if (_swum >= 0.8f)
+                {
+                    _swum = 0f;
+                    _bobClock = 0f;
+                    var at = new Vector3(pos.x, Level, laneZ);
+                    Disturb(pos.x, 0.45f, -0.04f);
+                    EmitDrops(at, 3, 1.2f * splashScale, Mathf.Sign(motor.Velocity.x));
+                    EmitRing(at, 0.8f * splashScale, 0.9f);
+                    AudioDirector.Instance?.PlayAt(swimSfx, at, 0.5f);
+                }
+                else if (_bobClock >= 1.4f)
+                {
+                    _bobClock = 0f;
+                    EmitRing(new Vector3(pos.x, Level, laneZ), 0.7f * splashScale, 1.2f);
+                    Disturb(pos.x, 0.4f, -0.015f);
+                }
+            }
+            else if (over)
             {
                 if (!_wasGrounded && grounded && _lastVy < -2f)
                 {
@@ -331,24 +428,43 @@ namespace Weizza
             _wasGrounded = grounded;
             _lastVy = motor.Velocity.y;
             _lastX = pos.x;
+            _lastFeetY = pos.y;
+        }
+
+        private float _lastFeetY = 99f;
+
+        // A drop from the leaves now and then, so a puddle in a wet forest is never quite still.
+        private void Drip()
+        {
+            if (dripEvery <= 0f || Time.time < _nextDrip) return;
+            var first = _nextDrip <= 0f;
+            _nextDrip = Time.time + dripEvery * Random.Range(0.5f, 1.5f);
+            if (first || !_surface.Renderer.isVisible) return;
+            var at = new Vector3(transform.position.x + Random.Range(-0.7f, 0.7f) * halfWidth, Level,
+                transform.position.z + Random.Range(-0.4f, 0.4f) * halfDepth);
+            EmitRing(at, Random.Range(0.25f, 0.45f) * splashScale, 1f);
+            Disturb(at.x, 0.15f, -0.008f);
         }
 
         /// <summary>A landing or anything dropped in. Strength 0 to 1.</summary>
         public void Splash(Vector3 at, float strength)
         {
             strength = Mathf.Clamp01(strength);
-            Disturb(at.x, 0.45f + 0.4f * strength, -(0.05f + 0.1f * strength));
-            EmitDrops(at, 10 + Mathf.RoundToInt(22 * strength), 2.2f + 2.8f * strength, 0f);
-            EmitRing(at, 0.9f + 0.9f * strength, 0.9f);
-            EmitRing(at, 0.5f + 0.5f * strength, 0.6f);
-            AudioDirector.Instance?.PlayAt(splashSfx, at, 0.6f + 0.4f * strength);
+            var s = splashScale;
+            Disturb(at.x, (0.45f + 0.4f * strength) * s, -(0.05f + 0.1f * strength) * s);
+            EmitDrops(at, Mathf.RoundToInt((10 + 22 * strength) * s), (2.2f + 2.8f * strength) * Mathf.Sqrt(s), 0f);
+            EmitRing(at, (0.9f + 0.9f * strength) * s, 0.9f);
+            EmitRing(at, (0.5f + 0.5f * strength) * s, 0.6f);
+            AudioDirector.Instance?.PlayAt(splashSfx, at, (0.6f + 0.4f * strength) * Mathf.Sqrt(s));
         }
 
         private void Step(Vector3 at, float direction)
         {
-            Disturb(at.x, 0.3f, -0.03f);
-            EmitDrops(at, 4, 1.4f, direction);
-            EmitRing(at, 0.55f, 0.7f);
+            var s = splashScale;
+            Disturb(at.x, 0.3f * s, -0.03f * s);
+            // A puddle step throws a little crown forward, the way the foot leaves.
+            EmitDrops(at, Mathf.Max(3, Mathf.RoundToInt(5 * s)), 1.4f * Mathf.Sqrt(s), direction);
+            EmitRing(at, 0.55f * s, 0.7f);
             AudioDirector.Instance?.PlayAt(stepSfx, at, 0.5f);
         }
 
@@ -361,7 +477,7 @@ namespace Weizza
                 var side = Random.Range(-1f, 1f) + lean * 0.6f;
                 p.position = at + new Vector3(Random.Range(-0.12f, 0.12f), 0.03f, -0.05f);
                 p.velocity = new Vector3(side * speed * 0.45f, speed * Random.Range(0.55f, 1f), 0f);
-                p.startSize = Random.Range(0.035f, 0.09f);
+                p.startSize = Random.Range(0.035f, 0.09f) * Mathf.Lerp(1f, splashScale, 0.5f);
                 p.startLifetime = Random.Range(0.35f, 0.65f);
                 p.startColor = dropColour;
                 _drops.Emit(p, 1);
@@ -440,11 +556,15 @@ namespace Weizza
             private readonly int _columns, _rows;
             private readonly float _x0, _dx;
 
+            private readonly bool _upright;
+
+            /// <param name="height">0 lays the sheet flat. Above 0 stands it upright at z0, reaching this far down.</param>
             public Sheet(Transform parent, string label, Material material, int columns, float x0, float x1,
-                float z0, float z1, int rows, int layer, int order)
+                float z0, float z1, int rows, int layer, int order, float height = 0f)
             {
                 _columns = columns;
                 _rows = Mathf.Max(2, rows);
+                _upright = height > 0f;
                 _x0 = x0;
                 _dx = (x1 - x0) / (columns - 1);
                 _go = new GameObject(label) { hideFlags = HideFlags.DontSave };
@@ -457,8 +577,9 @@ namespace Weizza
                 for (int r = 0, k = 0; r < _rows; r++)
                 {
                     var z = Mathf.Lerp(z0, z1, r / (float)(_rows - 1));
+                    var y = _upright ? -height * r / (_rows - 1) : 0f;
                     for (var c = 0; c < _columns; c++)
-                        _vertices[r * _columns + c] = new Vector3(x0 + c * _dx, 0f, z);
+                        _vertices[r * _columns + c] = new Vector3(x0 + c * _dx, y, _upright ? z0 : z);
                     if (r == _rows - 1) break;
                     for (var c = 0; c < _columns - 1; c++)
                     {
@@ -469,8 +590,8 @@ namespace Weizza
                 }
                 _mesh.vertices = _vertices;
                 _mesh.triangles = triangles;
-                _mesh.bounds = new Bounds(new Vector3((x0 + x1) * 0.5f, 0f, (z0 + z1) * 0.5f),
-                    new Vector3(x1 - x0, 1f, z1 - z0));
+                _mesh.bounds = new Bounds(new Vector3((x0 + x1) * 0.5f, -height * 0.5f, (z0 + z1) * 0.5f),
+                    new Vector3(x1 - x0, 1f + height, Mathf.Max(0.1f, z1 - z0)));
                 _go.AddComponent<MeshFilter>().sharedMesh = _mesh;
                 Renderer = _go.AddComponent<MeshRenderer>();
                 Renderer.sharedMaterial = material;
@@ -489,12 +610,15 @@ namespace Weizza
                     var idle = (Mathf.Sin(x * 2.1f + time * 1.3f) * 0.65f + Mathf.Sin(x * 5.3f - time * 2.1f) * 0.35f) * swell;
                     var h = heights[c] + idle;
                     var shade = (byte)Mathf.Clamp(Mathf.RoundToInt(127.5f + 127.5f * Mathf.Clamp(h / crest, -1f, 1f)), 0, 255);
-                    for (var r = 0; r < _rows; r++)
+                    // An upright face only moves its top edge; the rest stays down in the basin.
+                    for (var r = 0; r < (_upright ? 1 : _rows); r++)
                     {
                         var i = r * _columns + c;
                         _vertices[i].y = h;
                         _colours[i] = new Color32(shade, 0, 0, 255);
                     }
+                    if (_upright)
+                        for (var r = 1; r < _rows; r++) _colours[r * _columns + c] = new Color32(127, 0, 0, 255);
                 }
                 _mesh.SetVertices(_vertices);
                 _mesh.SetColors(_colours);
