@@ -46,14 +46,14 @@ namespace Weizza.EditorTools
 
         // ---- Layers ---------------------------------------------------------
 
-        [TitleGroup("Layers", "Back to front, the order they draw in", TitleAlignments.Centered)]
+        [TitleGroup("Tabs/Layers/Layers", "Back to front, the order they draw in", TitleAlignments.Centered)]
         [InfoBox("$LiveBandVerdict", InfoMessageType.Info)]
         [ShowInInspector, HideLabel]
         [TableList(IsReadOnly = true, AlwaysExpanded = true, HideToolbar = true)]
         private List<LayerRow> layers = new();
 
-        [TitleGroup("Layers")]
-        [HorizontalGroup("Layers/Buttons")]
+        [TitleGroup("Tabs/Layers/Layers")]
+        [HorizontalGroup("Tabs/Layers/Layers/Buttons")]
         [Button("Show all", ButtonSizes.Medium), GUIColor(0.55f, 0.75f, 0.95f)]
         private void ShowAll()
         {
@@ -63,7 +63,7 @@ namespace Weizza.EditorTools
             SceneView.RepaintAll();
         }
 
-        [HorizontalGroup("Layers/Buttons")]
+        [HorizontalGroup("Tabs/Layers/Layers/Buttons")]
         [Button("Refresh counts", ButtonSizes.Medium)]
         private void Recount() => RefreshLayerRows();
 
@@ -82,14 +82,14 @@ namespace Weizza.EditorTools
 
         // ---- Palette --------------------------------------------------------
 
-        [TitleGroup("Palette", "What you are painting from", TitleAlignments.Centered)]
+        [TitleGroup("Tabs/Paint/Palette", "What you are painting from", TitleAlignments.Centered, Order = -20)]
         [InfoBox("Drop a sliced sheet here. Every piece on it becomes a swatch " +
                  "below. Nothing is tiled or stretched, so a piece lands in the " +
                  "scene exactly as it was drawn.")]
         [OnValueChanged(nameof(LoadPalette))]
         [SerializeField] private Texture2D sheet;
 
-        [TitleGroup("Palette")]
+        [TitleGroup("Tabs/Paint/Palette")]
         [InfoBox("For art that never arrives as one sheet, a Plant Animations " +
                  "style folder of separate PNGs works the same way: every " +
                  "Sprite found inside becomes a swatch. Leave Sheet empty to " +
@@ -97,7 +97,7 @@ namespace Weizza.EditorTools
         [OnValueChanged(nameof(LoadPalette))]
         [SerializeField] private DefaultAsset folder;
 
-        [TitleGroup("Palette")]
+        [TitleGroup("Tabs/Paint/Palette")]
         [InfoBox("$SheetVerdict", InfoMessageType.Warning, VisibleIf = "@ScaleWrong")]
         [Button(ButtonSizes.Large, Icon = SdfIconType.Rulers), GUIColor(0.4f, 0.8f, 1f)]
         [ShowIf("@ScaleWrong")]
@@ -115,15 +115,63 @@ namespace Weizza.EditorTools
             LoadPalette();
         }
 
-        [TitleGroup("Palette")]
-        [ShowInInspector, HideLabel]
-        [PropertyOrder(10)]
-        [TableList(IsReadOnly = true, AlwaysExpanded = true, ShowPaging = true, NumberOfItemsPerPage = 8)]
+        // Drawn as a thumbnail grid by DrawSwatchGrid; a table of names was slow to scan.
         private List<Swatch> swatches = new();
+
+        [TitleGroup("Tabs/Paint/Palette")]
+        [PropertyOrder(10), OnInspectorGUI]
+        private void DrawSwatchGrid() => MapPainterLook.SwatchGrid(this);
+
+        // ---- Look: header and tabs ----------------------------------------------
+
+        [PropertyOrder(-1000), OnInspectorGUI]
+        private void DrawHeader() => MapPainterLook.Header(this);
+
+        // Each tab is declared by one anchor so the groups can sit inside it by path.
+        [TabGroup("Tabs", "Paint", SdfIconType.Brush, Order = 0), PropertyOrder(-500), OnInspectorGUI]
+        private void PaintTabAnchor() { }
+
+        [TabGroup("Tabs", "Layers", SdfIconType.Layers, Order = 1), PropertyOrder(-500), OnInspectorGUI]
+        private void LayersTabAnchor() { }
+
+        [TabGroup("Tabs", "World", SdfIconType.Map, Order = 2), PropertyOrder(-500), OnInspectorGUI]
+        private void WorldTabAnchor() { }
+
+        // ---- Look: what the header and the grid read and press --------------------
+
+        internal bool Painting { get => painting; set { painting = value; SceneView.RepaintAll(); Repaint(); } }
+        internal int ToolIndex { get => (int)tool; set { tool = (Tool)value; painting = true; SceneView.RepaintAll(); Repaint(); } }
+        internal SceneryRole Role => role;
+        internal string ChunkUnderCursor => HasWorld ? _lastChunk : null;
+        internal string Status => PaintVerdict;
+        internal int SwatchCount => swatches.Count;
+        internal int Chosen => chosen;
+        internal Sprite SwatchSprite(int i) => i >= 0 && i < swatches.Count ? swatches[i].sprite : null;
+        internal bool SwatchAnimated(int i) => i >= 0 && i < swatches.Count && swatches[i].animFolder != null;
+        internal Vector2 SwatchMetres(int i) => i >= 0 && i < swatches.Count ? swatches[i].Metres : Vector2.zero;
+        internal bool RandomVariant { get => randomVariant; set => randomVariant = value; }
+
+        internal void Choose(int i)
+        {
+            if (i < 0 || i >= swatches.Count) return;
+            chosen = i;
+            painting = true;
+            tool = Tool.Paint;
+            SceneView.RepaintAll();
+            Repaint();
+        }
+
+        /// <summary>The open Map Painter, for the Scene view toolbar.</summary>
+        internal static MapPainterWindow Current => Active;
+
+        internal static void OpenWindow() => Open();
+
+        [SerializeField, HideInInspector] internal string swatchFilter = "";
+        [SerializeField, HideInInspector] internal float thumbSize = 72f;
 
         // ---- Presets ----------------------------------------------------------
 
-        [TitleGroup("Presets", "One click loads a whole layer: its pictures, band, scale and collider", TitleAlignments.Centered)]
+        [TitleGroup("Tabs/Paint/Presets", "One click loads a whole layer: its pictures, band, scale and collider", TitleAlignments.Centered, Order = -30)]
         [OnInspectorGUI]
         private void DrawPresetButtons()
         {
@@ -180,12 +228,12 @@ namespace Weizza.EditorTools
             SceneView.RepaintAll();
         }
 
-        [TitleGroup("Presets")]
-        [HorizontalGroup("Presets/Save")]
+        [TitleGroup("Tabs/Paint/Presets")]
+        [HorizontalGroup("Tabs/Paint/Presets/Save")]
         [LabelText("Name"), LabelWidth(40)]
         [SerializeField] private string presetName = "";
 
-        [HorizontalGroup("Presets/Save", Width = 90)]
+        [HorizontalGroup("Tabs/Paint/Presets/Save", Width = 90)]
         [Button("Save current", ButtonSizes.Medium), GUIColor(0.5f, 0.8f, 0.5f)]
         private void SavePreset()
         {
@@ -216,19 +264,16 @@ namespace Weizza.EditorTools
 
         private enum Tool { Paint, Erase, Pick }
 
-        [TitleGroup("Tool", "B paint, E erase, I pick. Hold Ctrl to erase while painting", TitleAlignments.Centered)]
-        [InfoBox("$PaintVerdict", InfoMessageType.None)]
-        [ToggleLeft, LabelText("Tools on in the Scene view")]
-        [GUIColor("@painting ? new Color(0.55f, 1f, 0.6f) : new Color(1f, 0.75f, 0.5f)")]
-        [SerializeField] private bool painting;
+        // The on switch and the tool buttons live in the header, always in view, and in
+        // the Scene view toolbar; here they would only be a second copy to scroll past.
+        [SerializeField, HideInInspector] private bool painting;
 
-        // Picking a tool is the clear sign someone wants to use it. The switch
-        // used to live far below in Placing, and Erase or Pick with the switch
-        // off did nothing at all, which read as a broken eraser.
-        [TitleGroup("Tool")]
-        [EnumToggleButtons, HideLabel]
-        [OnValueChanged(nameof(TurnOn))]
-        [SerializeField] private Tool tool = Tool.Paint;
+        // Picking a tool is the clear sign someone wants to use it, so it turns painting on.
+        [SerializeField, HideInInspector] private Tool tool = Tool.Paint;
+
+        [TitleGroup("Tabs/Paint/Tool", "Brush and eraser settings", TitleAlignments.Centered, Order = -40)]
+        [OnInspectorGUI]
+        private void DrawShortcuts() => MapPainterLook.Shortcuts();
 
         private void TurnOn()
         {
@@ -236,23 +281,23 @@ namespace Weizza.EditorTools
             SceneView.RepaintAll();
         }
 
-        [TitleGroup("Tool")]
+        [TitleGroup("Tabs/Paint/Tool")]
         [ShowIf("@tool == Tool.Erase")]
         [PropertyRange(0f, 6f)]
         [Tooltip("0 erases the one piece under the cursor. Above 0, dragging sweeps a circle this many metres across and erases everything it touches.")]
         [SerializeField] private float eraseRadius;
 
-        [TitleGroup("Tool")]
+        [TitleGroup("Tabs/Paint/Tool")]
         [ToggleLeft]
         [Tooltip("Erase only pieces in the band you are painting into. Off erases whatever is on top under the cursor.")]
         [SerializeField] private bool eraseOnlyLiveBand;
 
-        [TitleGroup("Tool")]
+        [TitleGroup("Tabs/Paint/Tool")]
         [ToggleLeft]
         [Tooltip("Also erase sprites that were placed by hand or by an older Map Painter (no Painted Piece mark). The player, cameras and systems are never touched.")]
         [SerializeField] private bool eraseUnmarked = true;
 
-        [TitleGroup("Tool")]
+        [TitleGroup("Tabs/Paint/Tool")]
         [Button("Mark existing pieces in open scenes", ButtonSizes.Medium), GUIColor(0.55f, 0.75f, 0.95f)]
         [Tooltip("Gives every scenery sprite painted before this version its Painted Piece mark and band, so the eraser and eyedropper treat old and new pieces the same.")]
         private void MarkExisting()
@@ -279,34 +324,34 @@ namespace Weizza.EditorTools
 
         // ---- Placing --------------------------------------------------------
 
-        [TitleGroup("Placing", "How a piece lands", TitleAlignments.Centered)]
+        [TitleGroup("Tabs/Paint/Placing", "How a piece lands", TitleAlignments.Centered, Order = -10)]
         [ValueDropdown(nameof(RoleOptions))]
         [OnValueChanged(nameof(OnRoleChanged))]
         [LabelText("Paint into")]
         [SerializeField] private SceneryRole role = SceneryRole.GroundMoss;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [PropertyRange(0f, 2f)]
         [Tooltip("Rounds where a piece lands. Zero drops it exactly under the " +
                  "cursor, which is right for scattered props and wrong for a " +
                  "run of platforms meant to read as one ledge.")]
         [SerializeField] private float grid = 0.5f;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ToggleLeft]
         [Tooltip("Drag instead of clicking once per piece, the way a Tilemap " +
                  "brush works. A new piece drops whenever the cursor has moved " +
                  "far enough from the last one to not overlap it.")]
         [SerializeField] private bool dragPaints = true;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ToggleLeft]
         [Tooltip("Picks a random swatch for every piece instead of the one " +
                  "chosen in the palette, and never repeats the swatch it just " +
                  "used. Off leaves the arrow keys and Use This button in charge.")]
         [SerializeField] private bool randomVariant;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [PropertyRange(0.25f, 3f)]
         [Tooltip("Scales every piece as it is placed. One is the size it was " +
                  "drawn at. A background band reads further away at 0.6 and a " +
@@ -314,43 +359,43 @@ namespace Weizza.EditorTools
                  "second drawing of it.")]
         [SerializeField] private float pieceScale = 1f;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ToggleLeft, Tooltip("Seats each piece on the Ground Path under it, on the lowest point under its " +
                              "width, so nothing hangs in the air on a slope. Off drops it exactly at the cursor.")]
         [SerializeField] private bool sitOnGround = true;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ShowIf(nameof(sitOnGround)), PropertyRange(0f, 0.5f)]
         [Tooltip("Metres a seated piece sinks into the ground, so its foot is buried instead of balanced.")]
         [SerializeField] private float sinkInto = 0.08f;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ToggleLeft, Tooltip("Tips each piece part way with the slope it stands on, the way a rock settles on a hill.")]
         [SerializeField] private bool followSlope = true;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [PropertyRange(0f, 0.4f), Tooltip("Random size spread, as a fraction. 0.15 gives pieces 85% to 115% of the size above.")]
         [SerializeField] private float sizeJitter = 0.12f;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [PropertyRange(0f, 15f), Tooltip("Random tilt either way, in degrees. A few degrees breaks up a row of the same drawing.")]
         [SerializeField] private float tiltJitter = 3f;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ToggleLeft, LabelText("Sway in the wind")]
         [Tooltip("Plants, grass and vines bend gently, each on its own beat. Uses the " +
                  "Weizza/SpriteSway material. Vines hang from the top, everything else is " +
                  "planted at the bottom. Animated plants already move and skip this.")]
         [SerializeField] private bool sway;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ToggleLeft]
         [Tooltip("Fits a box collider to the drawn pixels. Turn it off for " +
                  "plants and background pieces, which the player should walk " +
                  "straight through.")]
         [SerializeField] private bool solid = true;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ShowIf(nameof(solid))]
         [PropertyRange(0f, 1f)]
         [Tooltip("How much of the drawn height the collider covers, measured " +
@@ -360,14 +405,14 @@ namespace Weizza.EditorTools
                  "that is meant to be solid all the way through.")]
         [SerializeField] private float colliderDepth = 0.35f;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ShowIf(nameof(solid)), ToggleLeft]
         [Tooltip("Rocks, stumps and ledges standing on the ground: the player walks straight through " +
                  "them at ground level and can still jump up and stand on top (a one way platform). " +
                  "Off makes a wall. Fix placed pieces with Weizza > Level > Make Stand On Top.")]
         [SerializeField] private bool standOnTop = true;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [PropertyRange(-50, 50)]
         [Tooltip("Starts from the band's own order and can be nudged from " +
                  "there, for two pieces in the same band that still need one " +
@@ -377,20 +422,20 @@ namespace Weizza.EditorTools
         /// <summary>Ground strips and Ground Paths draw at -5; one below sits behind their grass.</summary>
         public const int BehindGroundOrder = -6;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ToggleLeft]
         [Tooltip("Stumps, rocks and anything standing on the ground: drawn behind the ground strip, so " +
                  "the grass line runs across its foot and it grows out of the earth instead of sitting on it. " +
                  "Fix pieces already placed with Weizza > Level > Send Behind Ground.")]
         [SerializeField] private bool behindGround = true;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ToggleLeft]
         [Tooltip("Mirrors every other piece as it is placed, so a long run does " +
                  "not read as the same shape stamped over and over.")]
         [SerializeField] private bool alternateFlip = true;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ToggleLeft]
         [ShowIf(nameof(HasWorld))]
         [LabelText("Paint straight into chunks")]
@@ -399,7 +444,7 @@ namespace Weizza.EditorTools
                  "Painting past the end of the line always drafts.")]
         [SerializeField] private bool paintIntoChunks = true;
 
-        [TitleGroup("Placing")]
+        [TitleGroup("Tabs/Paint/Placing")]
         [ShowIf(nameof(HasWorld))]
         [ShowInInspector, ReadOnly, LabelText("Chunk under cursor")]
         private string ChunkReadout => _lastChunk;
@@ -410,29 +455,29 @@ namespace Weizza.EditorTools
 
         // ---- Ground paths -----------------------------------------------------
 
-        [TitleGroup("Ground Path", "Hills, ledges and slopes, so the ground is not one flat line", TitleAlignments.Centered)]
+        [TitleGroup("Tabs/World/Ground Path", "Hills, ledges and slopes, so the ground is not one flat line", TitleAlignments.Centered, Order = 0)]
         [ShowInInspector, HideLabel, DisplayAsString(false)]
         private string GroundPathHelp =>
             "Makes a hill where the Scene view is looking, filed into that stretch's chunk.\n" +
             "Then drag the white points. Shift click the line to add a point, Ctrl click a point to remove it.\n" +
             "Keep slopes under 30 degrees for a natural walk; 40 is the most the player can climb.";
 
-        [TitleGroup("Ground Path")]
+        [TitleGroup("Tabs/World/Ground Path")]
         [Button("New Ground Path here", ButtonSizes.Large, Icon = SdfIconType.GraphUp), GUIColor(0.55f, 0.85f, 0.45f)]
         private void NewGroundPath() => GroundPathFactory.CreateAtSceneView();
 
         // ---- Chunks ---------------------------------------------------------
 
-        [TitleGroup("Chunks", "Every stretch of the map, left to right", TitleAlignments.Centered, Order = -10)]
+        [TitleGroup("Tabs/World/Chunks", "Every stretch of the map, left to right", TitleAlignments.Centered, Order = -10)]
         [ShowIf(nameof(HasWorld))]
         [InfoBox("$ChunkVerdict", InfoMessageType.Info)]
         [ShowInInspector, HideLabel]
         [TableList(IsReadOnly = true, AlwaysExpanded = true, HideToolbar = true)]
         private List<ChunkRow> chunks = new();
 
-        [TitleGroup("Chunks")]
+        [TitleGroup("Tabs/World/Chunks")]
         [ShowIf(nameof(HasWorld))]
-        [HorizontalGroup("Chunks/Buttons")]
+        [HorizontalGroup("Tabs/World/Chunks/Buttons")]
         [Button("Show every chunk", ButtonSizes.Medium), GUIColor(0.55f, 0.75f, 0.95f)]
         private void ShowEveryChunk()
         {
@@ -443,7 +488,7 @@ namespace Weizza.EditorTools
             Repaint();
         }
 
-        [HorizontalGroup("Chunks/Buttons")]
+        [HorizontalGroup("Tabs/World/Chunks/Buttons")]
         [Button("Refresh list", ButtonSizes.Medium)]
         private void RefreshChunkRows()
         {
@@ -524,19 +569,19 @@ namespace Weizza.EditorTools
 
         // ---- World ----------------------------------------------------------
 
-        [TitleGroup("World", "The map is a line of chunk scenes the game streams", TitleAlignments.Centered, Order = -20)]
+        [TitleGroup("Tabs/World/World", "The map is a line of chunk scenes the game streams", TitleAlignments.Centered, Order = -20)]
         [ShowIf(nameof(HasWorld))]
         [InfoBox("Every chunk is its own scene, opened together here so the whole map shows. " +
                  "Paint anywhere and the piece goes into the chunk under the cursor. " +
                  "Need more map? Add a chunk to the end of the line and keep painting.")]
         [LabelText("Area id"), SerializeField] private string newChunkArea = "forest";
 
-        [TitleGroup("World")]
+        [TitleGroup("Tabs/World/World")]
         [ShowIf(nameof(HasWorld))]
         [PropertyRange(20f, 80f), LabelText("Chunk width (m)"), SerializeField]
         private float newChunkWidth = 40f;
 
-        [TitleGroup("World")]
+        [TitleGroup("Tabs/World/World")]
         [ShowIf(nameof(HasWorld))]
         [Button("$NewChunkLabel", ButtonSizes.Gigantic), GUIColor(0.5f, 0.85f, 0.55f)]
         private void AddChunk()
@@ -658,14 +703,14 @@ namespace Weizza.EditorTools
 
         // ---- Draft ----------------------------------------------------------
 
-        [TitleGroup("World")]
+        [TitleGroup("Tabs/World/World")]
         [ShowIf(nameof(HasWorld))]
         [InfoBox("$DraftVerdict", InfoMessageType.None)]
         [ToggleLeft, LabelText("One chunk that fits the selection"), SerializeField]
         [Tooltip("On: the new chunk is exactly as wide as what you drew. Off: it is cut every Chunk width metres.")]
         private bool oneChunkForDraft = true;
 
-        [TitleGroup("World")]
+        [TitleGroup("Tabs/World/World")]
         [ShowIf(nameof(HasWorld))]
         [ToggleLeft, LabelText("Move it to the end of the line"), SerializeField]
         [Tooltip("On: the drawing slides along X so it starts where the map currently ends, so a draft drawn " +
@@ -673,7 +718,7 @@ namespace Weizza.EditorTools
                  "their X and go into whatever chunk is already there.")]
         private bool slideDraftToLineEnd;
 
-        [TitleGroup("World")]
+        [TitleGroup("Tabs/World/World")]
         [ShowIf(nameof(HasWorld))]
         [Button("Make chunk from selection", ButtonSizes.Large), GUIColor(0.45f, 0.8f, 1f)]
         private void BakeDraft()
@@ -705,7 +750,7 @@ namespace Weizza.EditorTools
 
         // ---- Walk check -------------------------------------------------------
 
-        [TitleGroup("Check", "Can the player actually walk it?", TitleAlignments.Centered)]
+        [TitleGroup("Tabs/World/Check", "Can the player actually walk it?", TitleAlignments.Centered, Order = 10)]
         [InfoBox("$WalkVerdict", "@_walkIssues.Count > 0", InfoMessageType = InfoMessageType.Warning)]
         [InfoBox("Sweeps the whole map every 0.2 m: gaps too wide to jump (over 3 m), steps too high to climb " +
                  "(over 2.2 m), ceilings too low to stand under (under 1.9 m). Problems show as red marks in the " +
@@ -734,7 +779,7 @@ namespace Weizza.EditorTools
             SceneView.RepaintAll();
         }
 
-        [TitleGroup("Check")]
+        [TitleGroup("Tabs/World/Check")]
         [ShowIf("@_walkIssues.Count > 0")]
         [Button("Clear the marks", ButtonSizes.Medium)]
         private void ClearWalkMarks()
@@ -775,7 +820,7 @@ namespace Weizza.EditorTools
 
         // ---- Camera -----------------------------------------------------------
 
-        [TitleGroup("Camera", "Line the Scene view up with the game", TitleAlignments.Centered)]
+        [TitleGroup("Tabs/World/Camera", "Line the Scene view up with the game", TitleAlignments.Centered, Order = 20)]
         [InfoBox("The Scene view free camera makes it easy to place a piece at " +
                  "an angle that looks right here and reads wrong in Game, " +
                  "because the pitch does not match. This puts the Scene camera " +
@@ -1702,7 +1747,7 @@ namespace Weizza.EditorTools
             return b;
         }
 
-        [TitleGroup("Tool")]
+        [TitleGroup("Tabs/Paint/Tool")]
         [Button("Refit colliders of selected pieces", ButtonSizes.Medium)]
         [Tooltip("Rebuilds the box collider of every selected painted piece to its drawn pixels, using the Collider Depth above. For pieces painted before the tight fit existed.")]
         private void RefitSelected()
