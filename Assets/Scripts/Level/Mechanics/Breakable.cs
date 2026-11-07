@@ -72,6 +72,9 @@ namespace Weizza
         {
             if (loot != null) loot.Drop(transform.position);
             HitSpark.Play(transform.position + Vector3.up * 0.5f, Vector2.up, 1f, new Color(0.9f, 0.85f, 0.7f));
+            // A rock that blocked the way should come apart, not blink out.
+            foreach (var d in GetComponentsInChildren<SpriteRenderer>()) if (d.enabled) ShatterFx.Shatter(d, 4, 3, 1.3f);
+            if (CameraFeel.Instance != null) CameraFeel.Instance.ShakeAt(transform.position, 0.2f, Vector2.up);
             SetBroken();
         }
 
