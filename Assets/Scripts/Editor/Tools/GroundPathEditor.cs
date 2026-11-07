@@ -87,6 +87,7 @@ namespace Weizza.EditorTools
                 HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 
             Handles.Label(t.position + Vector3.down * 0.6f, "Drag points.  Shift click the line to add one.  Ctrl click a point to remove it.");
+            DrawSlopes(path, t);
             for (var i = 0; i < path.Points.Count; i++)
             {
                 var world = t.TransformPoint(path.Points[i]);
@@ -104,6 +105,28 @@ namespace Weizza.EditorTools
                     EditorUtility.SetDirty(path);
                 }
                 Handles.Label(world + Vector3.up * size * 3f, (i + 1).ToString());
+            }
+        }
+
+        /// <summary>Slope steeper than this reads as unnatural to walk; past the climb limit it cannot be walked.</summary>
+        public const float ComfortSlope = 30f;
+        public const float ClimbLimit = 40f;
+
+        // Each stretch between two points coloured by how steep it is, with its angle,
+        // so a slope that is too steep shows up while dragging instead of in Play.
+        private static void DrawSlopes(GroundPath path, Transform t)
+        {
+            for (var i = 1; i < path.Points.Count; i++)
+            {
+                var a = t.TransformPoint(path.Points[i - 1]);
+                var b = t.TransformPoint(path.Points[i]);
+                var angle = Mathf.Abs(Mathf.Atan2(b.y - a.y, Mathf.Max(Mathf.Abs(b.x - a.x), 1e-4f)) * Mathf.Rad2Deg);
+                var colour = angle > ClimbLimit ? new Color(1f, 0.3f, 0.25f) : angle > ComfortSlope ? new Color(1f, 0.65f, 0.2f) : new Color(0.45f, 0.95f, 0.55f);
+                Handles.color = colour;
+                Handles.DrawAAPolyLine(4f, a + Vector3.up * 0.02f, b + Vector3.up * 0.02f);
+                if (angle < 3f) continue;
+                var style = new GUIStyle(EditorStyles.miniBoldLabel) { normal = { textColor = colour } };
+                Handles.Label((a + b) * 0.5f + Vector3.up * 0.35f, $"{angle:0}°", style);
             }
         }
     }

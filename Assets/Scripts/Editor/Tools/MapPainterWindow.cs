@@ -466,6 +466,38 @@ namespace Weizza.EditorTools
         [Button("New Ground Path here", ButtonSizes.Large, Icon = SdfIconType.GraphUp), GUIColor(0.55f, 0.85f, 0.45f)]
         private void NewGroundPath() => GroundPathFactory.CreateAtSceneView();
 
+        // Ready made shapes, dropped where the Scene view looks and joined onto the ground
+        // to the left if it ends close by.
+        [TitleGroup("Tabs/World/Ground Path")]
+        [ResponsiveButtonGroup("Tabs/World/Ground Path/Shapes", UniformLayout = true)]
+        [Button("Flat", ButtonSizes.Medium)] private void ShapeFlat() => GroundPathFactory.CreateShape(GroundPathFactory.Shape.Flat);
+
+        [ResponsiveButtonGroup("Tabs/World/Ground Path/Shapes")]
+        [Button("Hill", ButtonSizes.Medium)] private void ShapeHill() => GroundPathFactory.CreateShape(GroundPathFactory.Shape.Hill);
+
+        [ResponsiveButtonGroup("Tabs/World/Ground Path/Shapes")]
+        [Button("Dip", ButtonSizes.Medium)] private void ShapeDip() => GroundPathFactory.CreateShape(GroundPathFactory.Shape.Dip);
+
+        [ResponsiveButtonGroup("Tabs/World/Ground Path/Shapes")]
+        [Button("Steps", ButtonSizes.Medium)] private void ShapeSteps() => GroundPathFactory.CreateShape(GroundPathFactory.Shape.Steps);
+
+        [ResponsiveButtonGroup("Tabs/World/Ground Path/Shapes")]
+        [Button("Ledge", ButtonSizes.Medium)] private void ShapeLedge() => GroundPathFactory.CreateShape(GroundPathFactory.Shape.Ledge);
+
+        [TitleGroup("Tabs/World/Ground Path")]
+        [Button("Join every seam", ButtonSizes.Medium, Icon = SdfIconType.Link45deg), GUIColor(0.55f, 0.75f, 0.95f)]
+        [Tooltip("Where one ground path ends close to the next but not on it, moves the next one's first point onto the end, so there is no gap to fall through.")]
+        private void JoinSeams()
+        {
+            var n = GroundPathFactory.JoinSeams();
+            Debug.Log(n == 0 ? "[Map Painter] Every ground seam already meets." : $"[Map Painter] Joined {n} ground seam(s).");
+        }
+
+        [TitleGroup("Tabs/World/Ground Path")]
+        [ToggleLeft, LabelText("New chunks start with ground")]
+        [Tooltip("New chunk also lays flat ground across it, starting exactly on the end of the ground before it.")]
+        [SerializeField] private bool groundWithNewChunk = true;
+
         // ---- Chunks ---------------------------------------------------------
 
         [TitleGroup("Tabs/World/Chunks", "Every stretch of the map, left to right", TitleAlignments.Centered, Order = -10)]
@@ -602,6 +634,7 @@ namespace Weizza.EditorTools
                 return;
             }
             ChunkEditorSync.OpenAll();
+            if (groundWithNewChunk) GroundPathFactory.ContinueInto(def.worldRect.xMin, def.worldRect.xMax);
             var scene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(def.sceneName);
             var root = ChunkPainting.FindIn(scene);
             if (root != null) Selection.activeGameObject = root.gameObject;
@@ -1880,9 +1913,9 @@ namespace Weizza.EditorTools
 
             [TableColumnWidth(230)]
             [ShowInInspector, DisplayAsString(EnableRichText = true), HideLabel]
-            public string Band => owner.role == row
-                ? $"<color=#7ad48c><b>{SceneryRoleData.Label(row)}</b></color>"
-                : SceneryRoleData.Label(row);
+            // The dot is the same colour as the band chip in the header, so the two match at a glance.
+            public string Band => $"<color=#{ColorUtility.ToHtmlStringRGB(MapPainterLook.BandColour(row))}>●</color>  " +
+                (owner.role == row ? $"<color=#7ad48c><b>{SceneryRoleData.Label(row)}</b></color>" : SceneryRoleData.Label(row));
 
             [TableColumnWidth(58, Resizable = false)]
             [ShowInInspector, DisplayAsString, HideLabel]
