@@ -59,8 +59,20 @@ namespace Weizza
         {
             var audio = AudioDirector.Instance;
             if (audio == null) return;
+            // With a fight stem for the exploring music (its id plus ".fight"), a fight swells the
+            // same piece instead of cutting to another one; the boss still gets its own track.
+            if (!_boss && audio.Find(exploreId + LayerSuffix) != null)
+            {
+                audio.PlayBgm(exploreId, crossfade);
+                audio.SetMusicLayer(exploreId + LayerSuffix, _fights > 0 ? 1f : 0f);
+                return;
+            }
+
+            audio.SetMusicLayer(null, 0f);
             var id = _boss ? bossId : _fights > 0 ? combatId : exploreId;
             audio.PlayBgm(id, crossfade);
         }
+
+        private const string LayerSuffix = ".fight";
     }
 }
