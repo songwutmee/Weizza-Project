@@ -131,8 +131,9 @@ Shader "Weizza/SceneLook"
                 // and the ground keeps its green.
                 half4 wash = lerp(_LookWashLeft, _LookWashRight, across);
                 half washL = Luma(col);
-                half washAmt = wash.a * smoothstep(_LookWashFloor, _LookWashFloor + 0.35, uv.y)
-                             * smoothstep(0.03, 0.3, washL);
+                // No cut by screen height unless asked for: a hard floor line read as two layers of light.
+                half washHeight = _LookWashFloor > 0.001 ? smoothstep(_LookWashFloor - 0.3, _LookWashFloor + 0.3, uv.y) : 1.0;
+                half washAmt = wash.a * washHeight * smoothstep(0.03, 0.3, washL);
                 half3 washed = wash.rgb * (washL / max(Luma(wash.rgb), 0.05));
                 col = lerp(col, washed, saturate(washAmt));
                 // Richer: push colour away from grey, and open the contrast so shadows are dark
